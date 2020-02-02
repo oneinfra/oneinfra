@@ -11,7 +11,7 @@ before_script:
   - sudo apt-get install -qq -y software-properties-common podman tree
 script:
   - sudo mkdir -p /tmp/cluster-test/node-0
-  - sudo podman run -d --privileged -v /cluster-test/node-0:/var/run/containerd --name test-node-0 docker.io/oneinfra/containerd:latest
+  - sudo podman run -d --privileged -v /tmp/cluster-test/node-0:/var/run/containerd --name test-node-0 docker.io/oneinfra/containerd:latest
   # - go install -mod=vendor ./...
   # - sudo ${GOPATH}/bin/oi-local-cluster
   # - sudo tree /tmp/oneinfra-cluster-test

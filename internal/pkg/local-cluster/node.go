@@ -16,6 +16,35 @@ limitations under the License.
 
 package localcluster
 
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+)
+
 type Node struct {
+	Name    string
 	Cluster *Cluster
+}
+
+func (node *Node) Create() error {
+	if err := node.createRuntimeDirectory(); err != nil {
+		return err
+	}
+	cmd := exec.Command(
+		"docker", "run", "-d", "--privileged",
+		"-v", fmt.Sprintf("%s:/var/run/containerd", node.runtimeDirectory()),
+		"--name", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
+		"oneinfra/containerd:latest",
+	)
+	return cmd.Run()
+}
+
+func (node *Node) createRuntimeDirectory() error {
+	return os.MkdirAll(node.runtimeDirectory(), 0755)
+}
+
+func (node *Node) runtimeDirectory() string {
+	return filepath.Join(node.Cluster.directory(), node.Name)
 }

@@ -16,6 +16,53 @@ limitations under the License.
 
 package localcluster
 
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
 type Cluster struct {
-	Name string
+	Name  string
+	Nodes []*Node
+}
+
+func NewCluster(name string, size int) Cluster {
+	cluster := Cluster{
+		Name:  name,
+		Nodes: []*Node{},
+	}
+	for i := 0; i < size; i++ {
+		cluster.addNode(
+			&Node{
+				Name:    fmt.Sprintf("node-%d", i),
+				Cluster: &cluster,
+			},
+		)
+	}
+	return cluster
+}
+
+func (cluster *Cluster) addNode(node *Node) {
+	cluster.Nodes = append(cluster.Nodes, node)
+}
+
+func (cluster *Cluster) Create() error {
+	if err := cluster.createDirectory(); err != nil {
+		return err
+	}
+	for _, node := range cluster.Nodes {
+		if err := node.Create(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (cluster *Cluster) createDirectory() error {
+	return os.MkdirAll(cluster.directory(), 0755)
+}
+
+func (cluster *Cluster) directory() string {
+	return filepath.Join(os.TempDir(), fmt.Sprintf("oneinfra-cluster-%s", cluster.Name))
 }

@@ -4,6 +4,9 @@ go:
   - 1.13.x
   - master
 
+env:
+  - GO111MODULE=on
+
 before_script:
   - add-apt-repository -y ppa:projectatomic/ppa
   - apt-get update -qq

@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get install -qq -y software-properties-common podman
 deploy:
   - provider: script
-    script: go -mod=vendor install ./...
+    script: go install -mod=vendor ./...
   - provider: script
     script: oi-local-cluster
   - provider: script

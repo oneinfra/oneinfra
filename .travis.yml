@@ -11,6 +11,6 @@ before_script:
 
 script:
   - go version
-  - go install -mod vendor ./...
+  - go install -mod=vendor ./...
   - oi-local-cluster
   - tree /tmp/oneinfra-cluster-test

@@ -32,7 +32,7 @@ func createNode(name, clusterName string) error {
 		"podman", "run", "-d", "--privileged",
 		"-v", fmt.Sprintf("%s:/var/run/containerd", containerdDirectory(name, clusterName)),
 		"--name", fmt.Sprintf("%s-%s", clusterName, name),
-		"oneinfra/containerd:latest",
+		"docker.io/oneinfra/containerd:latest",
 	)
 	return cmd.Run()
 }

@@ -2,9 +2,7 @@ dist: bionic
 language: go
 go:
   - 1.13.x
-env:
-  - GO111MODULE=on
-  - GOFLAGS='-mod vendor'
+env: GO111MODULE=on GOFLAGS='-mod vendor'
 before_install:
   - sudo add-apt-repository -y ppa:projectatomic/ppa
   - sudo apt-get update -qq

@@ -15,5 +15,5 @@ before_script:
 script:
   - go version
   - go install -mod=vendor ./...
-  - sudo oi-local-cluster
+  - sudo ${GOPATH}/bin/oi-local-cluster
   - sudo tree /tmp/oneinfra-cluster-test

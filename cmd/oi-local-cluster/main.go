@@ -16,15 +16,22 @@ func clusterDirectory(clusterName string) string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("oneinfra-cluster-%s", clusterName))
 }
 
+func createContainerdDirectory(name, clusterName string) error {
+	return os.MkdirAll(containerdDirectory(name, clusterName), 0755)
+}
+
 func containerdDirectory(name, clusterName string) string {
 	return filepath.Join(clusterDirectory(clusterName), name)
 }
 
 func createNode(name, clusterName string) error {
+	if err := createContainerdDirectory(name, clusterName); err != nil {
+		return err
+	}
 	cmd := exec.Command(
-		"docker", "run", "--privileged", "-d",
-		"--name", fmt.Sprintf("%s-%s", clusterName, name),
+		"podman", "run", "-d", "--privileged",
 		"-v", fmt.Sprintf("%s:/var/run/containerd", containerdDirectory(name, clusterName)),
+		"--name", fmt.Sprintf("%s-%s", clusterName, name),
 		"oneinfra/containerd:latest",
 	)
 	return cmd.Run()

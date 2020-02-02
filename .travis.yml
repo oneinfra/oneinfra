@@ -10,11 +10,7 @@ before_script:
   - sudo apt-get update -qq
   - sudo apt-get install -qq -y software-properties-common podman tree
 script:
-  - sudo podman pull docker.io/oneinfra/containerd:latest
-  - go install -mod=vendor ./...
-  - sudo podman ps -a
-  - sudo podman images
-  - sudo ${GOPATH}/bin/oi-local-cluster
-  - sudo podman ps -a
-  - sudo podman images
-  - sudo tree /tmp/oneinfra-cluster-test
+  - sudo podman run -d --privileged -v /tmp/test:/var/run/containerd --name a-test docker.io/oneinfra/containerd:latest
+  # - go install -mod=vendor ./...
+  # - sudo ${GOPATH}/bin/oi-local-cluster
+  # - sudo tree /tmp/oneinfra-cluster-test

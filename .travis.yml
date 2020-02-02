@@ -1,4 +1,5 @@
 dist: xenial
+language: go
 before_install:
   - sudo add-apt-repository -y ppa:projectatomic/ppa
   - sudo apt-get update -qq

@@ -16,8 +16,6 @@ before_script:
   - tar -C /opt/cni/bin -xzf /tmp/cni.tgz
   - rm -f /tmp/cni.tgz
 script:
-  - sudo mkdir -p /tmp/cluster-test/node-0
-  - sudo podman run -d --privileged -v /tmp/cluster-test/node-0:/var/run/containerd --name test-node-0 docker.io/oneinfra/containerd:latest
-  # - go install -mod=vendor ./...
-  # - sudo ${GOPATH}/bin/oi-local-cluster
-  # - sudo tree /tmp/oneinfra-cluster-test
+  - go install -mod=vendor ./...
+  - sudo ${GOPATH}/bin/oi-local-cluster
+  - sudo tree /tmp/oneinfra-cluster-test

@@ -1,9 +1,10 @@
 dist: bionic
-language: generic
+language: go
 go:
   - 1.13.x
 env:
   - GO111MODULE=on
+  - GOFLAGS='-mod vendor'
 before_install:
   - sudo add-apt-repository -y ppa:projectatomic/ppa
   - sudo apt-get update -qq
@@ -11,6 +12,6 @@ before_install:
 install: true
 script:
   - go version
-  - go install -mod=vendor ./...
+  - go install ./...
   - oi-local-cluster
   - tree /tmp/oneinfra-cluster-test

@@ -3,6 +3,7 @@ module oneinfra.ereslibre.es/m
 go 1.13
 
 require (
+	github.com/urfave/cli/v2 v2.1.1
 	google.golang.org/grpc v1.23.1
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
 	k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90

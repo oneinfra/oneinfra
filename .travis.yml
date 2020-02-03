@@ -8,5 +8,5 @@ go:
 env:
   - GO111MODULE=on
 script:
-  - go install -mod=vendor ./...
-  - oi-local-cluster
+  - make oi-local-cluster
+  - oi-local-cluster cluster create

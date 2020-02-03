@@ -17,16 +17,48 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
-	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
+	"github.com/urfave/cli/v2"
+
+	"oneinfra.ereslibre.es/m/internal/app/oi-local-cluster/cluster"
 )
 
 func main() {
-	cluster := localcluster.NewCluster("test", 3)
-	if err := cluster.Create(); err != nil {
-		log.Fatalf("could not create cluster: %v", err)
+	app := &cli.App{
+		Usage: "manage test clusters",
+		Commands: []*cli.Command{
+			{
+				Name:  "cluster",
+				Usage: "test cluster operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "create",
+						Usage: "create a test cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:  "name",
+								Value: "test",
+								Usage: "test cluster name",
+							},
+							&cli.IntFlag{
+								Name:  "size",
+								Value: 3,
+								Usage: "test cluster size",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.Create(c.String("name"), c.Int("size"))
+						},
+					},
+				},
+			},
+		},
 	}
-	fmt.Println("cluster created")
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -17,17 +17,17 @@ all: manager oi oi-local-cluster
 test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
 
-# Build manager binary
+# Build and install manager binary
 manager: generate fmt vet
-	go build -o bin/manager cmd/oi-manager/main.go
+	go install -mod=vendor cmd/oi-manager/main.go
 
-# Build oi binary
+# Build and install oi binary
 oi:
-	go build -o bin/oi cmd/oi/main.go
+	go install -mod=vendor cmd/oi/main.go
 
-# Build oi-local-cluster
+# Build and install oi-local-cluster
 oi-local-cluster:
-	go build -o bin/oi-local-cluster cmd/oi-local-cluster/main.go
+	go install -mod=vendor cmd/oi-local-cluster/main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests

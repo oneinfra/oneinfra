@@ -19,19 +19,19 @@ test: generate fmt vet manifests
 
 # Build and install manager binary
 manager: generate fmt vet
-	go install -mod=vendor cmd/oi-manager/main.go
+	go install -mod=vendor ./cmd/oi-manager
 
 # Build and install oi binary
 oi:
-	go install -mod=vendor cmd/oi/main.go
+	go install -mod=vendor ./cmd/oi
 
 # Build and install oi-local-cluster
 oi-local-cluster:
-	go install -mod=vendor cmd/oi-local-cluster/main.go
+	go install -mod=vendor ./cmd/oi-local-cluster
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
-	go run cmd/oi-manager/main.go
+	go run -mod=vendor cmd/oi-manager/main.go
 
 # Install CRDs into a cluster
 install: manifests

@@ -1,2 +1,2 @@
 all:
-	docker build -t containerd:latest .
+	docker build -t oneinfra/containerd:latest .

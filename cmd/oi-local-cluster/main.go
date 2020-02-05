@@ -52,6 +52,20 @@ func main() {
 							return cluster.Create(c.String("name"), c.Int("size"))
 						},
 					},
+					{
+						Name:  "destroy",
+						Usage: "destroy a test cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:  "name",
+								Value: "test",
+								Usage: "test cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.Destroy(c.String("name"))
+						},
+					},
 				},
 			},
 		},

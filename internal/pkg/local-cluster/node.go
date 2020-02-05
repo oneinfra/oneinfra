@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 )
 
@@ -32,13 +33,25 @@ func (node *Node) Create() error {
 	if err := node.createRuntimeDirectory(); err != nil {
 		return err
 	}
-	cmd := exec.Command(
+	currentUser, err := user.Current()
+	if err != nil {
+		return err
+	}
+	return exec.Command(
 		"docker", "run", "-d", "--privileged",
-		"-v", fmt.Sprintf("%s:/var/run/containerd", node.runtimeDirectory()),
 		"--name", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
+		"-v", fmt.Sprintf("%s:/containerd-socket", node.runtimeDirectory()),
+		"-e", fmt.Sprintf("CONTAINERD_SOCK_UID=%s", currentUser.Uid),
+		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"oneinfra/containerd:latest",
-	)
-	return cmd.Run()
+	).Run()
+}
+
+func (node *Node) Destroy() error {
+	exec.Command(
+		"docker", "rm", "-f", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
+	).Run()
+	return os.RemoveAll(node.runtimeDirectory())
 }
 
 func (node *Node) createRuntimeDirectory() error {

@@ -18,6 +18,8 @@ package localcluster
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -43,6 +45,15 @@ func NewCluster(name string, size int) Cluster {
 	return cluster
 }
 
+func LoadCluster(name string) (Cluster, error) {
+	cluster := Cluster{Name: name}
+	nodes, err := ioutil.ReadDir(cluster.directory())
+	if err != nil {
+		return Cluster{}, err
+	}
+	return NewCluster(name, len(nodes)), nil
+}
+
 func (cluster *Cluster) addNode(node *Node) {
 	cluster.Nodes = append(cluster.Nodes, node)
 }
@@ -59,10 +70,19 @@ func (cluster *Cluster) Create() error {
 	return nil
 }
 
+func (cluster *Cluster) Destroy() error {
+	for _, node := range cluster.Nodes {
+		if err := node.Destroy(); err != nil {
+			log.Printf("could not destroy node %q; continuing...\n", node.Name)
+		}
+	}
+	return os.RemoveAll(cluster.directory())
+}
+
 func (cluster *Cluster) createDirectory() error {
 	return os.MkdirAll(cluster.directory(), 0755)
 }
 
 func (cluster *Cluster) directory() string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("oneinfra-cluster-%s", cluster.Name))
+	return filepath.Join(os.TempDir(), "oneinfra-clusters", cluster.Name)
 }

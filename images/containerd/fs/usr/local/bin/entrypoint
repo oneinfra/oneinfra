@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Most code coming from:
+#   https://github.com/kubernetes-sigs/kind/blob/779fcc88d8aa4c49c81719cff161cacd8dd77b81/images/base/files/usr/local/bin/entrypoint
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+fix_mount() {
+  # systemd-in-a-container should have read only /sys
+  # https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
+  # however, we need other things from `docker run --privileged` ...
+  # and this flag also happens to make /sys rw, amongst other things
+  mount -o remount,ro /sys
+  mount --make-rshared /
+}
+
+fix_machine_id() {
+  # Deletes the machine-id embedded in the node image and generates a new one.
+  # This is necessary because both kubelet and other components like weave net
+  # use machine-id internally to distinguish nodes.
+  rm -f /etc/machine-id
+  systemd-machine-id-setup
+}
+
+fix_containerd_config() {
+  if [ ! -z ${CONTAINERD_SOCK_UID:-} ]; then
+    sed -i "s/uid = 0/uid = $CONTAINERD_SOCK_UID/" /etc/containerd/config.toml
+  fi
+  if [ ! -z ${CONTAINERD_SOCK_GID:-} ]; then
+    sed -i "s/gid = 0/gid = $CONTAINERD_SOCK_GID/" /etc/containerd/config.toml
+  fi
+}
+
+fix_mask_getty_target() {
+  systemctl mask getty.target
+}
+
+fix_mount
+fix_machine_id
+fix_mask_getty_target
+fix_containerd_config
+
+exec "$@"

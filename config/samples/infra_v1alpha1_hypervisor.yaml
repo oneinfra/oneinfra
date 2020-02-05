@@ -1,0 +1,7 @@
+apiVersion: infra.oneinfra.ereslibre.es/v1alpha1
+kind: Hypervisor
+metadata:
+  name: hypervisor-sample
+spec:
+  # Add fields here
+  foo: bar

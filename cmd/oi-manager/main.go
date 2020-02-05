@@ -25,6 +25,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	clustercontroller "oneinfra.ereslibre.es/m/controllers/cluster"
+	infracontroller "oneinfra.ereslibre.es/m/controllers/infra"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -36,6 +41,8 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
+	_ = infrav1alpha1.AddToScheme(scheme)
+	_ = clusterv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -63,6 +70,30 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&infracontroller.HypervisorReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Hypervisor"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Hypervisor")
+		os.Exit(1)
+	}
+	if err = (&clustercontroller.NodeReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Node"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Node")
+		os.Exit(1)
+	}
+	if err = (&clustercontroller.LoadBalancerReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("LoadBalancer"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "LoadBalancer")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

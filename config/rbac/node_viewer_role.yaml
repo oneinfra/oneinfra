@@ -1,0 +1,20 @@
+# permissions for end users to view nodes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-viewer-role
+rules:
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - nodes/status
+  verbs:
+  - get

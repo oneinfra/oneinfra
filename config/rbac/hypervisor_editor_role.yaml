@@ -1,0 +1,24 @@
+# permissions for end users to edit hypervisors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hypervisor-editor-role
+rules:
+- apiGroups:
+  - infra.oneinfra.ereslibre.es
+  resources:
+  - hypervisors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.oneinfra.ereslibre.es
+  resources:
+  - hypervisors/status
+  verbs:
+  - get

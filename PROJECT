@@ -1,3 +1,14 @@
 domain: oneinfra.ereslibre.es
+multigroup: true
 repo: oneinfra.ereslibre.es/m
+resources:
+- group: infra
+  kind: Hypervisor
+  version: v1alpha1
+- group: cluster
+  kind: Node
+  version: v1alpha1
+- group: cluster
+  kind: LoadBalancer
+  version: v1alpha1
 version: "2"

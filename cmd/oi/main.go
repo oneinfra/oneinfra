@@ -17,31 +17,34 @@ limitations under the License.
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"time"
+	"os"
 
-	"google.golang.org/grpc"
-	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
-)
-
-const (
-	address = "passthrough:///unix:///var/run/docker/containerd/containerd.sock"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+	app := &cli.App{
+		Usage: "manage clusters",
+		Commands: []*cli.Command{
+			{
+				Name:  "cluster",
+				Usage: "cluster operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "reconcile",
+						Usage: "reconcile a cluster",
+						Action: func(c *cli.Context) error {
+							return nil
+						},
+					},
+				},
+			},
+		},
 	}
-	defer conn.Close()
-	criClient := criapi.NewRuntimeServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	response, err := criClient.Version(ctx, &criapi.VersionRequest{})
+
+	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(response)
 }

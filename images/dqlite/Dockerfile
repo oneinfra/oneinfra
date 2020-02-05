@@ -6,7 +6,7 @@ RUN echo "Installing dependencies" \
        software-properties-common \
   && add-apt-repository -y ppa:dqlite/stable \
   && apt-get update -qq \
-  && apt-get install --no-install-recommends -qq -y dqlite
+  && apt-get install --no-install-recommends -qq -y dqlite \
 && echo "Cleaning up image" \
   && apt-get clean -y \
   && rm -rf /var/cache/debconf/* \

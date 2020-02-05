@@ -17,16 +17,22 @@ limitations under the License.
 package localcluster
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"time"
+
+	"google.golang.org/grpc"
+	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
 type Node struct {
 	Name    string
 	Cluster *Cluster
+	cri     criapi.RuntimeServiceClient
 }
 
 func (node *Node) Create() error {
@@ -52,6 +58,33 @@ func (node *Node) Destroy() error {
 		"docker", "rm", "-f", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
 	).Run()
 	return os.RemoveAll(node.runtimeDirectory())
+}
+
+func (node *Node) containerdSockPath() string {
+	return filepath.Join(node.runtimeDirectory(), "containerd.sock")
+}
+
+func (node *Node) CRI() (criapi.RuntimeServiceClient, error) {
+	if node.cri != nil {
+		return node.cri, nil
+	}
+	address := fmt.Sprintf("passthrough:///unix://%s", node.containerdSockPath())
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return nil, err
+	}
+	node.cri = criapi.NewRuntimeServiceClient(conn)
+	return node.cri, nil
+}
+
+func (node *Node) Version(ctx context.Context) (*criapi.VersionResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	cri, err := node.CRI()
+	if err != nil {
+		return nil, err
+	}
+	return cri.Version(ctx, &criapi.VersionRequest{})
 }
 
 func (node *Node) createRuntimeDirectory() error {

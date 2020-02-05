@@ -17,11 +17,13 @@ limitations under the License.
 package localcluster
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Cluster struct {
@@ -67,6 +69,23 @@ func (cluster *Cluster) Create() error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (cluster *Cluster) Wait() error {
+	var wg sync.WaitGroup
+	wg.Add(len(cluster.Nodes))
+	for _, node := range cluster.Nodes {
+		go func(node *Node) {
+			for {
+				if _, err := node.Version(context.Background()); err == nil {
+					wg.Done()
+					return
+				}
+			}
+		}(node)
+	}
+	wg.Wait()
 	return nil
 }
 

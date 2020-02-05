@@ -22,5 +22,8 @@ import (
 
 func Create(clusterName string, clusterSize int) error {
 	cluster := localcluster.NewCluster(clusterName, clusterSize)
-	return cluster.Create()
+	if err := cluster.Create(); err != nil {
+		return err
+	}
+	return cluster.Wait()
 }

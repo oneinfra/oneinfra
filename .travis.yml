@@ -9,3 +9,4 @@ env:
 script:
   - make oi-local-cluster
   - oi-local-cluster cluster create
+  - oi-local-cluster cluster destroy

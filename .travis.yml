@@ -6,7 +6,8 @@ go:
   - 1.13.x
 env:
   - GO111MODULE=on
+before_script:
+  - docker pull oneinfra/containerd:latest
 script:
   - make oi-local-cluster
   - oi-local-cluster cluster create
-  - oi-local-cluster cluster destroy

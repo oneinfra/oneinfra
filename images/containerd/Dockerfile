@@ -1,15 +1,41 @@
 FROM ubuntu:18.04
 
-RUN apt-get update -qq \
-  && apt-get install -qq -y software-properties-common \
+COPY /fs /
+
+RUN echo "Installing dependencies" \
+  && apt-get update -qq \
+  && apt-get install --no-install-recommends -qq -y \
+       software-properties-common \
+       systemd \
   && add-apt-repository -y ppa:projectatomic/ppa \
   && apt-get update -qq \
-  && apt-get install -qq -y containerd ca-certificates curl iptables containernetworking-plugins \
-  && rm -rf /var/lib/apt/lists/*
+  && apt-get install --no-install-recommends -qq -y \
+       conmon \
+       containerd \
+       ca-certificates \
+       curl \
+       iptables \
+       containernetworking-plugins \
+  && systemctl enable containerd \
+&& echo "Ensuring /etc/cni/net.d" \
+  && mkdir -p /etc/cni/net.d \
+&& echo "Cleaning up image" \
+  && apt-get clean -y \
+  && rm -rf /var/cache/debconf/* \
+            /var/lib/apt/lists/* \
+            /var/log/* \
+            /tmp/* \
+            /var/tmp/* \
+            /usr/share/doc/* \
+            /usr/share/man/* \
+            /usr/share/local/*
 
-ADD containerd-config.toml /etc/containerd/config.toml
+# tell systemd that it is in docker (it will check for the container env)
+# https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
+ENV container docker
 
-RUN mkdir -p /etc/cni/net.d
-ADD 10-containerd-net.conflist /etc/cni/net.d/10-containerd-net.conflist
+# systemd exits on SIGRTMIN+3, not SIGTERM (which re-executes it)
+# https://bugzilla.redhat.com/show_bug.cgi?id=1201657
+STOPSIGNAL SIGRTMIN+3
 
-CMD ["/usr/bin/containerd"]
+ENTRYPOINT ["/usr/local/bin/entrypoint", "/bin/systemd"]

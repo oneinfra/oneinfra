@@ -3,7 +3,7 @@ state = "/run/containerd-state"
 oom_score = 0
 
 [grpc]
-  address = "/run/containerd/containerd.sock"
+  address = "/containerd-socket/containerd.sock"
   uid = 0
   gid = 0
   max_recv_message_size = 16777216

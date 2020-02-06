@@ -17,11 +17,19 @@ limitations under the License.
 package node
 
 import (
-	"context"
-
-	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
+	"github.com/pkg/errors"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+)
+
+var (
+	components = []ComponentType{
+		DqliteComponent,
+		KineComponent,
+		KubeAPIServerComponent,
+		KubeControllerManagerComponent,
+		KubeSchedulerComponent,
+	}
 )
 
 type Node struct {
@@ -34,24 +42,32 @@ func NewNode(hypervisor *infra.Hypervisor) Node {
 	}
 }
 
-func (node *Node) Reconcile() error {
-	if err := node.PullImage("k8s.gcr.io/kube-apiserver:v1.17.0"); err != nil {
-		return err
+func (node *Node) Component(componentType ComponentType) (Component, error) {
+	switch componentType {
+	case DqliteComponent:
+		return &Dqlite{node: node}, nil
+	case KineComponent:
+		return &Kine{node: node}, nil
+	case KubeAPIServerComponent:
+		return &KubeAPIServer{node: node}, nil
+	case KubeControllerManagerComponent:
+		return &KubeControllerManager{node: node}, nil
+	case KubeSchedulerComponent:
+		return &KubeScheduler{node: node}, nil
+	default:
+		return nil, errors.Errorf("unknown component: %d", componentType)
 	}
-	if err := node.PullImage("k8s.gcr.io/kube-controller-manager:v1.17.0"); err != nil {
-		return err
-	}
-	if err := node.PullImage("k8s.gcr.io/kube-scheduler:v1.17.0"); err != nil {
-		return err
-	}
-	return nil
 }
 
-func (node *Node) PullImage(image string) error {
-	_, err := node.hypervisor.CRIImage.PullImage(context.Background(), &criapi.PullImageRequest{
-		Image: &criapi.ImageSpec{
-			Image: image,
-		},
-	})
-	return err
+func (node *Node) Reconcile() error {
+	for _, componentType := range components {
+		component, err := node.Component(componentType)
+		if err != nil {
+			return err
+		}
+		if err := component.Reconcile(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

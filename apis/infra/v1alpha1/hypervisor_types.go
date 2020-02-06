@@ -20,22 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Hypervisor. Edit Hypervisor_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Name               string `json:"name,omitempty"`
+	CRIRuntimeEndpoint string `json:"criRuntimeEndpoint,omitempty"`
 }
 
 // HypervisorStatus defines the observed state of Hypervisor
 type HypervisorStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true

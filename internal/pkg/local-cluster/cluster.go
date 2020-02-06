@@ -24,7 +24,19 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+
+	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
+
+func init() {
+	infrav1alpha1.AddToScheme(clientgoscheme.Scheme)
+	clusterv1alpha1.AddToScheme(clientgoscheme.Scheme)
+}
 
 type Cluster struct {
 	Name  string
@@ -104,4 +116,25 @@ func (cluster *Cluster) createDirectory() error {
 
 func (cluster *Cluster) directory() string {
 	return filepath.Join(os.TempDir(), "oneinfra-clusters", cluster.Name)
+}
+
+func (cluster *Cluster) Export() []infrav1alpha1.Hypervisor {
+	hypervisors := []infrav1alpha1.Hypervisor{}
+	for _, node := range cluster.Nodes {
+		hypervisors = append(hypervisors, node.Export())
+	}
+	return hypervisors
+}
+
+func (cluster *Cluster) Specs() string {
+	res := ""
+	info, _ := runtime.SerializerInfoForMediaType(clientgoscheme.Codecs.SupportedMediaTypes(), runtime.ContentTypeYAML)
+	encoder := serializer.NewCodecFactory(clientgoscheme.Scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
+	for _, node := range cluster.Nodes {
+		nodeObject := node.Export()
+		if encodedNode, err := runtime.Encode(encoder, &nodeObject); err == nil {
+			res += fmt.Sprintf("---\n%s", string(encodedNode))
+		}
+	}
+	return res
 }

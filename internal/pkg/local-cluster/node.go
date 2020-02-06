@@ -27,6 +27,8 @@ import (
 
 	"google.golang.org/grpc"
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
+
+	infraapiv1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
 type Node struct {
@@ -93,4 +95,13 @@ func (node *Node) createRuntimeDirectory() error {
 
 func (node *Node) runtimeDirectory() string {
 	return filepath.Join(node.Cluster.directory(), node.Name)
+}
+
+func (node *Node) Export() infraapiv1alpha1.Hypervisor {
+	return infraapiv1alpha1.Hypervisor{
+		Spec: infraapiv1alpha1.HypervisorSpec{
+			Name:               node.Name,
+			CRIRuntimeEndpoint: node.containerdSockPath(),
+		},
+	}
 }

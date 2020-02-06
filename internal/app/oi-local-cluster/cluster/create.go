@@ -17,6 +17,8 @@ limitations under the License.
 package cluster
 
 import (
+	"fmt"
+
 	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
 )
 
@@ -25,5 +27,9 @@ func Create(clusterName string, clusterSize int) error {
 	if err := cluster.Create(); err != nil {
 		return err
 	}
-	return cluster.Wait()
+	if err := cluster.Wait(); err != nil {
+		return err
+	}
+	fmt.Println(cluster.Specs())
+	return nil
 }

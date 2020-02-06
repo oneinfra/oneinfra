@@ -21,6 +21,8 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v2"
+
+	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
 )
 
 func main() {
@@ -35,7 +37,7 @@ func main() {
 						Name:  "reconcile",
 						Usage: "reconcile a cluster",
 						Action: func(c *cli.Context) error {
-							return nil
+							return cluster.Reconcile()
 						},
 					},
 				},

@@ -26,15 +26,17 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 
 	infraapiv1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
 type Node struct {
-	Name    string
-	Cluster *Cluster
-	cri     criapi.RuntimeServiceClient
+	Name       string
+	Cluster    *Cluster
+	criRuntime criapi.RuntimeServiceClient
+	criImage   criapi.ImageServiceClient
 }
 
 func (node *Node) Create() error {
@@ -63,26 +65,37 @@ func (node *Node) Destroy() error {
 }
 
 func (node *Node) containerdSockPath() string {
-	return filepath.Join(node.runtimeDirectory(), "containerd.sock")
+	return fmt.Sprintf("passthrough:///unix://%s", filepath.Join(node.runtimeDirectory(), "containerd.sock"))
 }
 
-func (node *Node) CRI() (criapi.RuntimeServiceClient, error) {
-	if node.cri != nil {
-		return node.cri, nil
+func (node *Node) CRIRuntime() (criapi.RuntimeServiceClient, error) {
+	if node.criRuntime != nil {
+		return node.criRuntime, nil
 	}
-	address := fmt.Sprintf("passthrough:///unix://%s", node.containerdSockPath())
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(node.containerdSockPath(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return nil, err
 	}
-	node.cri = criapi.NewRuntimeServiceClient(conn)
-	return node.cri, nil
+	node.criRuntime = criapi.NewRuntimeServiceClient(conn)
+	return node.criRuntime, nil
+}
+
+func (node *Node) CRIImage() (criapi.ImageServiceClient, error) {
+	if node.criImage != nil {
+		return node.criImage, nil
+	}
+	conn, err := grpc.Dial(node.containerdSockPath(), grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return nil, err
+	}
+	node.criImage = criapi.NewImageServiceClient(conn)
+	return node.criImage, nil
 }
 
 func (node *Node) Version(ctx context.Context) (*criapi.VersionResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	cri, err := node.CRI()
+	cri, err := node.CRIRuntime()
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +112,10 @@ func (node *Node) runtimeDirectory() string {
 
 func (node *Node) Export() infraapiv1alpha1.Hypervisor {
 	return infraapiv1alpha1.Hypervisor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: node.Name,
+		},
 		Spec: infraapiv1alpha1.HypervisorSpec{
-			Name:               node.Name,
 			CRIRuntimeEndpoint: node.containerdSockPath(),
 		},
 	}

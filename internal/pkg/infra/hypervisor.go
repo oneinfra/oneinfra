@@ -14,22 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package infra
 
 import (
-	"fmt"
-
-	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
+	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
-func Create(clusterName string, clusterSize int) error {
-	cluster := localcluster.NewCluster(clusterName, clusterSize)
-	if err := cluster.Create(); err != nil {
-		return err
+type Hypervisor struct {
+	Name       string
+	CRIRuntime criapi.RuntimeServiceClient
+	CRIImage   criapi.ImageServiceClient
+}
+
+func NewHypervisor(name string, criRuntime criapi.RuntimeServiceClient, criImage criapi.ImageServiceClient) Hypervisor {
+	return Hypervisor{
+		Name:       name,
+		CRIRuntime: criRuntime,
+		CRIImage:   criImage,
 	}
-	if err := cluster.Wait(); err != nil {
-		return err
-	}
-	fmt.Print(cluster.Specs())
-	return nil
 }

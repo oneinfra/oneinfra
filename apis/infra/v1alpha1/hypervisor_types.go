@@ -22,7 +22,6 @@ import (
 
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
-	Name               string `json:"name,omitempty"`
 	CRIRuntimeEndpoint string `json:"criRuntimeEndpoint,omitempty"`
 }
 

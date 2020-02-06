@@ -17,19 +17,9 @@ limitations under the License.
 package cluster
 
 import (
-	"fmt"
-
-	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 )
 
-func Create(clusterName string, clusterSize int) error {
-	cluster := localcluster.NewCluster(clusterName, clusterSize)
-	if err := cluster.Create(); err != nil {
-		return err
-	}
-	if err := cluster.Wait(); err != nil {
-		return err
-	}
-	fmt.Print(cluster.Specs())
-	return nil
+func Reconcile() error {
+	return cluster.Reconcile()
 }

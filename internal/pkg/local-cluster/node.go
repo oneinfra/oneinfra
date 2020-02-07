@@ -50,9 +50,11 @@ func (node *Node) Create() error {
 	return exec.Command(
 		"docker", "run", "-d", "--privileged",
 		"--name", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
-		"-v", fmt.Sprintf("%s:/containerd-socket", node.runtimeDirectory()),
+		"-v", fmt.Sprintf("%s:%s", node.runtimeDirectory(), node.localContainerdSockDirectory()),
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_UID=%s", currentUser.Uid),
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
+		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", node.localContainerdSockPath()),
+		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", node.localContainerdSockPath()),
 		"oneinfra/containerd:latest",
 	).Run()
 }
@@ -62,6 +64,14 @@ func (node *Node) Destroy() error {
 		"docker", "rm", "-f", fmt.Sprintf("%s-%s", node.Cluster.Name, node.Name),
 	).Run()
 	return os.RemoveAll(node.runtimeDirectory())
+}
+
+func (node *Node) localContainerdSockDirectory() string {
+	return "/containerd-socket"
+}
+
+func (node *Node) localContainerdSockPath() string {
+	return fmt.Sprintf("unix://%s/containerd.sock", node.localContainerdSockDirectory())
 }
 
 func (node *Node) containerdSockPath() string {

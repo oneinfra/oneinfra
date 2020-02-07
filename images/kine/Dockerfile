@@ -1,3 +1,3 @@
 FROM golang:1.12
 
-RUN GO111MODULE="on" go get github.com/rancher/kine
+RUN GO111MODULE="on" go get -tags dqlite github.com/rancher/kine

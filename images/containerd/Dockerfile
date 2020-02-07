@@ -5,17 +5,24 @@ COPY /fs /
 RUN echo "Installing dependencies" \
   && apt-get update -qq \
   && apt-get install --no-install-recommends -qq -y \
-       software-properties-common \
        systemd \
-  && add-apt-repository -y ppa:projectatomic/ppa \
-  && apt-get update -qq \
-  && apt-get install --no-install-recommends -qq -y \
-       conmon \
-       containerd \
+       runc \
        ca-certificates \
        curl \
        iptables \
-       containernetworking-plugins \
+       wget \
+&& echo "Installing CNI plugins" \
+  && export CNI_PLUGINS_VERSION=0.8.5 \
+  && mkdir -p /opt/cni/bin \
+  && wget https://github.com/containernetworking/plugins/releases/download/v${CNI_PLUGINS_VERSION}/cni-plugins-linux-amd64-v${CNI_PLUGINS_VERSION}.tgz -O cni.tgz \
+  && tar -C /opt/cni/bin -xf cni.tgz \
+  && rm cni.tgz \
+&& echo "Installing containerd" \
+  && export CONTAINERD_VERSION=1.3.3 \
+  && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}.linux-amd64.tar.gz -O containerd.tar.gz \
+  && tar -C /usr/local -xf containerd.tar.gz \
+  && rm containerd.tar.gz \
+  && rm /usr/local/bin/containerd-stress /usr/local/bin/ctr \
   && systemctl enable containerd \
 && echo "Ensuring /etc/cni/net.d" \
   && mkdir -p /etc/cni/net.d \

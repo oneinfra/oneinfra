@@ -24,6 +24,10 @@ fix_machine_id() {
   systemd-machine-id-setup
 }
 
+fix_mask_getty_target() {
+  systemctl mask getty.target
+}
+
 fix_containerd_config() {
   if [ ! -z ${CONTAINERD_SOCK_UID:-} ]; then
     sed -i "s/uid = 0/uid = $CONTAINERD_SOCK_UID/" /etc/containerd/config.toml
@@ -31,10 +35,6 @@ fix_containerd_config() {
   if [ ! -z ${CONTAINERD_SOCK_GID:-} ]; then
     sed -i "s/gid = 0/gid = $CONTAINERD_SOCK_GID/" /etc/containerd/config.toml
   fi
-}
-
-fix_mask_getty_target() {
-  systemctl mask getty.target
 }
 
 fix_mount

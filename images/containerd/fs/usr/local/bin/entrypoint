@@ -37,9 +37,14 @@ fix_containerd_config() {
   fi
 }
 
+create_var_log_pods() {
+  mkdir -p /var/log/pods
+}
+
 fix_mount
 fix_machine_id
 fix_mask_getty_target
 fix_containerd_config
+create_var_log_pods
 
 exec "$@"

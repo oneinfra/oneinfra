@@ -90,7 +90,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 						Image: container.Image,
 					},
 					Args:    container.Command,
-					LogPath: fmt.Sprintf("%s-%s.log", podSandboxConfig.Metadata.Name, container.Name),
+					LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxId, container.Name),
 				},
 				SandboxConfig: &podSandboxConfig,
 			},

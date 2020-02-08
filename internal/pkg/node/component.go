@@ -19,7 +19,6 @@ package node
 type ComponentType uint
 
 const (
-	KineComponent                  ComponentType = iota
 	KubeAPIServerComponent         ComponentType = iota
 	KubeControllerManagerComponent ComponentType = iota
 	KubeSchedulerComponent         ComponentType = iota

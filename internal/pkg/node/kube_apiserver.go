@@ -16,8 +16,12 @@ limitations under the License.
 
 package node
 
+import "oneinfra.ereslibre.es/m/internal/pkg/infra"
+
 const (
-	kubeApiserverImage = "k8s.gcr.io/kube-apiserver:v1.17.0"
+	dqliteImage        = "oneinfra/dqlite:latest"
+	kineImage          = "oneinfra/kine:latest"
+	kubeApiServerImage = "k8s.gcr.io/kube-apiserver:v1.17.0"
 )
 
 type KubeAPIServer struct {
@@ -25,5 +29,24 @@ type KubeAPIServer struct {
 }
 
 func (kubeApiServer *KubeAPIServer) Reconcile() error {
-	return nil
+	if err := kubeApiServer.node.hypervisor.PullImages(kineImage, kubeApiServerImage); err != nil {
+		return err
+	}
+	return kubeApiServer.node.hypervisor.RunPod(
+		infra.NewRegularPod(
+			"kube-apiserver",
+			[]infra.Container{
+				{
+					Name:    "kine",
+					Image:   kineImage,
+					Command: []string{"kine", "--endpoint", "sqlite"},
+				},
+				{
+					Name:    "kube-apiserver",
+					Image:   kubeApiServerImage,
+					Command: []string{"kube-apiserver", "--etcd-servers", "http://127.0.0.1:2379"},
+				},
+			},
+		),
+	)
 }

@@ -19,6 +19,7 @@ package node
 import (
 	"github.com/pkg/errors"
 
+	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -31,23 +32,26 @@ var (
 )
 
 type Node struct {
-	hypervisor *infra.Hypervisor
+	Name           string
+	HypervisorName string
+	Hypervisor     *infra.Hypervisor
 }
 
-func NewNode(hypervisor *infra.Hypervisor) *Node {
+func NodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 	return &Node{
-		hypervisor: hypervisor,
-	}
+		Name:           node.ObjectMeta.Name,
+		HypervisorName: node.Spec.HypervisorName,
+	}, nil
 }
 
 func (node *Node) Component(componentType ComponentType) (Component, error) {
 	switch componentType {
 	case KubeAPIServerComponent:
-		return &KubeAPIServer{node: node}, nil
+		return &KubeAPIServer{}, nil
 	case KubeControllerManagerComponent:
-		return &KubeControllerManager{node: node}, nil
+		return &KubeControllerManager{}, nil
 	case KubeSchedulerComponent:
-		return &KubeScheduler{node: node}, nil
+		return &KubeScheduler{}, nil
 	default:
 		return nil, errors.Errorf("unknown component: %d", componentType)
 	}
@@ -59,9 +63,13 @@ func (node *Node) Reconcile() error {
 		if err != nil {
 			return err
 		}
-		if err := component.Reconcile(); err != nil {
+		if err := component.Reconcile(node.Hypervisor); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func (node *Node) Export() *clusterv1alpha1.Node {
 	return nil
 }

@@ -16,14 +16,16 @@ limitations under the License.
 
 package node
 
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+)
+
 const (
 	kubeControllerManager = "k8s.gcr.io/kube-controller-manager:v1.17.0"
 )
 
-type KubeControllerManager struct {
-	node *Node
-}
+type KubeControllerManager struct{}
 
-func (kubeControllerManager *KubeControllerManager) Reconcile() error {
+func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor) error {
 	return nil
 }

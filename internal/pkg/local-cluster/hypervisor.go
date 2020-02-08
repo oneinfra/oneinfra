@@ -83,8 +83,8 @@ func (hypervisor *Hypervisor) runtimeDirectory() string {
 	return filepath.Join(hypervisor.HypervisorCluster.directory(), hypervisor.Name)
 }
 
-func (hypervisor *Hypervisor) Export() infraapiv1alpha1.Hypervisor {
-	return infraapiv1alpha1.Hypervisor{
+func (hypervisor *Hypervisor) Export() *infraapiv1alpha1.Hypervisor {
+	return &infraapiv1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: hypervisor.Name,
 		},

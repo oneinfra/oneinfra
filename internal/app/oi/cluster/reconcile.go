@@ -30,5 +30,6 @@ func Reconcile() error {
 		return err
 	}
 	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	return cluster.Reconcile(hypervisors)
+	nodes := manifests.RetrieveNodes(string(stdin))
+	return cluster.Reconcile(hypervisors, nodes)
 }

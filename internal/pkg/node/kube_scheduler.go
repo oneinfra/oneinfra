@@ -16,14 +16,16 @@ limitations under the License.
 
 package node
 
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+)
+
 const (
 	kubeScheduler = "k8s.gcr.io/kube-scheduler:v1.17.0"
 )
 
-type KubeScheduler struct {
-	node *Node
-}
+type KubeScheduler struct{}
 
-func (kubeScheduler *KubeScheduler) Reconcile() error {
+func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor) error {
 	return nil
 }

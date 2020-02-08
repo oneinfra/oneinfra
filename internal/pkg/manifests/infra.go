@@ -19,8 +19,10 @@ package manifests
 import (
 	"sigs.k8s.io/yaml"
 
+	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"oneinfra.ereslibre.es/m/internal/pkg/node"
 	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
 )
 
@@ -32,11 +34,28 @@ func RetrieveHypervisors(manifests string) []*infra.Hypervisor {
 		if err := yaml.Unmarshal([]byte(document), &hypervisor); err != nil {
 			continue
 		}
-		internalHypervisor, err := infra.HypervisorFromv1alpha1(hypervisor)
+		internalHypervisor, err := infra.HypervisorFromv1alpha1(&hypervisor)
 		if err != nil {
 			continue
 		}
 		hypervisors = append(hypervisors, internalHypervisor)
 	}
 	return hypervisors
+}
+
+func RetrieveNodes(manifests string) []*node.Node {
+	nodes := []*node.Node{}
+	documents := yamlutils.SplitDocuments(manifests)
+	for _, document := range documents {
+		nodeObj := clusterv1alpha1.Node{}
+		if err := yaml.Unmarshal([]byte(document), &nodeObj); err != nil {
+			continue
+		}
+		internalNode, err := node.NodeFromv1alpha1(&nodeObj)
+		if err != nil {
+			continue
+		}
+		nodes = append(nodes, internalNode)
+	}
+	return nodes
 }

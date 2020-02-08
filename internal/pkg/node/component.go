@@ -16,6 +16,10 @@ limitations under the License.
 
 package node
 
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+)
+
 type ComponentType uint
 
 const (
@@ -25,5 +29,5 @@ const (
 )
 
 type Component interface {
-	Reconcile() error
+	Reconcile(*infra.Hypervisor) error
 }

@@ -35,7 +35,7 @@ type Hypervisor struct {
 	criImage           criapi.ImageServiceClient
 }
 
-func HypervisorFromv1alpha1(hypervisor infrav1alpha1.Hypervisor) (*Hypervisor, error) {
+func HypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
 	return &Hypervisor{
 		Name:               hypervisor.ObjectMeta.Name,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,

@@ -23,11 +23,12 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
+	"oneinfra.ereslibre.es/m/internal/app/oi/node"
 )
 
 func main() {
 	app := &cli.App{
-		Usage: "manage clusters",
+		Usage: "oneinfra CLI tool",
 		Commands: []*cli.Command{
 			{
 				Name:  "cluster",
@@ -38,6 +39,26 @@ func main() {
 						Usage: "reconcile a cluster",
 						Action: func(c *cli.Context) error {
 							return cluster.Reconcile()
+						},
+					},
+				},
+			},
+			{
+				Name:  "node",
+				Usage: "node operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "inject",
+						Usage: "inject a node",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "name",
+								Required: true,
+								Usage:    "node name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return node.Inject(c.String("name"))
 						},
 					},
 				},

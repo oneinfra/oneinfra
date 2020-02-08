@@ -20,22 +20,22 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+type Role int
+
+const (
+	ControlPlaneRole Role = iota
+	Gater            Role = iota
+)
 
 // NodeSpec defines the desired state of Node
 type NodeSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Node. Edit Node_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Hypervisor     string `json:"hypervisor,omitempty"`
+	Role           string `json:"role,omitempty"`
+	HypervisorName string `json:"hypervisorName,omitempty"`
 }
 
 // NodeStatus defines the observed state of Node
 type NodeStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true

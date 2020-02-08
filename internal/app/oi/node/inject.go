@@ -14,27 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package node
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
+	"fmt"
+	"io/ioutil"
+	"os"
+
+	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-func Reconcile(hypervisors []*infra.Hypervisor, nodes []*node.Node) error {
-	hypervisorMap := map[string]*infra.Hypervisor{}
-	for _, hypervisor := range hypervisors {
-		hypervisorMap[hypervisor.Name] = hypervisor
+func Inject(nodeName string) error {
+	stdin, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
 	}
-	for _, node := range nodes {
-		if hypervisor, ok := hypervisorMap[node.HypervisorName]; ok {
-			node.Hypervisor = hypervisor
-		}
-	}
-	for _, node := range nodes {
-		if err := node.Reconcile(); err != nil {
-			return err
-		}
-	}
+	hypervisors := manifests.RetrieveHypervisors(string(stdin))
+	fmt.Println(hypervisors)
 	return nil
 }

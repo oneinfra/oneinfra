@@ -106,8 +106,8 @@ func (hypervisorCluster *HypervisorCluster) directory() string {
 	return filepath.Join(os.TempDir(), "oneinfra-clusters", hypervisorCluster.Name)
 }
 
-func (hypervisorCluster *HypervisorCluster) Export() []infrav1alpha1.Hypervisor {
-	hypervisors := []infrav1alpha1.Hypervisor{}
+func (hypervisorCluster *HypervisorCluster) Export() []*infrav1alpha1.Hypervisor {
+	hypervisors := []*infrav1alpha1.Hypervisor{}
 	for _, hypervisor := range hypervisorCluster.Hypervisors {
 		hypervisors = append(hypervisors, hypervisor.Export())
 	}
@@ -115,15 +115,15 @@ func (hypervisorCluster *HypervisorCluster) Export() []infrav1alpha1.Hypervisor 
 }
 
 func (hypervisorCluster *HypervisorCluster) Specs() string {
-	res := "---\n"
+	res := ""
 	scheme := runtime.NewScheme()
 	infrav1alpha1.AddToScheme(scheme)
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
 	for _, hypervisor := range hypervisorCluster.Hypervisors {
 		hypervisorObject := hypervisor.Export()
-		if encodedHypervisor, err := runtime.Encode(encoder, &hypervisorObject); err == nil {
-			res += fmt.Sprintf("%s---\n", string(encodedHypervisor))
+		if encodedHypervisor, err := runtime.Encode(encoder, hypervisorObject); err == nil {
+			res += fmt.Sprintf("---\n%s\n", string(encodedHypervisor))
 		}
 	}
 	return res

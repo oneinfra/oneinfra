@@ -9,12 +9,5 @@ jobs:
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - v3-pkg-cache
       - run: sudo make test-deps
       - run: make test
-      - save_cache:
-          key: v3-pkg-cache
-          paths:
-            - "/go/pkg"

@@ -7,6 +7,9 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 # kubebuilder tools version
 KUBEBUILDER_TOOLS_VERSION ?= 1.16.4
 
+# Project top level folders (excluding "vendor")
+PROJECT_FOLDERS = $(shell find -maxdepth 1 -mindepth 1 -type d -not -name vendor)
+
 all: manager oi oi-local-cluster
 
 # Install test deps
@@ -52,9 +55,9 @@ deploy: manifests
 manifests:
 	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
-# Run go fmt against code
+# Run gofmt against code
 fmt:
-	go fmt ./...
+	@test -z "$(shell gofmt -d -l ${PROJECT_FOLDERS})" || (gofmt -d -l ${PROJECT_FOLDERS} && exit 1)
 
 # Run go vet against code
 vet:

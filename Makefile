@@ -7,13 +7,6 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 # kubebuilder tools version
 KUBEBUILDER_TOOLS_VERSION ?= 1.16.4
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
-
 all: manager oi oi-local-cluster
 
 # Install test deps

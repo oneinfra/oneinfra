@@ -3,11 +3,13 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.13
-    environment:
-      GO111MODULE: "on"
-      GOFLAGS: "-mod=vendor"
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout
       - run: sudo make test-deps
-      - run: make test
+      - run:
+          name: Run tests
+          environment:
+            GO111MODULE: "on"
+            GOFLAGS: "-mod=vendor"
+          command: make test

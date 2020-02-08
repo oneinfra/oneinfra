@@ -23,7 +23,7 @@ import (
 )
 
 func Create(clusterName string, clusterSize int) error {
-	cluster := localcluster.NewCluster(clusterName, clusterSize)
+	cluster := localcluster.NewHypervisorCluster(clusterName, clusterSize)
 	if err := cluster.Create(); err != nil {
 		return err
 	}

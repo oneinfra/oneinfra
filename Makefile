@@ -57,7 +57,7 @@ manifests:
 
 # Run gofmt against code
 fmt:
-	@test -z "$(shell gofmt -d -l ${PROJECT_FOLDERS})" || (gofmt -d -l ${PROJECT_FOLDERS} && exit 1)
+	@test -z "$(shell gofmt -l ${PROJECT_FOLDERS})" || (gofmt -d -l ${PROJECT_FOLDERS} && exit 1)
 
 # Run go vet against code
 vet:

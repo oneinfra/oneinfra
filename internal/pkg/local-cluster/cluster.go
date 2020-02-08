@@ -30,100 +30,100 @@ import (
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
-type Cluster struct {
-	Name  string
-	Nodes []*Node
+type HypervisorCluster struct {
+	Name        string
+	Hypervisors []*Hypervisor
 }
 
-func NewCluster(name string, size int) Cluster {
-	cluster := Cluster{
-		Name:  name,
-		Nodes: []*Node{},
+func NewHypervisorCluster(name string, size int) *HypervisorCluster {
+	cluster := HypervisorCluster{
+		Name:        name,
+		Hypervisors: []*Hypervisor{},
 	}
 	for i := 0; i < size; i++ {
-		cluster.addNode(
-			&Node{
-				Name:    fmt.Sprintf("node-%d", i),
-				Cluster: &cluster,
+		cluster.addHypervisor(
+			&Hypervisor{
+				Name:              fmt.Sprintf("hypervisor-%d", i),
+				HypervisorCluster: &cluster,
 			},
 		)
 	}
-	return cluster
+	return &cluster
 }
 
-func LoadCluster(name string) (Cluster, error) {
-	cluster := Cluster{Name: name}
-	nodes, err := ioutil.ReadDir(cluster.directory())
+func LoadCluster(name string) (*HypervisorCluster, error) {
+	hypervisorCluster := HypervisorCluster{Name: name}
+	hypervisors, err := ioutil.ReadDir(hypervisorCluster.directory())
 	if err != nil {
-		return Cluster{}, err
+		return nil, err
 	}
-	return NewCluster(name, len(nodes)), nil
+	return NewHypervisorCluster(name, len(hypervisors)), nil
 }
 
-func (cluster *Cluster) addNode(node *Node) {
-	cluster.Nodes = append(cluster.Nodes, node)
+func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor) {
+	hypervisorCluster.Hypervisors = append(hypervisorCluster.Hypervisors, hypervisor)
 }
 
-func (cluster *Cluster) Create() error {
-	if err := cluster.createDirectory(); err != nil {
+func (hypervisorCluster *HypervisorCluster) Create() error {
+	if err := hypervisorCluster.createDirectory(); err != nil {
 		return err
 	}
-	for _, node := range cluster.Nodes {
-		if err := node.Create(); err != nil {
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		if err := hypervisor.Create(); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (cluster *Cluster) Wait() error {
+func (hypervisorCluster *HypervisorCluster) Wait() error {
 	var wg sync.WaitGroup
-	wg.Add(len(cluster.Nodes))
-	for _, node := range cluster.Nodes {
-		go func(node *Node) {
-			node.Wait()
+	wg.Add(len(hypervisorCluster.Hypervisors))
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		go func(hypervisor *Hypervisor) {
+			hypervisor.Wait()
 			wg.Done()
-		}(node)
+		}(hypervisor)
 	}
 	wg.Wait()
 	return nil
 }
 
-func (cluster *Cluster) Destroy() error {
-	for _, node := range cluster.Nodes {
-		if err := node.Destroy(); err != nil {
-			log.Printf("could not destroy node %q; continuing...\n", node.Name)
+func (hypervisorCluster *HypervisorCluster) Destroy() error {
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		if err := hypervisor.Destroy(); err != nil {
+			log.Printf("could not destroy hypervisor %q; continuing...\n", hypervisor.Name)
 		}
 	}
-	return os.RemoveAll(cluster.directory())
+	return os.RemoveAll(hypervisorCluster.directory())
 }
 
-func (cluster *Cluster) createDirectory() error {
-	return os.MkdirAll(cluster.directory(), 0755)
+func (hypervisorCluster *HypervisorCluster) createDirectory() error {
+	return os.MkdirAll(hypervisorCluster.directory(), 0755)
 }
 
-func (cluster *Cluster) directory() string {
-	return filepath.Join(os.TempDir(), "oneinfra-clusters", cluster.Name)
+func (hypervisorCluster *HypervisorCluster) directory() string {
+	return filepath.Join(os.TempDir(), "oneinfra-clusters", hypervisorCluster.Name)
 }
 
-func (cluster *Cluster) Export() []infrav1alpha1.Hypervisor {
+func (hypervisorCluster *HypervisorCluster) Export() []infrav1alpha1.Hypervisor {
 	hypervisors := []infrav1alpha1.Hypervisor{}
-	for _, node := range cluster.Nodes {
-		hypervisors = append(hypervisors, node.Export())
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		hypervisors = append(hypervisors, hypervisor.Export())
 	}
 	return hypervisors
 }
 
-func (cluster *Cluster) Specs() string {
+func (hypervisorCluster *HypervisorCluster) Specs() string {
 	res := "---\n"
 	scheme := runtime.NewScheme()
 	infrav1alpha1.AddToScheme(scheme)
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
-	for _, node := range cluster.Nodes {
-		nodeObject := node.Export()
-		if encodedNode, err := runtime.Encode(encoder, &nodeObject); err == nil {
-			res += fmt.Sprintf("%s---\n", string(encodedNode))
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		hypervisorObject := hypervisor.Export()
+		if encodedHypervisor, err := runtime.Encode(encoder, &hypervisorObject); err == nil {
+			res += fmt.Sprintf("%s---\n", string(encodedHypervisor))
 		}
 	}
 	return res

@@ -33,7 +33,7 @@ func (kubeApiServer *KubeAPIServer) Reconcile() error {
 		return err
 	}
 	return kubeApiServer.node.hypervisor.RunPod(
-		infra.NewRegularPod(
+		infra.NewPod(
 			"kube-apiserver",
 			[]infra.Container{
 				{

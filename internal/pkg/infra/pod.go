@@ -27,7 +27,7 @@ type Container struct {
 	Command []string
 }
 
-func NewRegularPod(name string, containers []Container) Pod {
+func NewPod(name string, containers []Container) Pod {
 	return Pod{
 		Name:       name,
 		Containers: containers,

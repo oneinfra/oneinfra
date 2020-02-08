@@ -14,20 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package manifests
 
 import (
-	"errors"
+	"sigs.k8s.io/yaml"
 
+	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
+	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
 )
 
-func Reconcile(hypervisors []*infra.Hypervisor) error {
-	// TODO: this is still temporary, to be removed
-	if len(hypervisors) == 0 {
-		return errors.New("no hypervisors available")
+func RetrieveHypervisors(manifests string) []*infra.Hypervisor {
+	hypervisors := []*infra.Hypervisor{}
+	documents := yamlutils.SplitDocuments(manifests)
+	for _, document := range documents {
+		hypervisor := infrav1alpha1.Hypervisor{}
+		if err := yaml.Unmarshal([]byte(document), &hypervisor); err != nil {
+			continue
+		}
+		internalHypervisor, err := infra.HypervisorFromv1alpha1(hypervisor)
+		if err != nil {
+			continue
+		}
+		hypervisors = append(hypervisors, internalHypervisor)
 	}
-	hypervisor := hypervisors[0]
-	return node.NewNode(hypervisor).Reconcile()
+	return hypervisors
 }

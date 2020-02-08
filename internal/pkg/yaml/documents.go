@@ -14,20 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package yaml
 
 import (
-	"errors"
-
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
+	"regexp"
 )
 
-func Reconcile(hypervisors []*infra.Hypervisor) error {
-	// TODO: this is still temporary, to be removed
-	if len(hypervisors) == 0 {
-		return errors.New("no hypervisors available")
+var (
+	splitter = regexp.MustCompile("(?m)^---$")
+)
+
+func SplitDocuments(manifests string) []string {
+	documents := []string{}
+	for _, document := range splitter.Split(manifests, -1) {
+		if len(document) > 0 {
+			documents = append(documents, document)
+		}
 	}
-	hypervisor := hypervisors[0]
-	return node.NewNode(hypervisor).Reconcile()
+	return documents
 }

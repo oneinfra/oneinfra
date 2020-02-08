@@ -39,7 +39,7 @@ func (kubeApiServer *KubeAPIServer) Reconcile() error {
 				{
 					Name:    "kine",
 					Image:   kineImage,
-					Command: []string{"kine", "--endpoint", "sqlite"},
+					Command: []string{"kine"},
 				},
 				{
 					Name:    "kube-apiserver",

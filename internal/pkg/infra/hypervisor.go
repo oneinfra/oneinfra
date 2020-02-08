@@ -21,26 +21,58 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
+	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
 type Hypervisor struct {
-	Name       string
-	CRIRuntime criapi.RuntimeServiceClient
-	CRIImage   criapi.ImageServiceClient
+	Name               string
+	CRIRuntimeEndpoint string
+	CRIImageEndpoint   string
+	criRuntime         criapi.RuntimeServiceClient
+	criImage           criapi.ImageServiceClient
 }
 
-func NewHypervisor(name string, criRuntime criapi.RuntimeServiceClient, criImage criapi.ImageServiceClient) Hypervisor {
-	return Hypervisor{
-		Name:       name,
-		CRIRuntime: criRuntime,
-		CRIImage:   criImage,
+func HypervisorFromv1alpha1(hypervisor infrav1alpha1.Hypervisor) (*Hypervisor, error) {
+	return &Hypervisor{
+		Name:               hypervisor.ObjectMeta.Name,
+		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
+		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
+	}, nil
+}
+
+func (hypervisor *Hypervisor) CRIRuntime() (criapi.RuntimeServiceClient, error) {
+	if hypervisor.criRuntime != nil {
+		return hypervisor.criRuntime, nil
 	}
+	conn, err := grpc.Dial(hypervisor.CRIRuntimeEndpoint, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return nil, err
+	}
+	hypervisor.criRuntime = criapi.NewRuntimeServiceClient(conn)
+	return hypervisor.criRuntime, nil
+}
+
+func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
+	if hypervisor.criImage != nil {
+		return hypervisor.criImage, nil
+	}
+	conn, err := grpc.Dial(hypervisor.CRIImageEndpoint, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return nil, err
+	}
+	hypervisor.criImage = criapi.NewImageServiceClient(conn)
+	return hypervisor.criImage, nil
 }
 
 func (hypervisor *Hypervisor) PullImage(image string) error {
-	_, err := hypervisor.CRIImage.PullImage(context.Background(), &criapi.PullImageRequest{
+	criImage, err := hypervisor.CRIImage()
+	if err != nil {
+		return err
+	}
+	_, err = criImage.PullImage(context.Background(), &criapi.PullImageRequest{
 		Image: &criapi.ImageSpec{
 			Image: image,
 		},
@@ -58,6 +90,10 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 }
 
 func (hypervisor *Hypervisor) RunPod(pod Pod) error {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return err
+	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
 			Name:      pod.Name,
@@ -66,7 +102,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 		},
 		LogDirectory: "/var/log/pods/",
 	}
-	podSandboxResponse, err := hypervisor.CRIRuntime.RunPodSandbox(
+	podSandboxResponse, err := criRuntime.RunPodSandbox(
 		context.Background(),
 		&criapi.RunPodSandboxRequest{
 			Config: &podSandboxConfig,
@@ -78,7 +114,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 	podSandboxId := podSandboxResponse.PodSandboxId
 	containerIds := []string{}
 	for _, container := range pod.Containers {
-		containerResponse, err := hypervisor.CRIRuntime.CreateContainer(
+		containerResponse, err := criRuntime.CreateContainer(
 			context.Background(),
 			&criapi.CreateContainerRequest{
 				PodSandboxId: podSandboxId,
@@ -101,7 +137,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 		containerIds = append(containerIds, containerResponse.ContainerId)
 	}
 	for _, containerId := range containerIds {
-		_, err = hypervisor.CRIRuntime.StartContainer(
+		_, err = criRuntime.StartContainer(
 			context.Background(),
 			&criapi.StartContainerRequest{
 				ContainerId: containerId,

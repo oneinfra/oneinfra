@@ -17,7 +17,6 @@ limitations under the License.
 package localcluster
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -82,12 +81,8 @@ func (cluster *Cluster) Wait() error {
 	wg.Add(len(cluster.Nodes))
 	for _, node := range cluster.Nodes {
 		go func(node *Node) {
-			for {
-				if _, err := node.Version(context.Background()); err == nil {
-					wg.Done()
-					return
-				}
-			}
+			node.Wait()
+			wg.Done()
 		}(node)
 	}
 	wg.Wait()

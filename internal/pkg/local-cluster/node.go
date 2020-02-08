@@ -17,26 +17,23 @@ limitations under the License.
 package localcluster
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"time"
 
-	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 
 	infraapiv1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
 type Node struct {
 	Name       string
 	Cluster    *Cluster
-	criRuntime criapi.RuntimeServiceClient
-	criImage   criapi.ImageServiceClient
+	CRIRuntime string
+	CRIImage   string
 }
 
 func (node *Node) Create() error {
@@ -78,40 +75,6 @@ func (node *Node) containerdSockPath() string {
 	return fmt.Sprintf("passthrough:///unix://%s", filepath.Join(node.runtimeDirectory(), "containerd.sock"))
 }
 
-func (node *Node) CRIRuntime() (criapi.RuntimeServiceClient, error) {
-	if node.criRuntime != nil {
-		return node.criRuntime, nil
-	}
-	conn, err := grpc.Dial(node.containerdSockPath(), grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		return nil, err
-	}
-	node.criRuntime = criapi.NewRuntimeServiceClient(conn)
-	return node.criRuntime, nil
-}
-
-func (node *Node) CRIImage() (criapi.ImageServiceClient, error) {
-	if node.criImage != nil {
-		return node.criImage, nil
-	}
-	conn, err := grpc.Dial(node.containerdSockPath(), grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		return nil, err
-	}
-	node.criImage = criapi.NewImageServiceClient(conn)
-	return node.criImage, nil
-}
-
-func (node *Node) Version(ctx context.Context) (*criapi.VersionResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-	cri, err := node.CRIRuntime()
-	if err != nil {
-		return nil, err
-	}
-	return cri.Version(ctx, &criapi.VersionRequest{})
-}
-
 func (node *Node) createRuntimeDirectory() error {
 	return os.MkdirAll(node.runtimeDirectory(), 0755)
 }
@@ -129,4 +92,20 @@ func (node *Node) Export() infraapiv1alpha1.Hypervisor {
 			CRIRuntimeEndpoint: node.containerdSockPath(),
 		},
 	}
+}
+
+func (node *Node) Wait() error {
+	hypervisor := infra.Hypervisor{
+		Name:               node.Name,
+		CRIRuntimeEndpoint: node.containerdSockPath(),
+		CRIImageEndpoint:   node.containerdSockPath(),
+	}
+	for {
+		_, runtimeErr := hypervisor.CRIRuntime()
+		_, imageErr := hypervisor.CRIImage()
+		if runtimeErr == nil && imageErr == nil {
+			break
+		}
+	}
+	return nil
 }

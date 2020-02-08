@@ -34,8 +34,8 @@ type Node struct {
 	hypervisor *infra.Hypervisor
 }
 
-func NewNode(hypervisor *infra.Hypervisor) Node {
-	return Node{
+func NewNode(hypervisor *infra.Hypervisor) *Node {
+	return &Node{
 		hypervisor: hypervisor,
 	}
 }

@@ -60,11 +60,11 @@ manifests: controller-gen
 
 # Run go fmt against code
 fmt:
-	go fmt ./...
+	go fmt -mod=vendor ./...
 
 # Run go vet against code
 vet:
-	go vet ./...
+	go vet -mod=vendor ./...
 
 # Generate code
 generate: controller-gen

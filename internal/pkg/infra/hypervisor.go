@@ -18,6 +18,9 @@ package infra
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/google/uuid"
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
@@ -45,13 +48,23 @@ func (hypervisor *Hypervisor) PullImage(image string) error {
 	return err
 }
 
-func (hypervisor *Hypervisor) RunPod() error {
+func (hypervisor *Hypervisor) PullImages(images ...string) error {
+	for _, image := range images {
+		if err := hypervisor.PullImage(image); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
-			Name:      "test",
-			Uid:       "test",
-			Namespace: "test",
+			Name:      pod.Name,
+			Uid:       uuid.New().String(),
+			Namespace: uuid.New().String(),
 		},
+		LogDirectory: "/var/log/pods/",
 	}
 	podSandboxResponse, err := hypervisor.CRIRuntime.RunPodSandbox(
 		context.Background(),
@@ -63,30 +76,40 @@ func (hypervisor *Hypervisor) RunPod() error {
 		return err
 	}
 	podSandboxId := podSandboxResponse.PodSandboxId
-	containerResponse, err := hypervisor.CRIRuntime.CreateContainer(
-		context.Background(),
-		&criapi.CreateContainerRequest{
-			PodSandboxId: podSandboxId,
-			Config: &criapi.ContainerConfig{
-				Metadata: &criapi.ContainerMetadata{
-					Name: "test",
+	containerIds := []string{}
+	for _, container := range pod.Containers {
+		containerResponse, err := hypervisor.CRIRuntime.CreateContainer(
+			context.Background(),
+			&criapi.CreateContainerRequest{
+				PodSandboxId: podSandboxId,
+				Config: &criapi.ContainerConfig{
+					Metadata: &criapi.ContainerMetadata{
+						Name: container.Name,
+					},
+					Image: &criapi.ImageSpec{
+						Image: container.Image,
+					},
+					Args:    container.Command,
+					LogPath: fmt.Sprintf("%s-%s.log", podSandboxConfig.Metadata.Name, container.Name),
 				},
-				Image: &criapi.ImageSpec{
-					Image: "k8s.gcr.io/kube-apiserver:v1.17.0",
-				},
+				SandboxConfig: &podSandboxConfig,
 			},
-			SandboxConfig: &podSandboxConfig,
-		},
-	)
-	if err != nil {
-		return err
+		)
+		if err != nil {
+			return err
+		}
+		containerIds = append(containerIds, containerResponse.ContainerId)
 	}
-	containerId := containerResponse.ContainerId
-	_, err = hypervisor.CRIRuntime.StartContainer(
-		context.Background(),
-		&criapi.StartContainerRequest{
-			ContainerId: containerId,
-		},
-	)
-	return err
+	for _, containerId := range containerIds {
+		_, err = hypervisor.CRIRuntime.StartContainer(
+			context.Background(),
+			&criapi.StartContainerRequest{
+				ContainerId: containerId,
+			},
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -24,7 +24,6 @@ import (
 
 var (
 	components = []ComponentType{
-		DqliteComponent,
 		KineComponent,
 		KubeAPIServerComponent,
 		KubeControllerManagerComponent,
@@ -44,8 +43,6 @@ func NewNode(hypervisor *infra.Hypervisor) Node {
 
 func (node *Node) Component(componentType ComponentType) (Component, error) {
 	switch componentType {
-	case DqliteComponent:
-		return &Dqlite{node: node}, nil
 	case KineComponent:
 		return &Kine{node: node}, nil
 	case KubeAPIServerComponent:

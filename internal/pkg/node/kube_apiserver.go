@@ -16,13 +16,14 @@ limitations under the License.
 
 package node
 
+const (
+	kubeApiserverImage = "k8s.gcr.io/kube-apiserver:v1.17.0"
+)
+
 type KubeAPIServer struct {
 	node *Node
 }
 
 func (kubeApiServer *KubeAPIServer) Reconcile() error {
-	// if err := kubeApiServer.node.hypervisor.PullImage("k8s.gcr.io/kube-apiserver:v1.17.0"); err != nil {
-	// 	return err
-	// }
 	return nil
 }

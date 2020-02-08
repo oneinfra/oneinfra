@@ -16,10 +16,36 @@ limitations under the License.
 
 package node
 
+import "oneinfra.ereslibre.es/m/internal/pkg/infra"
+
+const (
+	dqliteImage = "oneinfra/dqlite:latest"
+	kineImage   = "oneinfra/kine:latest"
+)
+
 type Kine struct {
 	node *Node
 }
 
 func (kine *Kine) Reconcile() error {
-	return nil
+	if err := kine.node.hypervisor.PullImages(dqliteImage, kineImage); err != nil {
+		return err
+	}
+	return kine.node.hypervisor.RunPod(
+		infra.NewRegularPod(
+			"kine",
+			[]infra.Container{
+				{
+					Name:    "dqlite",
+					Image:   dqliteImage,
+					Command: []string{"dqlite-demo", "start", "1", "--address", "0.0.0.0:9181"},
+				},
+				{
+					Name:    "kine",
+					Image:   kineImage,
+					Command: []string{"kine", "--endpoint", "dqlite://127.0.0.1:9181"},
+				},
+			},
+		),
+	)
 }

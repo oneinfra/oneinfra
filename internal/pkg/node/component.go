@@ -19,7 +19,6 @@ package node
 type ComponentType uint
 
 const (
-	DqliteComponent                ComponentType = iota
 	KineComponent                  ComponentType = iota
 	KubeAPIServerComponent         ComponentType = iota
 	KubeControllerManagerComponent ComponentType = iota

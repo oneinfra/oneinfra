@@ -16,13 +16,14 @@ limitations under the License.
 
 package node
 
+const (
+	kubeControllerManager = "k8s.gcr.io/kube-controller-manager:v1.17.0"
+)
+
 type KubeControllerManager struct {
 	node *Node
 }
 
 func (kubeControllerManager *KubeControllerManager) Reconcile() error {
-	// if err := kubeControllerManager.node.hypervisor.PullImage("k8s.gcr.io/kube-controller-manager:v1.17.0"); err != nil {
-	// 	return err
-	// }
 	return nil
 }

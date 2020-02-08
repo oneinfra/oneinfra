@@ -14,12 +14,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package infra
 
-type Dqlite struct {
-	node *Node
+type Pod struct {
+	Name       string
+	Containers []Container
 }
 
-func (dqlite *Dqlite) Reconcile() error {
-	return nil
+type Container struct {
+	Name    string
+	Image   string
+	Command []string
+}
+
+func NewRegularPod(name string, containers []Container) Pod {
+	return Pod{
+		Name:       name,
+		Containers: containers,
+	}
+}
+
+func NewSingleContainerPod(name, image string, command []string) Pod {
+	return Pod{
+		Name: name,
+		Containers: []Container{
+			{
+				Name:    name,
+				Image:   image,
+				Command: command,
+			},
+		},
+	}
 }

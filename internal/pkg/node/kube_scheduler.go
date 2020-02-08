@@ -16,13 +16,14 @@ limitations under the License.
 
 package node
 
+const (
+	kubeScheduler = "k8s.gcr.io/kube-scheduler:v1.17.0"
+)
+
 type KubeScheduler struct {
 	node *Node
 }
 
 func (kubeScheduler *KubeScheduler) Reconcile() error {
-	// if err := kubeScheduler.node.hypervisor.PullImage("k8s.gcr.io/kube-scheduler:v1.17.0"); err != nil {
-	// 	return err
-	// }
 	return nil
 }

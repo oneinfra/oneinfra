@@ -5,6 +5,7 @@ jobs:
       - image: circleci/golang:1.13
         environment:
           GO111MODULE: "on"
+          GOFLAGS: "-mod=vendor"
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout

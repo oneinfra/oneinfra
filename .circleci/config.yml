@@ -11,11 +11,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v2-pkg-cache
+            - v3-pkg-cache
       - run: sudo make test-deps
       - run: make test
       - save_cache:
-          key: v2-pkg-cache
+          key: v3-pkg-cache
           paths:
             - "/go/pkg"
-            - "/usr/local/kubebuilder"

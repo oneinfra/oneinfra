@@ -1,5 +1,6 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -23,23 +24,23 @@ test-deps:
 
 # Run tests
 test: fmt vet manifests
-	go test -mod=vendor ./... -coverprofile cover.out
+	go test ./... -coverprofile cover.out
 
 # Build and install manager binary
 manager: generate fmt vet
-	go install -mod=vendor ./cmd/oi-manager
+	go install ./cmd/oi-manager
 
 # Build and install oi binary
 oi:
-	go install -mod=vendor ./cmd/oi
+	go install ./cmd/oi
 
 # Build and install oi-local-cluster
 oi-local-cluster:
-	go install -mod=vendor ./cmd/oi-local-cluster
+	go install ./cmd/oi-local-cluster
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
-	go run -mod=vendor cmd/oi-manager/main.go
+	go run cmd/oi-manager/main.go
 
 # Install CRDs into a cluster
 install: manifests
@@ -64,7 +65,7 @@ fmt:
 
 # Run go vet against code
 vet:
-	go vet -mod=vendor ./...
+	go vet ./...
 
 # Generate code
 generate: controller-gen

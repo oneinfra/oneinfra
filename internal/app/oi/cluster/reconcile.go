@@ -17,9 +17,18 @@ limitations under the License.
 package cluster
 
 import (
+	"io/ioutil"
+	"os"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
 func Reconcile() error {
-	return cluster.Reconcile()
+	stdin, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	hypervisors := manifests.RetrieveHypervisors(string(stdin))
+	return cluster.Reconcile(hypervisors)
 }

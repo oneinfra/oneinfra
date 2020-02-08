@@ -17,14 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/urfave/cli/v2"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
 )
 
 func main() {
@@ -39,12 +37,7 @@ func main() {
 						Name:  "reconcile",
 						Usage: "reconcile a cluster",
 						Action: func(c *cli.Context) error {
-							stdin, err := ioutil.ReadAll(os.Stdin)
-							if err != nil {
-								return err
-							}
-							hypervisors := manifests.RetrieveHypervisors(string(stdin))
-							return cluster.Reconcile(hypervisors)
+							return cluster.Reconcile()
 						},
 					},
 				},

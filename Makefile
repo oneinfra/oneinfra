@@ -1,8 +1,10 @@
-
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
+
+# kubebuilder tools version
+KUBEBUILDER_TOOLS_VERSION ?= 1.16.4
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -13,9 +15,15 @@ endif
 
 all: manager oi oi-local-cluster
 
+# Install test deps
+test-deps:
+	wget https://go.kubebuilder.io/test-tools/${KUBEBUILDER_TOOLS_VERSION}/linux/amd64 -O kubebuilder-tools.tar.gz
+	tar -C /usr/local -xf kubebuilder-tools.tar.gz
+	rm kubebuilder-tools.tar.gz
+
 # Run tests
 test: generate fmt vet manifests
-	go test ./... -coverprofile cover.out
+	go test -mod=vendor ./... -coverprofile cover.out
 
 # Build and install manager binary
 manager: generate fmt vet

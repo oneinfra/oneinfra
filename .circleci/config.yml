@@ -6,4 +6,5 @@ jobs:
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout
+      - run: make test-deps
       - run: make test

@@ -3,13 +3,18 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.13
+    environment:
+      GO111MODULE: "on"
+      GOFLAGS: "-mod=vendor"
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-pkg-cache
       - run: sudo make test-deps
-      - run:
-          name: Run tests
-          environment:
-            GO111MODULE: "on"
-            GOFLAGS: "-mod=vendor"
-          command: make test
+      - run: make test
+      - save_cache:
+          key: v1-pkg-cache
+          paths:
+            - "/go/pkg"

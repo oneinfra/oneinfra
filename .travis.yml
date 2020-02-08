@@ -9,5 +9,5 @@ env:
 before_script:
   - docker pull oneinfra/containerd:latest
 script:
-  - GOFLAGS="-mod=vendof" make oi-local-cluster
+  - GOFLAGS="-mod=vendor" make oi-local-cluster
   - oi-local-cluster cluster create

@@ -23,7 +23,7 @@ test-deps:
 	rm kubebuilder-tools.tar.gz
 
 # Run tests
-test: fmt vet manifests
+test: fmt vet
 	go test ./... -coverprofile cover.out
 
 # Build and install manager binary

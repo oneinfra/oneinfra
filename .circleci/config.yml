@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/oneinfra/oneinfra
+    steps:
+      - checkout
+      - run: make test

@@ -18,16 +18,18 @@ package yaml
 
 import (
 	"regexp"
+	"strings"
 )
 
 var (
 	splitter = regexp.MustCompile("(?m)^---$")
+	trimmer  = "\n\t "
 )
 
 func SplitDocuments(manifests string) []string {
 	documents := []string{}
 	for _, document := range splitter.Split(manifests, -1) {
-		if len(document) > 0 {
+		if len(strings.Trim(document, trimmer)) > 0 {
 			documents = append(documents, document)
 		}
 	}

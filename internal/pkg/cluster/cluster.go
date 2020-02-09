@@ -17,11 +17,10 @@ limitations under the License.
 package cluster
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-func Reconcile(hypervisors infra.HypervisorMap, nodes node.NodeList) error {
+func Reconcile(nodes node.NodeList) error {
 	for _, node := range nodes {
 		if err := node.Reconcile(); err != nil {
 			return err

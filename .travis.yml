@@ -10,4 +10,4 @@ before_script:
   - docker pull oneinfra/containerd:latest
 script:
   - GOFLAGS="-mod=vendor" make oi oi-local-cluster
-  - oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | oi clusters reconcile
+  - oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | oi reconcile

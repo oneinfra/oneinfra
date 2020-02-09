@@ -51,16 +51,10 @@ func main() {
 				},
 			},
 			{
-				Name:  "clusters",
-				Usage: "clusters operations",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "reconcile",
-						Usage: "reconcile all clusters",
-						Action: func(c *cli.Context) error {
-							return cluster.Reconcile()
-						},
-					},
+				Name:  "reconcile",
+				Usage: "reconcile all clusters",
+				Action: func(c *cli.Context) error {
+					return cluster.Reconcile()
 				},
 			},
 			{

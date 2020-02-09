@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package cluster
 
 import (
 	"errors"
@@ -22,11 +22,12 @@ import (
 	"io/ioutil"
 	"os"
 
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-func Inject(nodeName, clusterName string) error {
+func Inject(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -46,16 +47,16 @@ func Inject(nodeName, clusterName string) error {
 		res += clustersSpecs
 	}
 
+	injectedCluster := cluster.ClusterList{
+		cluster.NewCluster(clusterName),
+	}
+	if injectedClusterSpecs, err := injectedCluster.Specs(); err == nil {
+		res += injectedClusterSpecs
+	}
+
 	nodes := manifests.RetrieveNodes(string(stdin), hypervisors)
 	if nodesSpecs, err := nodes.Specs(); err == nil {
 		res += nodesSpecs
-	}
-
-	injectedNode := node.NodeList{
-		node.NewNodeWithRandomHypervisor(nodeName, clusterName, hypervisors.HypervisorList()),
-	}
-	if injectedNodeSpecs, err := injectedNode.Specs(); err == nil {
-		res += injectedNodeSpecs
 	}
 
 	fmt.Print(res)

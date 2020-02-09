@@ -6,9 +6,9 @@ resources:
   kind: Hypervisor
   version: v1alpha1
 - group: cluster
-  kind: Node
+  kind: Cluster
   version: v1alpha1
 - group: cluster
-  kind: LoadBalancer
+  kind: Node
   version: v1alpha1
 version: "2"

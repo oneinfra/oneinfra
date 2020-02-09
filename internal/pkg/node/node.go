@@ -40,16 +40,18 @@ var (
 type Node struct {
 	Name           string
 	HypervisorName string
+	ClusterName    string
 	hypervisor     *infra.Hypervisor
 }
 
 type NodeList []*Node
 
-func NodeWithRandomHypervisor(nodeName string, hypervisorList infra.HypervisorList) *Node {
+func NewNodeWithRandomHypervisor(nodeName, clusterName string, hypervisorList infra.HypervisorList) *Node {
 	hypervisorSample := hypervisorList.Sample()
 	return &Node{
 		Name:           nodeName,
 		HypervisorName: hypervisorSample.Name,
+		ClusterName:    clusterName,
 		hypervisor:     hypervisorSample,
 	}
 }
@@ -58,13 +60,15 @@ func NodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 	return &Node{
 		Name:           node.ObjectMeta.Name,
 		HypervisorName: node.Spec.Hypervisor,
+		ClusterName:    node.Spec.Cluster,
 	}, nil
 }
 
-func NodeFromv1alpha1WithHypervisor(node *clusterv1alpha1.Node, hypervisor *infra.Hypervisor) (*Node, error) {
+func NodeWithHypervisorFromv1alpha1(node *clusterv1alpha1.Node, hypervisor *infra.Hypervisor) (*Node, error) {
 	return &Node{
 		Name:           node.ObjectMeta.Name,
 		HypervisorName: node.Spec.Hypervisor,
+		ClusterName:    node.Spec.Cluster,
 		hypervisor:     hypervisor,
 	}, nil
 }
@@ -105,6 +109,7 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 		},
 		Spec: clusterv1alpha1.NodeSpec{
 			Hypervisor: node.HypervisorName,
+			Cluster:    node.ClusterName,
 			Role:       clusterv1alpha1.ControlPlaneRole,
 		},
 	}
@@ -112,7 +117,9 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 
 func (node *Node) Specs() (string, error) {
 	scheme := runtime.NewScheme()
-	clusterv1alpha1.AddToScheme(scheme)
+	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
+		return "", err
+	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, clusterv1alpha1.GroupVersion)
 	nodeObject := node.Export()

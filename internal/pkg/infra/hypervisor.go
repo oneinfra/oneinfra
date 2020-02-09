@@ -171,7 +171,9 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 
 func (hypervisor *Hypervisor) Specs() (string, error) {
 	scheme := runtime.NewScheme()
-	infrav1alpha1.AddToScheme(scheme)
+	if err := infrav1alpha1.AddToScheme(scheme); err != nil {
+		return "", err
+	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
 	hypervisorObject := hypervisor.Export()

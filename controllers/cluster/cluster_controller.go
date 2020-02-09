@@ -27,27 +27,27 @@ import (
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 )
 
-// LoadBalancerReconciler reconciles a LoadBalancer object
-type LoadBalancerReconciler struct {
+// ClusterReconciler reconciles a Cluster object
+type ClusterReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=loadbalancers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=loadbalancers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters/status,verbs=get;update;patch
 
-func (r *LoadBalancerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = r.Log.WithValues("loadbalancer", req.NamespacedName)
+	_ = r.Log.WithValues("cluster", req.NamespacedName)
 
 	// your logic here
 
 	return ctrl.Result{}, nil
 }
 
-func (r *LoadBalancerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&clusterv1alpha1.LoadBalancer{}).
+		For(&clusterv1alpha1.Cluster{}).
 		Complete(r)
 }

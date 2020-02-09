@@ -17,10 +17,12 @@ limitations under the License.
 package manifests
 
 import (
-	"sigs.k8s.io/yaml"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
@@ -30,8 +32,14 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 	hypervisors := infra.HypervisorMap{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
+		scheme := runtime.NewScheme()
+		if err := infrav1alpha1.AddToScheme(scheme); err != nil {
+			continue
+		}
 		hypervisor := infrav1alpha1.Hypervisor{}
-		if err := yaml.Unmarshal([]byte(document), &hypervisor); err != nil {
+		gvk := infrav1alpha1.GroupVersion.WithKind("Hypervisor")
+		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
+		if _, _, err := serializer.Decode([]byte(document), &gvk, &hypervisor); err != nil {
 			continue
 		}
 		internalHypervisor, err := infra.HypervisorFromv1alpha1(&hypervisor)
@@ -43,16 +51,45 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 	return hypervisors
 }
 
+func RetrieveClusters(manifests string, nodes node.NodeList) cluster.ClusterList {
+	clusters := cluster.ClusterList{}
+	documents := yamlutils.SplitDocuments(manifests)
+	for _, document := range documents {
+		scheme := runtime.NewScheme()
+		if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
+			continue
+		}
+		clusterObj := clusterv1alpha1.Cluster{}
+		gvk := clusterv1alpha1.GroupVersion.WithKind("Cluster")
+		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
+		if _, _, err := serializer.Decode([]byte(document), &gvk, &clusterObj); err != nil {
+			continue
+		}
+		internalCluster, err := cluster.ClusterWithNodesFromv1alpha1(&clusterObj, nodes)
+		if err != nil {
+			continue
+		}
+		clusters = append(clusters, internalCluster)
+	}
+	return clusters
+}
+
 func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.NodeList {
 	nodes := node.NodeList{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
+		scheme := runtime.NewScheme()
+		if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
+			continue
+		}
 		nodeObj := clusterv1alpha1.Node{}
-		if err := yaml.Unmarshal([]byte(document), &nodeObj); err != nil {
+		gvk := clusterv1alpha1.GroupVersion.WithKind("Node")
+		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
+		if _, _, err := serializer.Decode([]byte(document), &gvk, &nodeObj); err != nil {
 			continue
 		}
 		if hypervisor, ok := hypervisors[nodeObj.Spec.Hypervisor]; ok {
-			internalNode, err := node.NodeFromv1alpha1WithHypervisor(&nodeObj, hypervisor)
+			internalNode, err := node.NodeWithHypervisorFromv1alpha1(&nodeObj, hypervisor)
 			if err != nil {
 				continue
 			}

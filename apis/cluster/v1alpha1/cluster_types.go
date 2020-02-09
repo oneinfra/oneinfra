@@ -20,44 +20,34 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Role int
-
-const (
-	ControlPlaneRole Role = iota
-	Gater            Role = iota
-)
-
-// NodeSpec defines the desired state of Node
-type NodeSpec struct {
-	Hypervisor string `json:"hypervisor,omitempty"`
-	Cluster    string `json:"cluster,omitempty"`
-	Role       Role   `json:"role,omitempty"`
+// ClusterSpec defines the desired state of Cluster
+type ClusterSpec struct {
 }
 
-// NodeStatus defines the observed state of Node
-type NodeStatus struct {
+// ClusterStatus defines the observed state of Cluster
+type ClusterStatus struct {
 }
 
 // +kubebuilder:object:root=true
 
-// Node is the Schema for the nodes API
-type Node struct {
+// Cluster is the Schema for the clusters API
+type Cluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   NodeSpec   `json:"spec,omitempty"`
-	Status NodeStatus `json:"status,omitempty"`
+	Spec   ClusterSpec   `json:"spec,omitempty"`
+	Status ClusterStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// NodeList contains a list of Node
-type NodeList struct {
+// ClusterList contains a list of Cluster
+type ClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Node `json:"items"`
+	Items           []Cluster `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Node{}, &NodeList{})
+	SchemeBuilder.Register(&Cluster{}, &ClusterList{})
 }

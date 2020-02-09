@@ -35,8 +35,28 @@ func main() {
 				Usage: "cluster operations",
 				Subcommands: []*cli.Command{
 					{
+						Name:  "inject",
+						Usage: "inject a cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "name",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.Inject(c.String("name"))
+						},
+					},
+				},
+			},
+			{
+				Name:  "clusters",
+				Usage: "clusters operations",
+				Subcommands: []*cli.Command{
+					{
 						Name:  "reconcile",
-						Usage: "reconcile a cluster",
+						Usage: "reconcile all clusters",
 						Action: func(c *cli.Context) error {
 							return cluster.Reconcile()
 						},
@@ -56,9 +76,14 @@ func main() {
 								Required: true,
 								Usage:    "node name",
 							},
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return node.Inject(c.String("name"))
+							return node.Inject(c.String("name"), c.String("cluster"))
 						},
 					},
 				},

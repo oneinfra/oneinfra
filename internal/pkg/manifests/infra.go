@@ -26,8 +26,8 @@ import (
 	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
 )
 
-func RetrieveHypervisors(manifests string) []*infra.Hypervisor {
-	hypervisors := []*infra.Hypervisor{}
+func RetrieveHypervisors(manifests string) infra.HypervisorMap {
+	hypervisors := infra.HypervisorMap{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
 		hypervisor := infrav1alpha1.Hypervisor{}
@@ -38,12 +38,12 @@ func RetrieveHypervisors(manifests string) []*infra.Hypervisor {
 		if err != nil {
 			continue
 		}
-		hypervisors = append(hypervisors, internalHypervisor)
+		hypervisors[internalHypervisor.Name] = internalHypervisor
 	}
 	return hypervisors
 }
 
-func RetrieveNodes(manifests string) []*node.Node {
+func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.NodeList {
 	nodes := []*node.Node{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
@@ -51,11 +51,13 @@ func RetrieveNodes(manifests string) []*node.Node {
 		if err := yaml.Unmarshal([]byte(document), &nodeObj); err != nil {
 			continue
 		}
-		internalNode, err := node.NodeFromv1alpha1(&nodeObj)
-		if err != nil {
-			continue
+		if hypervisor, ok := hypervisors[nodeObj.Spec.Hypervisor]; ok {
+			internalNode, err := node.NodeFromv1alpha1WithHypervisor(&nodeObj, hypervisor)
+			if err != nil {
+				continue
+			}
+			nodes = append(nodes, internalNode)
 		}
-		nodes = append(nodes, internalNode)
 	}
 	return nodes
 }

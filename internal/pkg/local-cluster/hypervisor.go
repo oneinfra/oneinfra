@@ -25,7 +25,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	infraapiv1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -83,12 +83,12 @@ func (hypervisor *Hypervisor) runtimeDirectory() string {
 	return filepath.Join(hypervisor.HypervisorCluster.directory(), hypervisor.Name)
 }
 
-func (hypervisor *Hypervisor) Export() *infraapiv1alpha1.Hypervisor {
-	return &infraapiv1alpha1.Hypervisor{
+func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
+	return &infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: hypervisor.Name,
 		},
-		Spec: infraapiv1alpha1.HypervisorSpec{
+		Spec: infrav1alpha1.HypervisorSpec{
 			CRIRuntimeEndpoint: hypervisor.containerdSockPath(),
 		},
 	}

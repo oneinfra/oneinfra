@@ -21,16 +21,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-func Reconcile(hypervisors []*infra.Hypervisor, nodes []*node.Node) error {
-	hypervisorMap := map[string]*infra.Hypervisor{}
-	for _, hypervisor := range hypervisors {
-		hypervisorMap[hypervisor.Name] = hypervisor
-	}
-	for _, node := range nodes {
-		if hypervisor, ok := hypervisorMap[node.HypervisorName]; ok {
-			node.Hypervisor = hypervisor
-		}
-	}
+func Reconcile(hypervisors infra.HypervisorMap, nodes []*node.Node) error {
 	for _, node := range nodes {
 		if err := node.Reconcile(); err != nil {
 			return err

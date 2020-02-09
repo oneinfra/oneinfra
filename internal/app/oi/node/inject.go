@@ -17,11 +17,13 @@ limitations under the License.
 package node
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 func Inject(nodeName string) error {
@@ -29,7 +31,24 @@ func Inject(nodeName string) error {
 	if err != nil {
 		return err
 	}
+	res := ""
 	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	fmt.Println(hypervisors)
+	if len(hypervisors) == 0 {
+		return errors.New("empty list of hypervisors")
+	}
+	nodes := manifests.RetrieveNodes(string(stdin), hypervisors)
+	if hypervisorsSpecs, err := hypervisors.Specs(); err == nil {
+		res += hypervisorsSpecs
+	}
+	if nodesSpecs, err := nodes.Specs(); err == nil {
+		res += nodesSpecs
+	}
+	injectedNode := node.NodeList{
+		node.NodeWithRandomHypervisor(nodeName, hypervisors.HypervisorList()),
+	}
+	if injectedNodeSpecs, err := injectedNode.Specs(); err == nil {
+		res += injectedNodeSpecs
+	}
+	fmt.Print(res)
 	return nil
 }

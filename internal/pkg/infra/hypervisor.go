@@ -19,9 +19,14 @@ package infra
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
@@ -34,6 +39,9 @@ type Hypervisor struct {
 	criRuntime         criapi.RuntimeServiceClient
 	criImage           criapi.ImageServiceClient
 }
+
+type HypervisorMap map[string]*Hypervisor
+type HypervisorList []*Hypervisor
 
 func HypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
 	return &Hypervisor{
@@ -148,4 +156,51 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 		}
 	}
 	return nil
+}
+
+func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
+	return &infrav1alpha1.Hypervisor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: hypervisor.Name,
+		},
+		Spec: infrav1alpha1.HypervisorSpec{
+			CRIRuntimeEndpoint: hypervisor.CRIImageEndpoint,
+		},
+	}
+}
+
+func (hypervisor *Hypervisor) Specs() (string, error) {
+	scheme := runtime.NewScheme()
+	infrav1alpha1.AddToScheme(scheme)
+	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
+	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
+	hypervisorObject := hypervisor.Export()
+	if encodedHypervisor, err := runtime.Encode(encoder, hypervisorObject); err == nil {
+		return string(encodedHypervisor), nil
+	}
+	return "", errors.Errorf("could not encode hypervisor %q", hypervisor.Name)
+}
+
+func (hypervisorMap HypervisorMap) Specs() (string, error) {
+	res := ""
+	for _, hypervisor := range hypervisorMap {
+		hypervisorSpec, err := hypervisor.Specs()
+		if err != nil {
+			continue
+		}
+		res += fmt.Sprintf("---\n%s", hypervisorSpec)
+	}
+	return res, nil
+}
+
+func (hypervisorMap HypervisorMap) HypervisorList() HypervisorList {
+	hypervisorList := HypervisorList{}
+	for _, hypervisor := range hypervisorMap {
+		hypervisorList = append(hypervisorList, hypervisor)
+	}
+	return hypervisorList
+}
+
+func (hypervisorList HypervisorList) Sample() *Hypervisor {
+	return hypervisorList[rand.Intn(len(hypervisorList))]
 }

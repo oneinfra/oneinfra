@@ -29,9 +29,8 @@ const (
 
 // NodeSpec defines the desired state of Node
 type NodeSpec struct {
-	Hypervisor     string `json:"hypervisor,omitempty"`
-	Role           string `json:"role,omitempty"`
-	HypervisorName string `json:"hypervisorName,omitempty"`
+	Hypervisor string `json:"hypervisor,omitempty"`
+	Role       Role   `json:"role,omitempty"`
 }
 
 // NodeStatus defines the observed state of Node

@@ -44,7 +44,7 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 }
 
 func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.NodeList {
-	nodes := []*node.Node{}
+	nodes := node.NodeList{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
 		nodeObj := clusterv1alpha1.Node{}

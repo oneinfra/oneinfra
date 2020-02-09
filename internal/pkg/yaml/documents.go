@@ -21,9 +21,12 @@ import (
 	"strings"
 )
 
+const (
+	trimmer = "\n\t "
+)
+
 var (
 	splitter = regexp.MustCompile("(?m)^---$")
-	trimmer  = "\n\t "
 )
 
 func SplitDocuments(manifests string) []string {

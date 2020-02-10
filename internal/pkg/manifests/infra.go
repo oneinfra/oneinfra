@@ -32,15 +32,14 @@ import (
 func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 	hypervisors := infra.HypervisorMap{}
 	documents := yamlutils.SplitDocuments(manifests)
+	scheme := runtime.NewScheme()
+	if err := infrav1alpha1.AddToScheme(scheme); err != nil {
+		return infra.HypervisorMap{}
+	}
+	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
 	for _, document := range documents {
-		scheme := runtime.NewScheme()
-		if err := infrav1alpha1.AddToScheme(scheme); err != nil {
-			continue
-		}
 		hypervisor := infrav1alpha1.Hypervisor{}
-		gvk := infrav1alpha1.GroupVersion.WithKind("Hypervisor")
-		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
-		if _, _, err := serializer.Decode([]byte(document), &gvk, &hypervisor); err != nil {
+		if _, _, err := serializer.Decode([]byte(document), nil, &hypervisor); err != nil || hypervisor.TypeMeta.Kind != "Hypervisor" {
 			continue
 		}
 		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor)
@@ -56,15 +55,14 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 func RetrieveClusters(manifests string, nodes node.List) cluster.List {
 	clusters := cluster.List{}
 	documents := yamlutils.SplitDocuments(manifests)
+	scheme := runtime.NewScheme()
+	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
+		return cluster.List{}
+	}
+	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
 	for _, document := range documents {
-		scheme := runtime.NewScheme()
-		if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
-			continue
-		}
 		clusterObj := clusterv1alpha1.Cluster{}
-		gvk := clusterv1alpha1.GroupVersion.WithKind("Cluster")
-		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
-		if _, _, err := serializer.Decode([]byte(document), &gvk, &clusterObj); err != nil {
+		if _, _, err := serializer.Decode([]byte(document), nil, &clusterObj); err != nil || clusterObj.TypeMeta.Kind != "Cluster" {
 			continue
 		}
 		internalCluster, err := cluster.NewClusterWithNodesFromv1alpha1(&clusterObj, nodes)
@@ -80,15 +78,14 @@ func RetrieveClusters(manifests string, nodes node.List) cluster.List {
 func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.List {
 	nodes := node.List{}
 	documents := yamlutils.SplitDocuments(manifests)
+	scheme := runtime.NewScheme()
+	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
+		return node.List{}
+	}
+	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
 	for _, document := range documents {
-		scheme := runtime.NewScheme()
-		if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
-			continue
-		}
 		nodeObj := clusterv1alpha1.Node{}
-		gvk := clusterv1alpha1.GroupVersion.WithKind("Node")
-		serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
-		if _, _, err := serializer.Decode([]byte(document), &gvk, &nodeObj); err != nil {
+		if _, _, err := serializer.Decode([]byte(document), nil, &nodeObj); err != nil || nodeObj.TypeMeta.Kind != "Node" {
 			continue
 		}
 		if hypervisor, ok := hypervisors[nodeObj.Spec.Hypervisor]; ok {

@@ -22,10 +22,32 @@ import (
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
+	CertificateAuthorities CertificateAuthorities `json:"certificateAuthorities,omitempty"`
+	APIServer              KubeAPIServer          `json:"apiServer,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
+}
+
+// CertificateAuthorities represents a set of Certificate Authorities
+type CertificateAuthorities struct {
+	APIServerClient   CertificateAuthority `json:"apiServerClient,omitempty"`
+	CertificateSigner CertificateAuthority `json:"certificateSigner,omitempty"`
+	Kubelet           CertificateAuthority `json:"kubelet,omitempty"`
+}
+
+// CertificateAuthority represents a Certificate Authority
+type CertificateAuthority struct {
+	CACertificate string `json:"caCertificate,omitempty"`
+	CAPrivateKey  string `json:"caPrivateKey,omitempty"`
+}
+
+// KubeAPIServer represents a kube apiserver
+type KubeAPIServer struct {
+	CA            *CertificateAuthority `json:"ca,omitempty"`
+	TLSCert       string                `json:"tlsCert,omitempty"`
+	TLSPrivateKey string                `json:"tlsPrivateKey,omitempty"`
 }
 
 // +kubebuilder:object:root=true

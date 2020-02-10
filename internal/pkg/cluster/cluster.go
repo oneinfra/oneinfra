@@ -31,8 +31,10 @@ import (
 
 // Cluster represents a cluster
 type Cluster struct {
-	Name  string
-	nodes []*node.Node
+	name                   string
+	certificateAuthorities *certificateAuthorities
+	apiServer              *kubeAPIServer
+	nodes                  []*node.Node
 }
 
 // Map represents a map of clusters
@@ -42,20 +44,32 @@ type Map map[string]*Cluster
 type List []*Cluster
 
 // NewCluster returns a cluster with name clusterName
-func NewCluster(clusterName string) *Cluster {
-	return &Cluster{
-		Name: clusterName,
+func NewCluster(clusterName string) (*Cluster, error) {
+	res := Cluster{name: clusterName}
+	if err := res.generateCertificates(); err != nil {
+		return nil, err
 	}
+	return &res, nil
 }
 
 // NewClusterWithNodesFromv1alpha1 returns a cluster based on a versioned cluster
 func NewClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes node.List) (*Cluster, error) {
 	res := Cluster{
-		Name:  cluster.ObjectMeta.Name,
+		name: cluster.ObjectMeta.Name,
+		certificateAuthorities: &certificateAuthorities{
+			apiServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
+			certificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
+			kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
+		},
+		apiServer: &kubeAPIServer{
+			ca:            newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
+			tlsCert:       cluster.Spec.APIServer.TLSCert,
+			tlsPrivateKey: cluster.Spec.APIServer.TLSPrivateKey,
+		},
 		nodes: []*node.Node{},
 	}
 	for _, node := range nodes {
-		if node.ClusterName == res.Name {
+		if node.ClusterName == res.name {
 			res.nodes = append(res.nodes, node)
 		}
 	}
@@ -76,9 +90,32 @@ func (cluster *Cluster) Reconcile() error {
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	return &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: cluster.Name,
+			Name: cluster.name,
 		},
-		Spec: clusterv1alpha1.ClusterSpec{},
+		Spec: clusterv1alpha1.ClusterSpec{
+			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
+				APIServerClient: clusterv1alpha1.CertificateAuthority{
+					CACertificate: cluster.certificateAuthorities.apiServerClient.caCertificateContents,
+					CAPrivateKey:  cluster.certificateAuthorities.apiServerClient.caPrivateKeyContents,
+				},
+				CertificateSigner: clusterv1alpha1.CertificateAuthority{
+					CACertificate: cluster.certificateAuthorities.certificateSigner.caCertificateContents,
+					CAPrivateKey:  cluster.certificateAuthorities.certificateSigner.caPrivateKeyContents,
+				},
+				Kubelet: clusterv1alpha1.CertificateAuthority{
+					CACertificate: cluster.certificateAuthorities.kubelet.caCertificateContents,
+					CAPrivateKey:  cluster.certificateAuthorities.kubelet.caPrivateKeyContents,
+				},
+			},
+			APIServer: clusterv1alpha1.KubeAPIServer{
+				CA: &clusterv1alpha1.CertificateAuthority{
+					CACertificate: cluster.apiServer.ca.caCertificateContents,
+					CAPrivateKey:  cluster.apiServer.ca.caPrivateKeyContents,
+				},
+				TLSCert:       cluster.apiServer.tlsCert,
+				TLSPrivateKey: cluster.apiServer.tlsPrivateKey,
+			},
+		},
 	}
 }
 
@@ -94,7 +131,21 @@ func (cluster *Cluster) Specs() (string, error) {
 	if encodedCluster, err := runtime.Encode(encoder, clusterObject); err == nil {
 		return string(encodedCluster), nil
 	}
-	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
+	return "", errors.Errorf("could not encode cluster %q", cluster.name)
+}
+
+func (cluster *Cluster) generateCertificates() error {
+	certificateAuthorities, err := newCertificateAuthorities()
+	if err != nil {
+		return err
+	}
+	cluster.certificateAuthorities = certificateAuthorities
+	kubeAPIServer, err := newKubeAPIServer()
+	if err != nil {
+		return err
+	}
+	cluster.apiServer = kubeAPIServer
+	return nil
 }
 
 // Specs returns the versioned specs of all nodes in this list

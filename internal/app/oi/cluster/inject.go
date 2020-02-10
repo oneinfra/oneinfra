@@ -48,9 +48,11 @@ func Inject(clusterName string) error {
 		res += clustersSpecs
 	}
 
-	injectedCluster := cluster.List{
-		cluster.NewCluster(clusterName),
+	newCluster, err := cluster.NewCluster(clusterName)
+	if err != nil {
+		return err
 	}
+	injectedCluster := cluster.List{newCluster}
 	if injectedClusterSpecs, err := injectedCluster.Specs(); err == nil {
 		res += injectedClusterSpecs
 	}

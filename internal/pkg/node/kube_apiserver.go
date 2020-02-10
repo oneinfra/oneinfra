@@ -23,13 +23,15 @@ import (
 const (
 	dqliteImage        = "oneinfra/dqlite:latest"
 	kineImage          = "oneinfra/kine:latest"
-	kubeApiServerImage = "k8s.gcr.io/kube-apiserver:v1.17.0"
+	kubeAPIServerImage = "k8s.gcr.io/kube-apiserver:v1.17.0"
 )
 
+// KubeAPIServer represents the kube-apiserver
 type KubeAPIServer struct{}
 
+// Reconcile reconciles the kube-apiserver
 func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor) error {
-	if err := hypervisor.PullImages(kineImage, kubeApiServerImage); err != nil {
+	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage); err != nil {
 		return err
 	}
 	return hypervisor.RunPod(
@@ -43,7 +45,7 @@ func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor) erro
 				},
 				{
 					Name:    "kube-apiserver",
-					Image:   kubeApiServerImage,
+					Image:   kubeAPIServerImage,
 					Command: []string{"kube-apiserver", "--etcd-servers", "http://127.0.0.1:2379"},
 				},
 			},

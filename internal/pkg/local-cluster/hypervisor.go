@@ -29,6 +29,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
+// Hypervisor represents a local hypervisor
 type Hypervisor struct {
 	Name              string
 	HypervisorCluster *HypervisorCluster
@@ -36,6 +37,7 @@ type Hypervisor struct {
 	CRIImage          string
 }
 
+// Create creates the local hypervisor
 func (hypervisor *Hypervisor) Create() error {
 	if err := hypervisor.createRuntimeDirectory(); err != nil {
 		return err
@@ -56,6 +58,7 @@ func (hypervisor *Hypervisor) Create() error {
 	).Run()
 }
 
+// Destroy destroys the current hypervisor
 func (hypervisor *Hypervisor) Destroy() error {
 	exec.Command(
 		"docker", "rm", "-f", fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name),
@@ -83,6 +86,7 @@ func (hypervisor *Hypervisor) runtimeDirectory() string {
 	return filepath.Join(hypervisor.HypervisorCluster.directory(), hypervisor.Name)
 }
 
+// Export exports the local hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	return &infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
@@ -94,6 +98,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	}
 }
 
+// Wait waits for the local hypervisor to be created
 func (hypervisor *Hypervisor) Wait() error {
 	infraHypervisor := infra.Hypervisor{
 		Name:               hypervisor.Name,

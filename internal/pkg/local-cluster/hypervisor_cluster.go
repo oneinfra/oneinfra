@@ -30,11 +30,13 @@ import (
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
+// HypervisorCluster represents a cluster of local hypervisors
 type HypervisorCluster struct {
 	Name        string
 	Hypervisors []*Hypervisor
 }
 
+// NewHypervisorCluster creates a new cluster of local hypervisors
 func NewHypervisorCluster(name string, size int) *HypervisorCluster {
 	cluster := HypervisorCluster{
 		Name:        name,
@@ -51,6 +53,7 @@ func NewHypervisorCluster(name string, size int) *HypervisorCluster {
 	return &cluster
 }
 
+// LoadCluster loads a cluster with name from disk
 func LoadCluster(name string) (*HypervisorCluster, error) {
 	hypervisorCluster := HypervisorCluster{Name: name}
 	hypervisors, err := ioutil.ReadDir(hypervisorCluster.directory())
@@ -64,6 +67,7 @@ func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor
 	hypervisorCluster.Hypervisors = append(hypervisorCluster.Hypervisors, hypervisor)
 }
 
+// Create creates the local hypervisor cluster
 func (hypervisorCluster *HypervisorCluster) Create() error {
 	if err := hypervisorCluster.createDirectory(); err != nil {
 		return err
@@ -76,6 +80,7 @@ func (hypervisorCluster *HypervisorCluster) Create() error {
 	return nil
 }
 
+// Wait waits for the local hypervisor cluster to be created
 func (hypervisorCluster *HypervisorCluster) Wait() error {
 	var wg sync.WaitGroup
 	wg.Add(len(hypervisorCluster.Hypervisors))
@@ -89,6 +94,7 @@ func (hypervisorCluster *HypervisorCluster) Wait() error {
 	return nil
 }
 
+// Destroy destroys the local hypervisor cluster
 func (hypervisorCluster *HypervisorCluster) Destroy() error {
 	for _, hypervisor := range hypervisorCluster.Hypervisors {
 		if err := hypervisor.Destroy(); err != nil {
@@ -106,6 +112,7 @@ func (hypervisorCluster *HypervisorCluster) directory() string {
 	return filepath.Join(os.TempDir(), "oneinfra-clusters", hypervisorCluster.Name)
 }
 
+// Export exports the local hypervisor cluster to a list of versioned hypervisors
 func (hypervisorCluster *HypervisorCluster) Export() []*infrav1alpha1.Hypervisor {
 	hypervisors := []*infrav1alpha1.Hypervisor{}
 	for _, hypervisor := range hypervisorCluster.Hypervisors {
@@ -114,6 +121,7 @@ func (hypervisorCluster *HypervisorCluster) Export() []*infrav1alpha1.Hypervisor
 	return hypervisors
 }
 
+// Specs returns the versioned specs for the local hypervisor cluster
 func (hypervisorCluster *HypervisorCluster) Specs() string {
 	res := ""
 	scheme := runtime.NewScheme()

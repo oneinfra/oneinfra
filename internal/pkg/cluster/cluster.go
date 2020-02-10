@@ -29,21 +29,27 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
+// Cluster represents a cluster
 type Cluster struct {
 	Name  string
 	nodes []*node.Node
 }
 
-type ClusterMap map[string]*Cluster
-type ClusterList []*Cluster
+// Map represents a map of clusters
+type Map map[string]*Cluster
 
+// List represents a list of clusters
+type List []*Cluster
+
+// NewCluster returns a cluster with name clusterName
 func NewCluster(clusterName string) *Cluster {
 	return &Cluster{
 		Name: clusterName,
 	}
 }
 
-func ClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes node.NodeList) (*Cluster, error) {
+// NewClusterWithNodesFromv1alpha1 returns a cluster based on a versioned cluster
+func NewClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes node.List) (*Cluster, error) {
 	res := Cluster{
 		Name:  cluster.ObjectMeta.Name,
 		nodes: []*node.Node{},
@@ -56,6 +62,7 @@ func ClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes node.N
 	return &res, nil
 }
 
+// Reconcile reconciles the cluster
 func (cluster *Cluster) Reconcile() error {
 	for _, node := range cluster.nodes {
 		if err := node.Reconcile(); err != nil {
@@ -65,6 +72,7 @@ func (cluster *Cluster) Reconcile() error {
 	return nil
 }
 
+// Export exports the cluster to a versioned cluster
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	return &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
@@ -74,6 +82,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	}
 }
 
+// Specs returns the versioned specs of this cluster
 func (cluster *Cluster) Specs() (string, error) {
 	scheme := runtime.NewScheme()
 	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
@@ -88,9 +97,10 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (clusterList ClusterList) Specs() (string, error) {
+// Specs returns the versioned specs of all nodes in this list
+func (list List) Specs() (string, error) {
 	res := ""
-	for _, cluster := range clusterList {
+	for _, cluster := range list {
 		clusterSpec, err := cluster.Specs()
 		if err != nil {
 			continue
@@ -100,8 +110,9 @@ func (clusterList ClusterList) Specs() (string, error) {
 	return res, nil
 }
 
-func (clusterList ClusterList) Reconcile() error {
-	for _, cluster := range clusterList {
+// Reconcile reconciles all clusters in this list
+func (list List) Reconcile() error {
+	for _, cluster := range list {
 		if err := cluster.Reconcile(); err != nil {
 			return err
 		}

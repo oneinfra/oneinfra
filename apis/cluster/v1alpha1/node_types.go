@@ -20,11 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Role defines the role of this machine
 type Role int
 
 const (
+	// ControlPlaneRole is the role used for a Control Plane instance
 	ControlPlaneRole Role = iota
-	Gater            Role = iota
+	// Gater is the role used for Control Plane ingress
+	Gater Role = iota
 )
 
 // NodeSpec defines the desired state of Node

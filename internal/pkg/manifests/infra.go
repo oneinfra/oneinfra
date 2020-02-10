@@ -28,6 +28,7 @@ import (
 	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
 )
 
+// RetrieveHypervisors returns an hypervisor map from the given manifests
 func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 	hypervisors := infra.HypervisorMap{}
 	documents := yamlutils.SplitDocuments(manifests)
@@ -42,7 +43,7 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 		if _, _, err := serializer.Decode([]byte(document), &gvk, &hypervisor); err != nil {
 			continue
 		}
-		internalHypervisor, err := infra.HypervisorFromv1alpha1(&hypervisor)
+		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor)
 		if err != nil {
 			continue
 		}
@@ -51,8 +52,9 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 	return hypervisors
 }
 
-func RetrieveClusters(manifests string, nodes node.NodeList) cluster.ClusterList {
-	clusters := cluster.ClusterList{}
+// RetrieveClusters returns a cluster list from the given manifests
+func RetrieveClusters(manifests string, nodes node.List) cluster.List {
+	clusters := cluster.List{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
 		scheme := runtime.NewScheme()
@@ -65,7 +67,7 @@ func RetrieveClusters(manifests string, nodes node.NodeList) cluster.ClusterList
 		if _, _, err := serializer.Decode([]byte(document), &gvk, &clusterObj); err != nil {
 			continue
 		}
-		internalCluster, err := cluster.ClusterWithNodesFromv1alpha1(&clusterObj, nodes)
+		internalCluster, err := cluster.NewClusterWithNodesFromv1alpha1(&clusterObj, nodes)
 		if err != nil {
 			continue
 		}
@@ -74,8 +76,9 @@ func RetrieveClusters(manifests string, nodes node.NodeList) cluster.ClusterList
 	return clusters
 }
 
-func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.NodeList {
-	nodes := node.NodeList{}
+// RetrieveNodes returns a node list from the given manifests
+func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.List {
+	nodes := node.List{}
 	documents := yamlutils.SplitDocuments(manifests)
 	for _, document := range documents {
 		scheme := runtime.NewScheme()
@@ -89,7 +92,7 @@ func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.NodeL
 			continue
 		}
 		if hypervisor, ok := hypervisors[nodeObj.Spec.Hypervisor]; ok {
-			internalNode, err := node.NodeWithHypervisorFromv1alpha1(&nodeObj, hypervisor)
+			internalNode, err := node.NewNodeWithHypervisorFromv1alpha1(&nodeObj, hypervisor)
 			if err != nil {
 				continue
 			}

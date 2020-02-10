@@ -24,8 +24,10 @@ const (
 	kubeControllerManager = "k8s.gcr.io/kube-controller-manager:v1.17.0"
 )
 
+// KubeControllerManager represents the kube-controller-manager
 type KubeControllerManager struct{}
 
+// Reconcile reconciles the kube-controller-manager
 func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor) error {
 	return nil
 }

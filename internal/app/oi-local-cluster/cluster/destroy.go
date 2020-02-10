@@ -20,6 +20,7 @@ import (
 	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
 )
 
+// Destroy destroys a cluster with name clusterName
 func Destroy(clusterName string) error {
 	cluster, err := localcluster.LoadCluster(clusterName)
 	if err != nil {

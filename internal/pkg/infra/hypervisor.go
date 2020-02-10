@@ -32,6 +32,7 @@ import (
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 )
 
+// Hypervisor represents an hypervisor
 type Hypervisor struct {
 	Name               string
 	CRIRuntimeEndpoint string
@@ -40,10 +41,14 @@ type Hypervisor struct {
 	criImage           criapi.ImageServiceClient
 }
 
+// HypervisorMap represents a map of hypervisors
 type HypervisorMap map[string]*Hypervisor
+
+// HypervisorList represents a list of hypervisors
 type HypervisorList []*Hypervisor
 
-func HypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
+// NewHypervisorFromv1alpha1 returns an hypervisor based on a versioned hypervisor
+func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
 	return &Hypervisor{
 		Name:               hypervisor.ObjectMeta.Name,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
@@ -51,6 +56,7 @@ func HypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, 
 	}, nil
 }
 
+// CRIRuntime returns the runtime service client for the current hypervisor
 func (hypervisor *Hypervisor) CRIRuntime() (criapi.RuntimeServiceClient, error) {
 	if hypervisor.criRuntime != nil {
 		return hypervisor.criRuntime, nil
@@ -63,6 +69,7 @@ func (hypervisor *Hypervisor) CRIRuntime() (criapi.RuntimeServiceClient, error) 
 	return hypervisor.criRuntime, nil
 }
 
+// CRIImage returns the image service client for the current hypervisor
 func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 	if hypervisor.criImage != nil {
 		return hypervisor.criImage, nil
@@ -75,6 +82,7 @@ func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 	return hypervisor.criImage, nil
 }
 
+// PullImage pulls the requested image on the current hypervisor
 func (hypervisor *Hypervisor) PullImage(image string) error {
 	criImage, err := hypervisor.CRIImage()
 	if err != nil {
@@ -88,6 +96,7 @@ func (hypervisor *Hypervisor) PullImage(image string) error {
 	return err
 }
 
+// PullImages pulls the requested images on the current hypervisor
 func (hypervisor *Hypervisor) PullImages(images ...string) error {
 	for _, image := range images {
 		if err := hypervisor.PullImage(image); err != nil {
@@ -97,6 +106,7 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 	return nil
 }
 
+// RunPod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
@@ -119,13 +129,13 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 	if err != nil {
 		return err
 	}
-	podSandboxId := podSandboxResponse.PodSandboxId
+	podSandboxID := podSandboxResponse.PodSandboxId
 	containerIds := []string{}
 	for _, container := range pod.Containers {
 		containerResponse, err := criRuntime.CreateContainer(
 			context.Background(),
 			&criapi.CreateContainerRequest{
-				PodSandboxId: podSandboxId,
+				PodSandboxId: podSandboxID,
 				Config: &criapi.ContainerConfig{
 					Metadata: &criapi.ContainerMetadata{
 						Name: container.Name,
@@ -134,7 +144,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 						Image: container.Image,
 					},
 					Args:    container.Command,
-					LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxId, container.Name),
+					LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxID, container.Name),
 				},
 				SandboxConfig: &podSandboxConfig,
 			},
@@ -144,11 +154,11 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 		}
 		containerIds = append(containerIds, containerResponse.ContainerId)
 	}
-	for _, containerId := range containerIds {
+	for _, containerID := range containerIds {
 		_, err = criRuntime.StartContainer(
 			context.Background(),
 			&criapi.StartContainerRequest{
-				ContainerId: containerId,
+				ContainerId: containerID,
 			},
 		)
 		if err != nil {
@@ -158,6 +168,7 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 	return nil
 }
 
+// Export exports the hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	return &infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
@@ -169,6 +180,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	}
 }
 
+// Specs returns the versioned specs of this hypervisor
 func (hypervisor *Hypervisor) Specs() (string, error) {
 	scheme := runtime.NewScheme()
 	if err := infrav1alpha1.AddToScheme(scheme); err != nil {
@@ -183,6 +195,7 @@ func (hypervisor *Hypervisor) Specs() (string, error) {
 	return "", errors.Errorf("could not encode hypervisor %q", hypervisor.Name)
 }
 
+// Specs returns the versioned specs of all hypervisors in this map
 func (hypervisorMap HypervisorMap) Specs() (string, error) {
 	res := ""
 	for _, hypervisor := range hypervisorMap {
@@ -195,6 +208,7 @@ func (hypervisorMap HypervisorMap) Specs() (string, error) {
 	return res, nil
 }
 
+// HypervisorList returns a list of hypervisors from this map
 func (hypervisorMap HypervisorMap) HypervisorList() HypervisorList {
 	hypervisorList := HypervisorList{}
 	for _, hypervisor := range hypervisorMap {
@@ -203,6 +217,7 @@ func (hypervisorMap HypervisorMap) HypervisorList() HypervisorList {
 	return hypervisorList
 }
 
+// Sample returns a random hypervisor from the curent list
 func (hypervisorList HypervisorList) Sample() *Hypervisor {
 	return hypervisorList[rand.Intn(len(hypervisorList))]
 }

@@ -37,6 +37,7 @@ type HypervisorReconciler struct {
 // +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors/status,verbs=get;update;patch
 
+// Reconcile reconciles hypervisor resources
 func (r *HypervisorReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("hypervisor", req.NamespacedName)
@@ -46,6 +47,7 @@ func (r *HypervisorReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	return ctrl.Result{}, nil
 }
 
+// SetupWithManager sets up the hypervisor reconciler with mgr manager
 func (r *HypervisorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&infrav1alpha1.Hypervisor{}).

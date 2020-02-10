@@ -20,14 +20,20 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
+// ComponentType represents a component type
 type ComponentType uint
 
 const (
-	KubeAPIServerComponent         ComponentType = iota
+	// KubeAPIServerComponent represents the kube-apiserver component
+	KubeAPIServerComponent ComponentType = iota
+	// KubeControllerManagerComponent represents the kube-controller-manager component
 	KubeControllerManagerComponent ComponentType = iota
-	KubeSchedulerComponent         ComponentType = iota
+	// KubeSchedulerComponent represents the kube-scheduler component
+	KubeSchedulerComponent ComponentType = iota
 )
 
+// Component is an interface that allows a component implementing this
+// interface to be reconciled
 type Component interface {
 	Reconcile(*infra.Hypervisor) error
 }

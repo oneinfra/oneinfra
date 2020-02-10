@@ -37,6 +37,7 @@ type NodeReconciler struct {
 // +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=nodes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=nodes/status,verbs=get;update;patch
 
+// Reconcile reconciles the node resources
 func (r *NodeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("node", req.NamespacedName)
@@ -46,6 +47,7 @@ func (r *NodeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
+// SetupWithManager sets up the node reconciler with mgr manager
 func (r *NodeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&clusterv1alpha1.Node{}).

@@ -24,8 +24,10 @@ const (
 	kubeScheduler = "k8s.gcr.io/kube-scheduler:v1.17.0"
 )
 
+// KubeScheduler represents the kube-scheduler
 type KubeScheduler struct{}
 
+// Reconcile reconciles the kube-scheduler
 func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor) error {
 	return nil
 }

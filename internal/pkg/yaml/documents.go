@@ -29,6 +29,8 @@ var (
 	splitter = regexp.MustCompile("(?m)^---$")
 )
 
+// SplitDocuments splits a multi-document YAML into a list of single
+// YAML documents, ignoring empty documents
 func SplitDocuments(manifests string) []string {
 	documents := []string{}
 	for _, document := range splitter.Split(manifests, -1) {

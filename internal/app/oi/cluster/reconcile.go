@@ -23,6 +23,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
+// Reconcile reconciles all clusters
 func Reconcile() error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {

@@ -16,17 +16,20 @@ limitations under the License.
 
 package infra
 
+// Pod represents a pod
 type Pod struct {
 	Name       string
 	Containers []Container
 }
 
+// Container represents a container
 type Container struct {
 	Name    string
 	Image   string
 	Command []string
 }
 
+// NewPod returns a pod with name and containers
 func NewPod(name string, containers []Container) Pod {
 	return Pod{
 		Name:       name,
@@ -34,6 +37,8 @@ func NewPod(name string, containers []Container) Pod {
 	}
 }
 
+// NewSingleContainerPod returns a pod with name, and a single
+// container with name, image and command
 func NewSingleContainerPod(name, image string, command []string) Pod {
 	return Pod{
 		Name: name,

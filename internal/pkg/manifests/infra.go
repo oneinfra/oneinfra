@@ -52,12 +52,12 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 }
 
 // RetrieveClusters returns a cluster list from the given manifests
-func RetrieveClusters(manifests string, nodes node.List) cluster.List {
-	clusters := cluster.List{}
+func RetrieveClusters(manifests string) cluster.Map {
+	clusters := cluster.Map{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()
 	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
-		return cluster.List{}
+		return cluster.Map{}
 	}
 	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
 	for _, document := range documents {
@@ -65,17 +65,17 @@ func RetrieveClusters(manifests string, nodes node.List) cluster.List {
 		if _, _, err := serializer.Decode([]byte(document), nil, &clusterObj); err != nil || clusterObj.TypeMeta.Kind != "Cluster" {
 			continue
 		}
-		internalCluster, err := cluster.NewClusterWithNodesFromv1alpha1(&clusterObj, nodes)
+		internalCluster, err := cluster.NewClusterFromv1alpha1(&clusterObj)
 		if err != nil {
 			continue
 		}
-		clusters = append(clusters, internalCluster)
+		clusters[clusterObj.ObjectMeta.Name] = internalCluster
 	}
 	return clusters
 }
 
 // RetrieveNodes returns a node list from the given manifests
-func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.List {
+func RetrieveNodes(manifests string) node.List {
 	nodes := node.List{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()
@@ -88,13 +88,11 @@ func RetrieveNodes(manifests string, hypervisors infra.HypervisorMap) node.List 
 		if _, _, err := serializer.Decode([]byte(document), nil, &nodeObj); err != nil || nodeObj.TypeMeta.Kind != "Node" {
 			continue
 		}
-		if hypervisor, ok := hypervisors[nodeObj.Spec.Hypervisor]; ok {
-			internalNode, err := node.NewNodeWithHypervisorFromv1alpha1(&nodeObj, hypervisor)
-			if err != nil {
-				continue
-			}
-			nodes = append(nodes, internalNode)
+		internalNode, err := node.NewNodeFromv1alpha1(&nodeObj)
+		if err != nil {
+			continue
 		}
+		nodes = append(nodes, internalNode)
 	}
 	return nodes
 }

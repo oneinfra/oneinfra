@@ -43,18 +43,18 @@ func Inject(nodeName, clusterName string) error {
 		res += hypervisorsSpecs
 	}
 
-	clusters := manifests.RetrieveClusters(string(stdin), node.List{})
+	clusters := manifests.RetrieveClusters(string(stdin))
 	if clustersSpecs, err := clusters.Specs(); err == nil {
 		res += clustersSpecs
 	}
 
-	nodes := manifests.RetrieveNodes(string(stdin), hypervisors)
+	nodes := manifests.RetrieveNodes(string(stdin))
 	if nodesSpecs, err := nodes.Specs(); err == nil {
 		res += nodesSpecs
 	}
 
 	injectedNode := node.List{
-		node.NewNodeWithRandomHypervisor(nodeName, clusterName, hypervisors.HypervisorList()),
+		node.NewNodeWithRandomHypervisor(nodeName, clusterName, hypervisors.List()),
 	}
 	if injectedNodeSpecs, err := injectedNode.Specs(); err == nil {
 		res += injectedNodeSpecs

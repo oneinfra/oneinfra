@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -28,6 +29,6 @@ const (
 type KubeControllerManager struct{}
 
 // Reconcile reconciles the kube-controller-manager
-func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor) error {
+func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
 	return nil
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -28,6 +29,6 @@ const (
 type KubeScheduler struct{}
 
 // Reconcile reconciles the kube-scheduler
-func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor) error {
+func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
 	return nil
 }

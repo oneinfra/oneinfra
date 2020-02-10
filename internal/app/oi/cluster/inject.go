@@ -24,7 +24,6 @@ import (
 
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 // Inject injects a cluster with name nodeName
@@ -43,7 +42,7 @@ func Inject(clusterName string) error {
 		res += hypervisorsSpecs
 	}
 
-	clusters := manifests.RetrieveClusters(string(stdin), node.List{})
+	clusters := manifests.RetrieveClusters(string(stdin))
 	if clustersSpecs, err := clusters.Specs(); err == nil {
 		res += clustersSpecs
 	}
@@ -52,12 +51,12 @@ func Inject(clusterName string) error {
 	if err != nil {
 		return err
 	}
-	injectedCluster := cluster.List{newCluster}
+	injectedCluster := cluster.Map{clusterName: newCluster}
 	if injectedClusterSpecs, err := injectedCluster.Specs(); err == nil {
 		res += injectedClusterSpecs
 	}
 
-	nodes := manifests.RetrieveNodes(string(stdin), hypervisors)
+	nodes := manifests.RetrieveNodes(string(stdin))
 	if nodesSpecs, err := nodes.Specs(); err == nil {
 		res += nodesSpecs
 	}

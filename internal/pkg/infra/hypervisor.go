@@ -208,8 +208,8 @@ func (hypervisorMap HypervisorMap) Specs() (string, error) {
 	return res, nil
 }
 
-// HypervisorList returns a list of hypervisors from this map
-func (hypervisorMap HypervisorMap) HypervisorList() HypervisorList {
+// List returns a list of hypervisors from this map
+func (hypervisorMap HypervisorMap) List() HypervisorList {
 	hypervisorList := HypervisorList{}
 	for _, hypervisor := range hypervisorMap {
 		hypervisorList = append(hypervisorList, hypervisor)

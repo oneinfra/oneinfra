@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -30,7 +31,7 @@ const (
 type KubeAPIServer struct{}
 
 // Reconcile reconciles the kube-apiserver
-func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor) error {
+func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage); err != nil {
 		return err
 	}

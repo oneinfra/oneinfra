@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -42,7 +43,6 @@ type Node struct {
 	Name           string
 	HypervisorName string
 	ClusterName    string
-	hypervisor     *infra.Hypervisor
 }
 
 // List represents a list of nodes
@@ -50,12 +50,10 @@ type List []*Node
 
 // NewNodeWithRandomHypervisor creates a node with a random hypervisor from the provided hypervisorList
 func NewNodeWithRandomHypervisor(nodeName, clusterName string, hypervisorList infra.HypervisorList) *Node {
-	hypervisorSample := hypervisorList.Sample()
 	return &Node{
 		Name:           nodeName,
-		HypervisorName: hypervisorSample.Name,
+		HypervisorName: hypervisorList.Sample().Name,
 		ClusterName:    clusterName,
-		hypervisor:     hypervisorSample,
 	}
 }
 
@@ -65,16 +63,6 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 		Name:           node.ObjectMeta.Name,
 		HypervisorName: node.Spec.Hypervisor,
 		ClusterName:    node.Spec.Cluster,
-	}, nil
-}
-
-// NewNodeWithHypervisorFromv1alpha1 returns a node based on a versioned node and an hypervisor
-func NewNodeWithHypervisorFromv1alpha1(node *clusterv1alpha1.Node, hypervisor *infra.Hypervisor) (*Node, error) {
-	return &Node{
-		Name:           node.ObjectMeta.Name,
-		HypervisorName: node.Spec.Hypervisor,
-		ClusterName:    node.Spec.Cluster,
-		hypervisor:     hypervisor,
 	}, nil
 }
 
@@ -93,16 +81,13 @@ func (node *Node) Component(componentType ComponentType) (Component, error) {
 }
 
 // Reconcile reconciles the node
-func (node *Node) Reconcile() error {
-	if node.hypervisor == nil {
-		return errors.Errorf("node %q is missing an hypervisor", node.Name)
-	}
+func (node *Node) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
 	for _, componentType := range components {
 		component, err := node.Component(componentType)
 		if err != nil {
 			return err
 		}
-		if err := component.Reconcile(node.hypervisor); err != nil {
+		if err := component.Reconcile(hypervisor, cluster); err != nil {
 			return err
 		}
 	}

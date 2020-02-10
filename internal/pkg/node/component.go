@@ -17,6 +17,7 @@ limitations under the License.
 package node
 
 import (
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -35,5 +36,5 @@ const (
 // Component is an interface that allows a component implementing this
 // interface to be reconciled
 type Component interface {
-	Reconcile(*infra.Hypervisor) error
+	Reconcile(*infra.Hypervisor, *cluster.Cluster) error
 }

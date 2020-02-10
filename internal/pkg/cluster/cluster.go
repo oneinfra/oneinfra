@@ -26,36 +26,31 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 // Cluster represents a cluster
 type Cluster struct {
-	name                   string
+	Name                   string
 	certificateAuthorities *certificateAuthorities
 	apiServer              *kubeAPIServer
-	nodes                  []*node.Node
 }
 
 // Map represents a map of clusters
 type Map map[string]*Cluster
 
-// List represents a list of clusters
-type List []*Cluster
-
 // NewCluster returns a cluster with name clusterName
 func NewCluster(clusterName string) (*Cluster, error) {
-	res := Cluster{name: clusterName}
+	res := Cluster{Name: clusterName}
 	if err := res.generateCertificates(); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
-// NewClusterWithNodesFromv1alpha1 returns a cluster based on a versioned cluster
-func NewClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes node.List) (*Cluster, error) {
+// NewClusterFromv1alpha1 returns a cluster based on a versioned cluster
+func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) {
 	res := Cluster{
-		name: cluster.ObjectMeta.Name,
+		Name: cluster.ObjectMeta.Name,
 		certificateAuthorities: &certificateAuthorities{
 			apiServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
 			certificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
@@ -66,31 +61,15 @@ func NewClusterWithNodesFromv1alpha1(cluster *clusterv1alpha1.Cluster, nodes nod
 			tlsCert:       cluster.Spec.APIServer.TLSCert,
 			tlsPrivateKey: cluster.Spec.APIServer.TLSPrivateKey,
 		},
-		nodes: []*node.Node{},
-	}
-	for _, node := range nodes {
-		if node.ClusterName == res.name {
-			res.nodes = append(res.nodes, node)
-		}
 	}
 	return &res, nil
-}
-
-// Reconcile reconciles the cluster
-func (cluster *Cluster) Reconcile() error {
-	for _, node := range cluster.nodes {
-		if err := node.Reconcile(); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Export exports the cluster to a versioned cluster
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	return &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: cluster.name,
+			Name: cluster.Name,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
@@ -131,7 +110,7 @@ func (cluster *Cluster) Specs() (string, error) {
 	if encodedCluster, err := runtime.Encode(encoder, clusterObject); err == nil {
 		return string(encodedCluster), nil
 	}
-	return "", errors.Errorf("could not encode cluster %q", cluster.name)
+	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
 func (cluster *Cluster) generateCertificates() error {
@@ -148,10 +127,10 @@ func (cluster *Cluster) generateCertificates() error {
 	return nil
 }
 
-// Specs returns the versioned specs of all nodes in this list
-func (list List) Specs() (string, error) {
+// Specs returns the versioned specs of all clusters in this map
+func (clusterMap Map) Specs() (string, error) {
 	res := ""
-	for _, cluster := range list {
+	for _, cluster := range clusterMap {
 		clusterSpec, err := cluster.Specs()
 		if err != nil {
 			continue
@@ -159,14 +138,4 @@ func (list List) Specs() (string, error) {
 		res += fmt.Sprintf("---\n%s", clusterSpec)
 	}
 	return res, nil
-}
-
-// Reconcile reconciles all clusters in this list
-func (list List) Reconcile() error {
-	for _, cluster := range list {
-		if err := cluster.Reconcile(); err != nil {
-			return err
-		}
-	}
-	return nil
 }

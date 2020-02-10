@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster/reconciler"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
@@ -30,7 +31,8 @@ func Reconcile() error {
 		return err
 	}
 	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	nodes := manifests.RetrieveNodes(string(stdin), hypervisors)
-	clusters := manifests.RetrieveClusters(string(stdin), nodes)
-	return clusters.Reconcile()
+	clusters := manifests.RetrieveClusters(string(stdin))
+	nodes := manifests.RetrieveNodes(string(stdin))
+
+	return reconciler.NewClusterReconciler(hypervisors, clusters, nodes).Reconcile()
 }

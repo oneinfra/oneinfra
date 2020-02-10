@@ -17,6 +17,7 @@ all: manager oi oi-local-cluster
 
 # Install test deps
 test-deps:
+	GOFLAGS="" go get -u golang.org/x/lint/golint
 	wget https://go.kubebuilder.io/test-tools/${KUBEBUILDER_TOOLS_VERSION}/linux/amd64 -O kubebuilder-tools.tar.gz
 	tar -C /usr/local -xf kubebuilder-tools.tar.gz
 	rm kubebuilder-tools.tar.gz

@@ -18,8 +18,12 @@ package infra
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/base64"
 	"fmt"
 	"math/rand"
+	"path/filepath"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -30,6 +34,10 @@ import (
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+)
+
+const (
+	toolingImage = "oneinfra/tooling:latest"
 )
 
 // Hypervisor represents an hypervisor
@@ -107,10 +115,10 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 }
 
 // RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(pod Pod) error {
+func (hypervisor *Hypervisor) RunPod(pod Pod) (string, error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
-		return err
+		return "", err
 	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
@@ -127,11 +135,18 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 		},
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 	podSandboxID := podSandboxResponse.PodSandboxId
 	containerIds := []string{}
 	for _, container := range pod.Containers {
+		containerMounts := []*criapi.Mount{}
+		for hostPath, containerPath := range container.Mounts {
+			containerMounts = append(containerMounts, &criapi.Mount{
+				HostPath:      hostPath,
+				ContainerPath: containerPath,
+			})
+		}
 		containerResponse, err := criRuntime.CreateContainer(
 			context.Background(),
 			&criapi.CreateContainerRequest{
@@ -143,14 +158,16 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 					Image: &criapi.ImageSpec{
 						Image: container.Image,
 					},
-					Args:    container.Command,
+					Command: container.Command,
+					Args:    container.Args,
+					Mounts:  containerMounts,
 					LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxID, container.Name),
 				},
 				SandboxConfig: &podSandboxConfig,
 			},
 		)
 		if err != nil {
-			return err
+			return "", err
 		}
 		containerIds = append(containerIds, containerResponse.ContainerId)
 	}
@@ -162,10 +179,93 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) error {
 			},
 		)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return podSandboxID, nil
+}
+
+// WaitForPod waits for all containers in a pod to have exited
+func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return err
+	}
+	for {
+		containerList, err := criRuntime.ListContainers(
+			context.Background(),
+			&criapi.ListContainersRequest{
+				Filter: &criapi.ContainerFilter{
+					PodSandboxId: podSandboxID,
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+		allContainersExited := true
+		for _, container := range containerList.Containers {
+			if container.State != criapi.ContainerState_CONTAINER_EXITED {
+				allContainersExited = false
+				break
+			}
+		}
+		if allContainersExited {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// DeletePod deletes a pod on the current hypervisor
+func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return err
+	}
+	_, err = criRuntime.StopPodSandbox(
+		context.Background(),
+		&criapi.StopPodSandboxRequest{
+			PodSandboxId: podSandboxID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	_, err = criRuntime.RemovePodSandbox(
+		context.Background(),
+		&criapi.RemovePodSandboxRequest{
+			PodSandboxId: podSandboxID,
+		},
+	)
+	return err
+}
+
+// UploadFile uploads a file to the current hypervisor to hostPath
+// with given fileContents
+func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
+	if err := hypervisor.PullImage(toolingImage); err != nil {
+		return err
+	}
+	hostPathDir := filepath.Dir(hostPath)
+	uploadFilePod := NewSingleContainerPod(
+		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
+		toolingImage,
+		[]string{"write-base64-file.sh"},
+		[]string{
+			base64.StdEncoding.EncodeToString([]byte(fileContents)),
+			hostPath,
+		},
+		map[string]string{hostPathDir: hostPathDir},
+	)
+	podSandboxID, err := hypervisor.RunPod(uploadFilePod)
+	if err != nil {
+		return err
+	}
+	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
+		return err
+	}
+	return hypervisor.DeletePod(podSandboxID)
 }
 
 // Export exports the hypervisor to a versioned hypervisor

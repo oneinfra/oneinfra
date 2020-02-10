@@ -17,6 +17,9 @@ limitations under the License.
 package node
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
@@ -30,14 +33,31 @@ const (
 // KubeAPIServer represents the kube-apiserver
 type KubeAPIServer struct{}
 
+func (kubeAPIServer *KubeAPIServer) secretsPath(cluster *cluster.Cluster) string {
+	return filepath.Join("/etc/kubernetes/clusters", cluster.Name)
+}
+
+func (kubeAPIServer *KubeAPIServer) secretsPathFile(cluster *cluster.Cluster, file string) string {
+	return filepath.Join(kubeAPIServer.secretsPath(cluster), file)
+}
+
 // Reconcile reconciles the kube-apiserver
-func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
+func (kubeAPIServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage); err != nil {
 		return err
 	}
-	return hypervisor.RunPod(
+	if err := hypervisor.UploadFile(cluster.CertificateAuthorities.APIServerClient.Certificate, kubeAPIServer.secretsPathFile(cluster, "apiserver-client-ca.crt")); err != nil {
+		return err
+	}
+	if err := hypervisor.UploadFile(cluster.APIServer.TLSCert, kubeAPIServer.secretsPathFile(cluster, "apiserver.crt")); err != nil {
+		return err
+	}
+	if err := hypervisor.UploadFile(cluster.APIServer.TLSPrivateKey, kubeAPIServer.secretsPathFile(cluster, "apiserver.key")); err != nil {
+		return err
+	}
+	_, err := hypervisor.RunPod(
 		infra.NewPod(
-			"kube-apiserver",
+			fmt.Sprintf("kube-apiserver-%s", cluster.Name),
 			[]infra.Container{
 				{
 					Name:    "kine",
@@ -47,9 +67,19 @@ func (kubeApiServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, clus
 				{
 					Name:    "kube-apiserver",
 					Image:   kubeAPIServerImage,
-					Command: []string{"kube-apiserver", "--etcd-servers", "http://127.0.0.1:2379"},
+					Command: []string{"kube-apiserver"},
+					Args: []string{
+						"--etcd-servers", "http://127.0.0.1:2379",
+						"--tls-cert-file", kubeAPIServer.secretsPathFile(cluster, "apiserver.crt"),
+						"--tls-private-key-file", kubeAPIServer.secretsPathFile(cluster, "apiserver.key"),
+						"--client-ca-file", kubeAPIServer.secretsPathFile(cluster, "apiserver-client-ca.crt"),
+					},
+					Mounts: map[string]string{
+						kubeAPIServer.secretsPath(cluster): kubeAPIServer.secretsPath(cluster),
+					},
 				},
 			},
 		),
 	)
+	return err
 }

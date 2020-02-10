@@ -73,8 +73,12 @@ func newCertificateAuthority() (*CertificateAuthority, error) {
 	if err != nil {
 		return nil, err
 	}
+	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
+	if err != nil {
+		return nil, err
+	}
 	caCertificate := x509.Certificate{
-		SerialNumber: big.NewInt(2019),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization:  []string{"Some Company"},
 			Country:       []string{"Some Country"},
@@ -149,12 +153,12 @@ func (ca *CertificateAuthority) init() error {
 }
 
 func (ca *CertificateAuthority) createCertificate() (string, string, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
 		return "", "", err
 	}
 	certificate := x509.Certificate{
-		SerialNumber: big.NewInt(1658),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization:  []string{"Some Company"},
 			Country:       []string{"Some Country"},
@@ -182,7 +186,7 @@ func (ca *CertificateAuthority) createCertificate() (string, string, error) {
 	certificatePrivKeyPEM := new(bytes.Buffer)
 	pem.Encode(certificatePrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		Bytes: x509.MarshalPKCS1PrivateKey(ca.privateKey),
 	})
 	return certificatePEM.String(), certificatePrivKeyPEM.String(), nil
 }

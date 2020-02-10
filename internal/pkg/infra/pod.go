@@ -27,6 +27,8 @@ type Container struct {
 	Name    string
 	Image   string
 	Command []string
+	Args    []string
+	Mounts  map[string]string
 }
 
 // NewPod returns a pod with name and containers
@@ -38,8 +40,8 @@ func NewPod(name string, containers []Container) Pod {
 }
 
 // NewSingleContainerPod returns a pod with name, and a single
-// container with name, image and command
-func NewSingleContainerPod(name, image string, command []string) Pod {
+// container with name, image, command, args and mounts
+func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string) Pod {
 	return Pod{
 		Name: name,
 		Containers: []Container{
@@ -47,6 +49,8 @@ func NewSingleContainerPod(name, image string, command []string) Pod {
 				Name:    name,
 				Image:   image,
 				Command: command,
+				Args:    args,
+				Mounts:  mounts,
 			},
 		},
 	}

@@ -39,8 +39,8 @@ type CertificateAuthorities struct {
 
 // CertificateAuthority represents a Certificate Authority
 type CertificateAuthority struct {
-	CACertificate string `json:"caCertificate,omitempty"`
-	CAPrivateKey  string `json:"caPrivateKey,omitempty"`
+	Certificate string `json:"certificate,omitempty"`
+	PrivateKey  string `json:"privateKey,omitempty"`
 }
 
 // KubeAPIServer represents a kube apiserver

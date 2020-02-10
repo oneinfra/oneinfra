@@ -33,20 +33,22 @@ import (
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 )
 
-type certificateAuthorities struct {
-	apiServerClient   *certificateAuthority
-	certificateSigner *certificateAuthority
-	kubelet           *certificateAuthority
+// CertificateAuthorities represent global certificate authorities
+type CertificateAuthorities struct {
+	APIServerClient   *CertificateAuthority
+	CertificateSigner *CertificateAuthority
+	Kubelet           *CertificateAuthority
 }
 
-type certificateAuthority struct {
-	caCertificateContents string
-	caPrivateKeyContents  string
-	caCertificate         *x509.Certificate
-	caPrivateKey          *rsa.PrivateKey
+// CertificateAuthority represents a certificate authority
+type CertificateAuthority struct {
+	Certificate string
+	PrivateKey  string
+	certificate *x509.Certificate
+	privateKey  *rsa.PrivateKey
 }
 
-func newCertificateAuthorities() (*certificateAuthorities, error) {
+func newCertificateAuthorities() (*CertificateAuthorities, error) {
 	apiserverClientAuthority, err := newCertificateAuthority()
 	if err != nil {
 		return nil, err
@@ -59,14 +61,14 @@ func newCertificateAuthorities() (*certificateAuthorities, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &certificateAuthorities{
-		apiServerClient:   apiserverClientAuthority,
-		certificateSigner: certificateSignerAuthority,
-		kubelet:           kubeletAuthority,
+	return &CertificateAuthorities{
+		APIServerClient:   apiserverClientAuthority,
+		CertificateSigner: certificateSignerAuthority,
+		Kubelet:           kubeletAuthority,
 	}, nil
 }
 
-func newCertificateAuthority() (*certificateAuthority, error) {
+func newCertificateAuthority() (*CertificateAuthority, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		return nil, err
@@ -102,18 +104,18 @@ func newCertificateAuthority() (*certificateAuthority, error) {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
-	return &certificateAuthority{
-		caCertificateContents: caPEM.String(),
-		caPrivateKeyContents:  caPrivKeyPEM.String(),
-		caCertificate:         &caCertificate,
-		caPrivateKey:          privateKey,
+	return &CertificateAuthority{
+		Certificate: caPEM.String(),
+		PrivateKey:  caPrivKeyPEM.String(),
+		certificate: &caCertificate,
+		privateKey:  privateKey,
 	}, nil
 }
 
-func newCertificateAuthorityFromv1alpha1(ca *clusterv1alpha1.CertificateAuthority) *certificateAuthority {
-	res := &certificateAuthority{
-		caCertificateContents: ca.CACertificate,
-		caPrivateKeyContents:  ca.CAPrivateKey,
+func newCertificateAuthorityFromv1alpha1(ca *clusterv1alpha1.CertificateAuthority) *CertificateAuthority {
+	res := &CertificateAuthority{
+		Certificate: ca.Certificate,
+		PrivateKey:  ca.PrivateKey,
 	}
 	if err := res.init(); err != nil {
 		klog.Warningf("error when decoding certificate authority: %v", err)
@@ -121,11 +123,11 @@ func newCertificateAuthorityFromv1alpha1(ca *clusterv1alpha1.CertificateAuthorit
 	return res
 }
 
-func (ca *certificateAuthority) init() error {
-	if ca.caCertificate != nil && ca.caPrivateKey != nil {
+func (ca *CertificateAuthority) init() error {
+	if ca.certificate != nil && ca.privateKey != nil {
 		return nil
 	}
-	block, _ := pem.Decode([]byte(ca.caCertificateContents))
+	block, _ := pem.Decode([]byte(ca.Certificate))
 	if block == nil {
 		return errors.New("could not decode PEM CA certificate")
 	}
@@ -133,8 +135,8 @@ func (ca *certificateAuthority) init() error {
 	if err != nil {
 		return err
 	}
-	ca.caCertificate = caCertificate
-	block, _ = pem.Decode([]byte(ca.caPrivateKeyContents))
+	ca.certificate = caCertificate
+	block, _ = pem.Decode([]byte(ca.PrivateKey))
 	if block == nil {
 		return errors.New("could not decode PEM private key")
 	}
@@ -142,11 +144,11 @@ func (ca *certificateAuthority) init() error {
 	if err != nil {
 		return err
 	}
-	ca.caPrivateKey = privateKey
+	ca.privateKey = privateKey
 	return nil
 }
 
-func (ca *certificateAuthority) createCertificate() (string, string, error) {
+func (ca *CertificateAuthority) createCertificate() (string, string, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		return "", "", err
@@ -168,7 +170,7 @@ func (ca *certificateAuthority) createCertificate() (string, string, error) {
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
-	certificateBytes, err := x509.CreateCertificate(rand.Reader, &certificate, ca.caCertificate, &ca.caPrivateKey.PublicKey, ca.caPrivateKey)
+	certificateBytes, err := x509.CreateCertificate(rand.Reader, &certificate, ca.certificate, &ca.privateKey.PublicKey, ca.privateKey)
 	if err != nil {
 		return "", "", err
 	}

@@ -16,26 +16,27 @@ limitations under the License.
 
 package cluster
 
-type kubeAPIServer struct {
-	ca            *certificateAuthority
-	tlsCert       string
-	tlsPrivateKey string
+// KubeAPIServer represents the kube-apiserver component
+type KubeAPIServer struct {
+	CA            *CertificateAuthority
+	TLSCert       string
+	TLSPrivateKey string
 }
 
-func newKubeAPIServer() (*kubeAPIServer, error) {
+func newKubeAPIServer() (*KubeAPIServer, error) {
 	// TODO: allow no CA generation, provided cert and key
 	certificateAuthority, err := newCertificateAuthority()
 	if err != nil {
 		return nil, err
 	}
-	kubeAPIServer := kubeAPIServer{
-		ca: certificateAuthority,
+	kubeAPIServer := KubeAPIServer{
+		CA: certificateAuthority,
 	}
 	tlsCert, tlsKey, err := certificateAuthority.createCertificate()
 	if err != nil {
 		return nil, err
 	}
-	kubeAPIServer.tlsCert = tlsCert
-	kubeAPIServer.tlsPrivateKey = tlsKey
+	kubeAPIServer.TLSCert = tlsCert
+	kubeAPIServer.TLSPrivateKey = tlsKey
 	return &kubeAPIServer, nil
 }

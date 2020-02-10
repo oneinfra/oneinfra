@@ -31,8 +31,8 @@ import (
 // Cluster represents a cluster
 type Cluster struct {
 	Name                   string
-	certificateAuthorities *certificateAuthorities
-	apiServer              *kubeAPIServer
+	CertificateAuthorities *CertificateAuthorities
+	APIServer              *KubeAPIServer
 }
 
 // Map represents a map of clusters
@@ -51,15 +51,15 @@ func NewCluster(clusterName string) (*Cluster, error) {
 func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) {
 	res := Cluster{
 		Name: cluster.ObjectMeta.Name,
-		certificateAuthorities: &certificateAuthorities{
-			apiServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
-			certificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
-			kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
+		CertificateAuthorities: &CertificateAuthorities{
+			APIServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
+			CertificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
+			Kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
 		},
-		apiServer: &kubeAPIServer{
-			ca:            newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
-			tlsCert:       cluster.Spec.APIServer.TLSCert,
-			tlsPrivateKey: cluster.Spec.APIServer.TLSPrivateKey,
+		APIServer: &KubeAPIServer{
+			CA:            newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
+			TLSCert:       cluster.Spec.APIServer.TLSCert,
+			TLSPrivateKey: cluster.Spec.APIServer.TLSPrivateKey,
 		},
 	}
 	return &res, nil
@@ -74,25 +74,25 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		Spec: clusterv1alpha1.ClusterSpec{
 			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
 				APIServerClient: clusterv1alpha1.CertificateAuthority{
-					CACertificate: cluster.certificateAuthorities.apiServerClient.caCertificateContents,
-					CAPrivateKey:  cluster.certificateAuthorities.apiServerClient.caPrivateKeyContents,
+					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,
+					PrivateKey:  cluster.CertificateAuthorities.APIServerClient.PrivateKey,
 				},
 				CertificateSigner: clusterv1alpha1.CertificateAuthority{
-					CACertificate: cluster.certificateAuthorities.certificateSigner.caCertificateContents,
-					CAPrivateKey:  cluster.certificateAuthorities.certificateSigner.caPrivateKeyContents,
+					Certificate: cluster.CertificateAuthorities.CertificateSigner.Certificate,
+					PrivateKey:  cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 				},
 				Kubelet: clusterv1alpha1.CertificateAuthority{
-					CACertificate: cluster.certificateAuthorities.kubelet.caCertificateContents,
-					CAPrivateKey:  cluster.certificateAuthorities.kubelet.caPrivateKeyContents,
+					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
+					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
 				},
 			},
 			APIServer: clusterv1alpha1.KubeAPIServer{
 				CA: &clusterv1alpha1.CertificateAuthority{
-					CACertificate: cluster.apiServer.ca.caCertificateContents,
-					CAPrivateKey:  cluster.apiServer.ca.caPrivateKeyContents,
+					Certificate: cluster.APIServer.CA.Certificate,
+					PrivateKey:  cluster.APIServer.CA.PrivateKey,
 				},
-				TLSCert:       cluster.apiServer.tlsCert,
-				TLSPrivateKey: cluster.apiServer.tlsPrivateKey,
+				TLSCert:       cluster.APIServer.TLSCert,
+				TLSPrivateKey: cluster.APIServer.TLSPrivateKey,
 			},
 		},
 	}
@@ -118,12 +118,12 @@ func (cluster *Cluster) generateCertificates() error {
 	if err != nil {
 		return err
 	}
-	cluster.certificateAuthorities = certificateAuthorities
+	cluster.CertificateAuthorities = certificateAuthorities
 	kubeAPIServer, err := newKubeAPIServer()
 	if err != nil {
 		return err
 	}
-	cluster.apiServer = kubeAPIServer
+	cluster.APIServer = kubeAPIServer
 	return nil
 }
 

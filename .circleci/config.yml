@@ -9,5 +9,10 @@ jobs:
     working_directory: /go/src/github.com/oneinfra/oneinfra
     steps:
       - checkout
+      - run:
+          name: Install lint dependencies
+          command: make lint-deps
+          environment:
+            GOFLAGS: ""
       - run: sudo make test-deps
       - run: make test

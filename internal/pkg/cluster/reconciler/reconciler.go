@@ -22,12 +22,14 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
+// ClusterReconciler represents a cluster reconciler
 type ClusterReconciler struct {
 	hypervisorMap infra.HypervisorMap
 	clusterMap    cluster.Map
 	nodeList      node.List
 }
 
+// NewClusterReconciler creates a cluster reconciler with the provided hypervisors, clusters and nodes
 func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.Map, nodeList node.List) *ClusterReconciler {
 	return &ClusterReconciler{
 		hypervisorMap: hypervisorMap,
@@ -36,6 +38,7 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 	}
 }
 
+// Reconcile reconciles all nodes known to this cluster reconciler
 func (clusterReconciler *ClusterReconciler) Reconcile() error {
 	for _, node := range clusterReconciler.nodeList {
 		if _, ok := clusterReconciler.hypervisorMap[node.HypervisorName]; !ok {

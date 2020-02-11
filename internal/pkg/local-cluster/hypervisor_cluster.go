@@ -42,13 +42,16 @@ func NewHypervisorCluster(name string, size int) *HypervisorCluster {
 		Name:        name,
 		Hypervisors: []*Hypervisor{},
 	}
+	exposedPortRange := 30000
 	for i := 0; i < size; i++ {
 		cluster.addHypervisor(
 			&Hypervisor{
 				Name:              fmt.Sprintf("hypervisor-%d", i),
 				HypervisorCluster: &cluster,
+				ExposedPortRange:  fmt.Sprintf("%d-%d", exposedPortRange, exposedPortRange+99),
 			},
 		)
+		exposedPortRange += 100
 	}
 	return &cluster
 }

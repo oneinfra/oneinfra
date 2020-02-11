@@ -35,6 +35,7 @@ type Hypervisor struct {
 	HypervisorCluster *HypervisorCluster
 	CRIRuntime        string
 	CRIImage          string
+	ExposedPortRange  string
 }
 
 // Create creates the local hypervisor
@@ -54,6 +55,7 @@ func (hypervisor *Hypervisor) Create() error {
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
+		"-p", fmt.Sprintf("%s:%s", hypervisor.ExposedPortRange, hypervisor.ExposedPortRange),
 		"oneinfra/containerd:latest",
 	).Run()
 }

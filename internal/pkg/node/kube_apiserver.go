@@ -46,16 +46,17 @@ func (kubeAPIServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, clus
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage); err != nil {
 		return err
 	}
-	if err := hypervisor.UploadFile(cluster.CertificateAuthorities.APIServerClient.Certificate, kubeAPIServer.secretsPathFile(cluster, "apiserver-client-ca.crt")); err != nil {
+	err := hypervisor.UploadFiles(
+		map[string]string{
+			kubeAPIServer.secretsPathFile(cluster, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
+			kubeAPIServer.secretsPathFile(cluster, "apiserver.crt"):           cluster.APIServer.TLSCert,
+			kubeAPIServer.secretsPathFile(cluster, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
+		},
+	)
+	if err != nil {
 		return err
 	}
-	if err := hypervisor.UploadFile(cluster.APIServer.TLSCert, kubeAPIServer.secretsPathFile(cluster, "apiserver.crt")); err != nil {
-		return err
-	}
-	if err := hypervisor.UploadFile(cluster.APIServer.TLSPrivateKey, kubeAPIServer.secretsPathFile(cluster, "apiserver.key")); err != nil {
-		return err
-	}
-	_, err := hypervisor.RunPod(
+	_, err = hypervisor.RunPod(
 		infra.NewPod(
 			fmt.Sprintf("kube-apiserver-%s", cluster.Name),
 			[]infra.Container{

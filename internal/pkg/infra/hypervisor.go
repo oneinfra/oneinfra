@@ -241,6 +241,17 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 	return err
 }
 
+// UploadFiles uploads a map of files, with location as keys, and
+// contents as values
+func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
+	for fileLocation, fileContents := range files {
+		if err := hypervisor.UploadFile(fileContents, fileLocation); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {

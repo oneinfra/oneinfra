@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  unit_and_integration_tests:
     docker:
       - image: circleci/golang:1.13
     environment:
@@ -16,3 +16,30 @@ jobs:
             GOFLAGS: ""
       - run: sudo make test-deps
       - run: make test
+  e2e_tests:
+    machine: true
+    environment:
+      GO111MODULE: "on"
+      GOFLAGS: "-mod=vendor"
+      GOROOT: "/usr/local/go"
+    steps:
+      - checkout
+      - run: docker pull oneinfra/containerd:latest
+      - run: sudo rm -rf /usr/local/go
+      - run: wget https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz -O go.tar.gz
+      - run: sudo tar -C /usr/local -xf go.tar.gz
+      - run: sudo curl -o /usr/local/bin/kubectl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.6/bin/linux/amd64/kubectl
+      - run: sudo chmod +x /usr/local/bin/kubectl
+      - run: mkdir ~/.kube
+      - run: make oi oi-local-cluster
+      - run: oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | tee cluster.txt | oi reconcile
+      - run: cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+      - run: docker ps -a
+      - run: kubectl cluster-info
+      - run: kubectl version
+workflows:
+  version: 2
+  test:
+    jobs:
+      - unit_and_integration_tests
+      - e2e_tests

@@ -65,7 +65,7 @@ oi node inject --name test --cluster test
 Each node represents a Kubernetes Master node.
 
 Injects a versioned node with name `test`, assigned to the cluster
-with name `test`, created on the previous step
+with name `test`, created on the previous step.
 
 You can inject as many nodes as you want, by piping them, as long as
 they have different names.
@@ -98,3 +98,6 @@ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
 Since the `cluster.txt` contains the authoritative information about
 our cluster, we can generate as many administrator `kubeconfig` files
 as desired, based on client certificate authentication.
+
+> This command will print to `stdout` a `kubeconfig` file that is able
+> to access to the cluster with name `test`.

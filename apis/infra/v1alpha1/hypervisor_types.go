@@ -22,11 +22,26 @@ import (
 
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
-	CRIRuntimeEndpoint string `json:"criRuntimeEndpoint,omitempty"`
+	CRIRuntimeEndpoint string              `json:"criRuntimeEndpoint,omitempty"`
+	PortRange          HypervisorPortRange `json:"portRange,omitempty"`
 }
 
 // HypervisorStatus defines the observed state of Hypervisor
 type HypervisorStatus struct {
+	AllocatedPorts []HypervisorPortAllocation `json:"allocatedPorts,omitempty"`
+}
+
+// HypervisorPortRange represents a port range
+type HypervisorPortRange struct {
+	Low  int `json:"low,omitempty"`
+	High int `json:"high,omitempty"`
+}
+
+// HypervisorPortAllocation represents a port allocation in an hypervisor
+type HypervisorPortAllocation struct {
+	Cluster string `json:"cluster,omitempty"`
+	Node    string `json:"node,omitempty"`
+	Port    int    `json:"port,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -20,6 +20,7 @@ package infra
 type Pod struct {
 	Name       string
 	Containers []Container
+	Ports      map[int]int
 }
 
 // Container represents a container
@@ -32,16 +33,17 @@ type Container struct {
 }
 
 // NewPod returns a pod with name and containers
-func NewPod(name string, containers []Container) Pod {
+func NewPod(name string, containers []Container, ports map[int]int) Pod {
 	return Pod{
 		Name:       name,
 		Containers: containers,
+		Ports:      ports,
 	}
 }
 
 // NewSingleContainerPod returns a pod with name, and a single
-// container with name, image, command, args and mounts
-func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string) Pod {
+// container with name, image, command, args, mounts and ports
+func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string, ports map[int]int) Pod {
 	return Pod{
 		Name: name,
 		Containers: []Container{
@@ -53,5 +55,6 @@ func NewSingleContainerPod(name, image string, command []string, args []string, 
 				Mounts:  mounts,
 			},
 		},
+		Ports: ports,
 	}
 }

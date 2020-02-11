@@ -42,7 +42,7 @@ func (kubeAPIServer *KubeAPIServer) secretsPathFile(cluster *cluster.Cluster, fi
 }
 
 // Reconcile reconciles the kube-apiserver
-func (kubeAPIServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
+func (kubeAPIServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster, node *Node) error {
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage); err != nil {
 		return err
 	}
@@ -79,6 +79,9 @@ func (kubeAPIServer *KubeAPIServer) Reconcile(hypervisor *infra.Hypervisor, clus
 						kubeAPIServer.secretsPath(cluster): kubeAPIServer.secretsPath(cluster),
 					},
 				},
+			},
+			map[int]int{
+				node.HostPort: 6443,
 			},
 		),
 	)

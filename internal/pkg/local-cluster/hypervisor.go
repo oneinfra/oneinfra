@@ -31,11 +31,12 @@ import (
 
 // Hypervisor represents a local hypervisor
 type Hypervisor struct {
-	Name              string
-	HypervisorCluster *HypervisorCluster
-	CRIRuntime        string
-	CRIImage          string
-	ExposedPortRange  string
+	Name                 string
+	HypervisorCluster    *HypervisorCluster
+	CRIRuntime           string
+	CRIImage             string
+	ExposedPortRangeLow  int
+	ExposedPortRangeHigh int
 }
 
 // Create creates the local hypervisor
@@ -55,7 +56,7 @@ func (hypervisor *Hypervisor) Create() error {
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
-		"-p", fmt.Sprintf("%s:%s", hypervisor.ExposedPortRange, hypervisor.ExposedPortRange),
+		"-p", fmt.Sprintf("%d-%d:%d-%d", hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh, hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh),
 		"oneinfra/containerd:latest",
 	).Run()
 }
@@ -96,6 +97,10 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			CRIRuntimeEndpoint: hypervisor.containerdSockPath(),
+			PortRange: infrav1alpha1.HypervisorPortRange{
+				Low:  hypervisor.ExposedPortRangeLow,
+				High: hypervisor.ExposedPortRangeHigh,
+			},
 		},
 	}
 }

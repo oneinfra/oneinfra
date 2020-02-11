@@ -29,6 +29,6 @@ const (
 type KubeScheduler struct{}
 
 // Reconcile reconciles the kube-scheduler
-func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
+func (kubeScheduler *KubeScheduler) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster, node *Node) error {
 	return nil
 }

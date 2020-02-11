@@ -40,30 +40,46 @@ var (
 
 // Node represents a Control Plane node
 type Node struct {
-	Name           string
-	HypervisorName string
-	ClusterName    string
+	Name              string
+	HypervisorName    string
+	ClusterName       string
+	RequestedHostPort int
+	HostPort          int
 }
 
 // List represents a list of nodes
 type List []*Node
 
 // NewNodeWithRandomHypervisor creates a node with a random hypervisor from the provided hypervisorList
-func NewNodeWithRandomHypervisor(nodeName, clusterName string, hypervisorList infra.HypervisorList) *Node {
+func NewNodeWithRandomHypervisor(clusterName, nodeName string, hypervisorList infra.HypervisorList) (*Node, error) {
+	hypervisor, err := hypervisorList.Sample()
+	if err != nil {
+		return nil, err
+	}
+	assignedPort, err := hypervisor.RequestPort(clusterName, nodeName)
+	if err != nil {
+		return nil, err
+	}
 	return &Node{
 		Name:           nodeName,
-		HypervisorName: hypervisorList.Sample().Name,
+		HypervisorName: hypervisor.Name,
 		ClusterName:    clusterName,
-	}
+		HostPort:       assignedPort,
+	}, nil
 }
 
 // NewNodeFromv1alpha1 returns a node based on a versioned node
 func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
-	return &Node{
+	res := Node{
 		Name:           node.ObjectMeta.Name,
 		HypervisorName: node.Spec.Hypervisor,
 		ClusterName:    node.Spec.Cluster,
-	}, nil
+		HostPort:       node.Status.HostPort,
+	}
+	if node.Spec.HostPort != nil {
+		res.RequestedHostPort = *node.Spec.HostPort
+	}
+	return &res, nil
 }
 
 // Component returns a component of type componentType
@@ -87,7 +103,7 @@ func (node *Node) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Clust
 		if err != nil {
 			return err
 		}
-		if err := component.Reconcile(hypervisor, cluster); err != nil {
+		if err := component.Reconcile(hypervisor, cluster, node); err != nil {
 			return err
 		}
 	}
@@ -96,7 +112,7 @@ func (node *Node) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Clust
 
 // Export exports the node to a versioned node
 func (node *Node) Export() *clusterv1alpha1.Node {
-	return &clusterv1alpha1.Node{
+	res := &clusterv1alpha1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: node.Name,
 		},
@@ -106,6 +122,13 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 			Role:       clusterv1alpha1.ControlPlaneRole,
 		},
 	}
+	if node.RequestedHostPort > 0 {
+		res.Spec.HostPort = &node.RequestedHostPort
+	}
+	if node.HostPort > 0 {
+		res.Status.HostPort = node.HostPort
+	}
+	return res
 }
 
 // Specs returns the versioned specs of this node

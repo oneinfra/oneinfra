@@ -29,6 +29,6 @@ const (
 type KubeControllerManager struct{}
 
 // Reconcile reconciles the kube-controller-manager
-func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
+func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster, node *Node) error {
 	return nil
 }

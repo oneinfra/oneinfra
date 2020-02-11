@@ -36,5 +36,5 @@ const (
 // Component is an interface that allows a component implementing this
 // interface to be reconciled
 type Component interface {
-	Reconcile(*infra.Hypervisor, *cluster.Cluster) error
+	Reconcile(*infra.Hypervisor, *cluster.Cluster, *Node) error
 }

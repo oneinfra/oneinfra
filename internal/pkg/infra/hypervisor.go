@@ -47,6 +47,9 @@ type Hypervisor struct {
 	CRIImageEndpoint   string
 	criRuntime         criapi.RuntimeServiceClient
 	criImage           criapi.ImageServiceClient
+	portRangeLow       int
+	portRangeHigh      int
+	allocatedPorts     HypervisorPortAllocationList
 }
 
 // HypervisorMap represents a map of hypervisors
@@ -61,6 +64,9 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		Name:               hypervisor.ObjectMeta.Name,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
 		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
+		portRangeLow:       hypervisor.Spec.PortRange.Low,
+		portRangeHigh:      hypervisor.Spec.PortRange.High,
+		allocatedPorts:     NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
 	}, nil
 }
 
@@ -120,12 +126,20 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	portMappings := []*criapi.PortMapping{}
+	for hostPort, podPort := range pod.Ports {
+		portMappings = append(portMappings, &criapi.PortMapping{
+			HostPort:      int32(hostPort),
+			ContainerPort: int32(podPort),
+		})
+	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
 			Name:      pod.Name,
 			Uid:       uuid.New().String(),
 			Namespace: uuid.New().String(),
 		},
+		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
 	}
 	podSandboxResponse, err := criRuntime.RunPodSandbox(
@@ -268,6 +282,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 			hostPath,
 		},
 		map[string]string{hostPathDir: hostPathDir},
+		map[int]int{},
 	)
 	podSandboxID, err := hypervisor.RunPod(uploadFilePod)
 	if err != nil {
@@ -279,6 +294,20 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	return hypervisor.DeletePod(podSandboxID)
 }
 
+// RequestPort requests a port on the current hypervisor
+func (hypervisor *Hypervisor) RequestPort(clusterName, nodeName string) (int, error) {
+	newPort := hypervisor.portRangeLow + len(hypervisor.allocatedPorts)
+	if newPort > hypervisor.portRangeHigh {
+		return 0, errors.Errorf("no available ports on hypervisor %q", hypervisor.Name)
+	}
+	hypervisor.allocatedPorts = append(hypervisor.allocatedPorts, HypervisorPortAllocation{
+		Cluster: clusterName,
+		Node:    nodeName,
+		Port:    newPort,
+	})
+	return newPort, nil
+}
+
 // Export exports the hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	return &infrav1alpha1.Hypervisor{
@@ -287,6 +316,13 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			CRIRuntimeEndpoint: hypervisor.CRIImageEndpoint,
+			PortRange: infrav1alpha1.HypervisorPortRange{
+				Low:  hypervisor.portRangeLow,
+				High: hypervisor.portRangeHigh,
+			},
+		},
+		Status: infrav1alpha1.HypervisorStatus{
+			AllocatedPorts: hypervisor.allocatedPorts.Export(),
 		},
 	}
 }
@@ -329,6 +365,9 @@ func (hypervisorMap HypervisorMap) List() HypervisorList {
 }
 
 // Sample returns a random hypervisor from the curent list
-func (hypervisorList HypervisorList) Sample() *Hypervisor {
-	return hypervisorList[rand.Intn(len(hypervisorList))]
+func (hypervisorList HypervisorList) Sample() (*Hypervisor, error) {
+	if len(hypervisorList) == 0 {
+		return nil, errors.New("no hypervisors available")
+	}
+	return hypervisorList[rand.Intn(len(hypervisorList))], nil
 }

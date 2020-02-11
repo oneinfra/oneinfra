@@ -8,6 +8,15 @@ env:
   - GO111MODULE=on
 before_script:
   - docker pull oneinfra/containerd:latest
+  - curl -o /usr/local/bin/kubectl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.12/bin/linux/amd64/kubectl
+  - chmod +x /usr/local/bin/kubectl
+  - mkdir ~/.kube
 script:
   - GOFLAGS="-mod=vendor" make oi oi-local-cluster
   - oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | tee cluster.txt | oi reconcile
+  - cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+  - kubectl cluster-info
+  - kubectl version
+  - kubectl api-resources
+  - kubectl api-versions
+  - kubectl get all -A

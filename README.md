@@ -68,7 +68,7 @@ Injects a versioned node with name `test`, assigned to the cluster
 with name `test`, created on the previous step.
 
 You can inject as many nodes as you want, by piping them, as long as
-they have different names.
+they have different names for the same cluster.
 
 > This command will take previous definitions from `stdin`, append the
 > node definition and print everything to `stdout`.

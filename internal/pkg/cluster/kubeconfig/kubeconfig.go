@@ -29,6 +29,9 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
+// FIXME: simplistic, not taking into account a future load balancer,
+// takes the first node; it should also take hypervisors into account
+// in the future.
 func kubeConfigClient(cluster *cluster.Cluster, nodeList node.List) (*v1.Config, error) {
 	var firstNode *node.Node
 	for _, node := range nodeList {
@@ -78,10 +81,6 @@ func kubeConfigClient(cluster *cluster.Cluster, nodeList node.List) (*v1.Config,
 }
 
 // KubeConfig returns a kubeconfig for the current cluster
-//
-// FIXME: simplistic, not taking into account a future load balancer,
-// takes the first node; it should also take hypervisors into account
-// in the future.
 func KubeConfig(cluster *cluster.Cluster, nodeList node.List) (string, error) {
 	config, err := kubeConfigClient(cluster, nodeList)
 	if err != nil {

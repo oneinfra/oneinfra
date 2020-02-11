@@ -48,6 +48,20 @@ func main() {
 							return cluster.Inject(c.String("name"))
 						},
 					},
+					{
+						Name:  "kubeconfig",
+						Usage: "generate a kubeconfig file for the cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.KubeConfig(c.String("cluster"))
+						},
+					},
 				},
 			},
 			{

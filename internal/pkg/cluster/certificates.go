@@ -152,7 +152,8 @@ func (ca *CertificateAuthority) init() error {
 	return nil
 }
 
-func (ca *CertificateAuthority) createCertificate() (string, string, error) {
+// CreateCertificate generates a new certificate and key signed with the current CA
+func (ca *CertificateAuthority) CreateCertificate(commonName string, organization []string) (string, string, error) {
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
 		return "", "", err
@@ -160,7 +161,8 @@ func (ca *CertificateAuthority) createCertificate() (string, string, error) {
 	certificate := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization:  []string{"Some Company"},
+			CommonName:    commonName,
+			Organization:  organization,
 			Country:       []string{"Some Country"},
 			Province:      []string{"Some Province"},
 			Locality:      []string{"Some Locality"},

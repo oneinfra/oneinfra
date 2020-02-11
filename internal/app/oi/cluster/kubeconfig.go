@@ -17,17 +17,18 @@ limitations under the License.
 package cluster
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"github.com/pkg/errors"
+
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster/kubeconfig"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-// Inject injects a cluster with name nodeName
-func Inject(clusterName string) error {
+// KubeConfig generates a kubeconfig for cluster clusterName
+func KubeConfig(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -49,20 +50,22 @@ func Inject(clusterName string) error {
 		res += clustersSpecs
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName)
-	if err != nil {
-		return err
-	}
-	injectedCluster := cluster.Map{clusterName: newCluster}
-	if injectedClusterSpecs, err := injectedCluster.Specs(); err == nil {
-		res += injectedClusterSpecs
-	}
-
 	nodes := manifests.RetrieveNodes(string(stdin))
 	if nodesSpecs, err := nodes.Specs(); err == nil {
 		res += nodesSpecs
 	}
 
-	fmt.Print(res)
+	cluster, ok := clusters[clusterName]
+	if !ok {
+		return errors.Errorf("cluster %q not found", clusterName)
+	}
+
+	kubeConfig, err := kubeconfig.KubeConfig(cluster, nodes)
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(kubeConfig)
+
 	return nil
 }

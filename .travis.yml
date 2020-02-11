@@ -8,7 +8,7 @@ env:
   - GO111MODULE=on
 before_script:
   - docker pull oneinfra/containerd:latest
-  - sudo curl -o /usr/local/bin/kubectl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.12/bin/linux/amd64/kubectl
+  - sudo curl -o /usr/local/bin/kubectl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.6/bin/linux/amd64/kubectl
   - sudo chmod +x /usr/local/bin/kubectl
   - mkdir ~/.kube
 script:

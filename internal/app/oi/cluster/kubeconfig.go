@@ -34,26 +34,8 @@ func KubeConfig(clusterName string) error {
 		return err
 	}
 
-	res := ""
-
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	if len(hypervisors) == 0 {
-		return errors.New("empty list of hypervisors")
-	}
-
-	if hypervisorsSpecs, err := hypervisors.Specs(); err == nil {
-		res += hypervisorsSpecs
-	}
-
 	clusters := manifests.RetrieveClusters(string(stdin))
-	if clustersSpecs, err := clusters.Specs(); err == nil {
-		res += clustersSpecs
-	}
-
 	nodes := manifests.RetrieveNodes(string(stdin))
-	if nodesSpecs, err := nodes.Specs(); err == nil {
-		res += nodesSpecs
-	}
 
 	cluster, ok := clusters[clusterName]
 	if !ok {

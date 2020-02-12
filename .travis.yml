@@ -1,7 +1,6 @@
 dist: bionic
 language: minimal
-before_script:
+script:
   - make pull
   - make kubectl
-script:
   - make e2e

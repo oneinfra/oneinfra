@@ -1,5 +1,11 @@
 version: 2
 jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: make pull-builder
+      - run: make
   unit and integration tests:
     machine: true
     steps:
@@ -17,5 +23,6 @@ workflows:
   version: 2
   test:
     jobs:
+      - build
       - unit and integration tests
       - e2e tests

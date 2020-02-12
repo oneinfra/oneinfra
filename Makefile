@@ -20,7 +20,7 @@ test: lint fmt vet
 	./run.sh go test ./... -coverprofile cover.out
 
 # Build and install manager binary
-manager: generate fmt vet
+manager: fmt vet
 	./run.sh go install ./cmd/oi-manager
 
 # Build and install oi binary
@@ -50,11 +50,11 @@ deploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests:
-	./run.sh controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Run golint against code
 lint:
-	SKIP_BIN_MOUNT="yes" ./run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
+	./run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
 
 # Run gofmt against code
 fmt:
@@ -66,7 +66,7 @@ vet:
 
 # Generate code
 generate:
-	./run.sh controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 pull: pull-builder
 	@docker pull oneinfra/containerd:latest
@@ -79,8 +79,16 @@ kubectl:
 	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
 
+# Build and install oi binary
+oi-e2e:
+	./run.sh go install ./cmd/oi
+
+# Build and install oi-local-cluster
+oi-local-cluster-e2e:
+	./run.sh go install ./cmd/oi-local-cluster
+
 # Run e2e (to be moved to a proper e2e framework)
-e2e: oi oi-local-cluster
+e2e: oi-e2e oi-local-cluster-e2e
 	mkdir -p ~/.kube
 	bin/oi-local-cluster cluster create | bin/oi cluster inject --name test | bin/oi node inject --name test --cluster test | tee cluster.txt | bin/oi reconcile
 	cat cluster.txt | bin/oi cluster kubeconfig --cluster test > ~/.kube/config

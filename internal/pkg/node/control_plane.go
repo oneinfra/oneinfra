@@ -84,7 +84,7 @@ func (controlPlane *ControlPlane) Reconcile(hypervisor *infra.Hypervisor, cluste
 						"--tls-cert-file", secretsPathFile(cluster, "apiserver.crt"),
 						"--tls-private-key-file", secretsPathFile(cluster, "apiserver.key"),
 						"--client-ca-file", secretsPathFile(cluster, "apiserver-client-ca.crt"),
-						"--service-account-key-file", secretsPathFile(cluster, "service-account.key"),
+						"--service-account-key-file", secretsPathFile(cluster, "service-account-pub.key"),
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster): secretsPath(cluster),

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -z "$SKIP_MOUNT" ]; then
+if [ -z "$SKIP_BIN_MOUNT" ]; then
     EXTRA_FLAGS="-v $PWD/bin:/go/bin"
 fi
 

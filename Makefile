@@ -54,7 +54,7 @@ manifests:
 
 # Run golint against code
 lint:
-	SKIP_MOUNT="yes" ./run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
+	SKIP_BIN_MOUNT="yes" ./run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
 
 # Run gofmt against code
 fmt:

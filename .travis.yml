@@ -1,20 +1,7 @@
 dist: bionic
-services:
-  - docker
-language: go
-go:
-  - 1.13.x
-env:
-  - GO111MODULE=on
+language: minimal
 before_script:
-  - docker pull oneinfra/containerd:latest
-  - sudo curl -o /usr/local/bin/kubectl -LO https://storage.googleapis.com/kubernetes-release/release/v1.16.6/bin/linux/amd64/kubectl
-  - sudo chmod +x /usr/local/bin/kubectl
-  - mkdir ~/.kube
+  - make pull
+  - make kubectl
 script:
-  - GOFLAGS="-mod=vendor" make oi oi-local-cluster
-  - oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | tee cluster.txt | oi reconcile
-  - cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
-  - docker ps -a
-  - kubectl cluster-info
-  - kubectl version
+  - make e2e

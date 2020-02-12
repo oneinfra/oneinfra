@@ -79,16 +79,8 @@ kubectl:
 	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
 
-# Build and install oi binary
-oi-e2e:
-	./run.sh go install ./cmd/oi
-
-# Build and install oi-local-cluster
-oi-local-cluster-e2e:
-	./run.sh go install ./cmd/oi-local-cluster
-
 # Run e2e (to be moved to a proper e2e framework)
-e2e: oi-e2e oi-local-cluster-e2e
+e2e: oi oi-local-cluster
 	mkdir -p ~/.kube
 	bin/oi-local-cluster cluster create | bin/oi cluster inject --name test | bin/oi node inject --name test --cluster test | tee cluster.txt | bin/oi reconcile
 	cat cluster.txt | bin/oi cluster kubeconfig --cluster test > ~/.kube/config

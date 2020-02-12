@@ -54,8 +54,10 @@ func (controlPlane *ControlPlane) Reconcile(hypervisor *infra.Hypervisor, cluste
 			secretsPathFile(cluster, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
 			secretsPathFile(cluster, "apiserver.crt"):           cluster.APIServer.TLSCert,
 			secretsPathFile(cluster, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
+			secretsPathFile(cluster, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
 			// controller-manager secrets
 			secretsPathFile(cluster, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
+			secretsPathFile(cluster, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
 			// scheduler secrets
 			secretsPathFile(cluster, "scheduler.kubeconfig"): schedulerKubeConfig,
 		},
@@ -82,6 +84,7 @@ func (controlPlane *ControlPlane) Reconcile(hypervisor *infra.Hypervisor, cluste
 						"--tls-cert-file", secretsPathFile(cluster, "apiserver.crt"),
 						"--tls-private-key-file", secretsPathFile(cluster, "apiserver.key"),
 						"--client-ca-file", secretsPathFile(cluster, "apiserver-client-ca.crt"),
+						"--service-account-key-file", secretsPathFile(cluster, "service-account.key"),
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster): secretsPath(cluster),
@@ -93,6 +96,7 @@ func (controlPlane *ControlPlane) Reconcile(hypervisor *infra.Hypervisor, cluste
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
 						"--kubeconfig", secretsPathFile(cluster, "controller-manager.kubeconfig"),
+						"--service-account-private-key-file", secretsPathFile(cluster, "service-account.key"),
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster): secretsPath(cluster),

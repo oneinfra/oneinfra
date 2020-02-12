@@ -18,9 +18,11 @@ package cluster
 
 // KubeAPIServer represents the kube-apiserver component
 type KubeAPIServer struct {
-	CA            *CertificateAuthority
-	TLSCert       string
-	TLSPrivateKey string
+	CA                       *CertificateAuthority
+	TLSCert                  string
+	TLSPrivateKey            string
+	ServiceAccountPublicKey  string
+	ServiceAccountPrivateKey string
 }
 
 func newKubeAPIServer() (*KubeAPIServer, error) {
@@ -38,5 +40,11 @@ func newKubeAPIServer() (*KubeAPIServer, error) {
 	}
 	kubeAPIServer.TLSCert = tlsCert
 	kubeAPIServer.TLSPrivateKey = tlsKey
+	serviceAccountKey, err := newPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+	kubeAPIServer.ServiceAccountPublicKey = serviceAccountKey.PublicKey
+	kubeAPIServer.ServiceAccountPrivateKey = serviceAccountKey.PrivateKey
 	return &kubeAPIServer, nil
 }

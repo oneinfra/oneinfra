@@ -48,6 +48,13 @@ type CertificateAuthority struct {
 	privateKey  *rsa.PrivateKey
 }
 
+// KeyPair represents a public/private key pair
+type KeyPair struct {
+	PublicKey  string
+	PrivateKey string
+	key        *rsa.PrivateKey
+}
+
 func newCertificateAuthorities() (*CertificateAuthorities, error) {
 	apiserverClientAuthority, err := newCertificateAuthority()
 	if err != nil {
@@ -68,8 +75,34 @@ func newCertificateAuthorities() (*CertificateAuthorities, error) {
 	}, nil
 }
 
+func newPrivateKey() (*KeyPair, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+	publicKeyPEM := new(bytes.Buffer)
+	pem.Encode(publicKeyPEM, &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKey,
+	})
+	privateKeyPEM := new(bytes.Buffer)
+	pem.Encode(privateKeyPEM, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+	return &KeyPair{
+		PublicKey:  publicKeyPEM.String(),
+		PrivateKey: privateKeyPEM.String(),
+		key:        key,
+	}, nil
+}
+
 func newCertificateAuthority() (*CertificateAuthority, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	privateKey, err := newPrivateKey()
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +127,7 @@ func newCertificateAuthority() (*CertificateAuthority, error) {
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 	}
-	caCertificateBytes, err := x509.CreateCertificate(rand.Reader, &caCertificate, &caCertificate, &privateKey.PublicKey, privateKey)
+	caCertificateBytes, err := x509.CreateCertificate(rand.Reader, &caCertificate, &caCertificate, &privateKey.key.PublicKey, privateKey.key)
 	if err != nil {
 		return nil, err
 	}
@@ -103,16 +136,11 @@ func newCertificateAuthority() (*CertificateAuthority, error) {
 		Type:  "CERTIFICATE",
 		Bytes: caCertificateBytes,
 	})
-	caPrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(caPrivKeyPEM, &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-	})
 	return &CertificateAuthority{
 		Certificate: caPEM.String(),
-		PrivateKey:  caPrivKeyPEM.String(),
+		PrivateKey:  privateKey.PrivateKey,
 		certificate: &caCertificate,
-		privateKey:  privateKey,
+		privateKey:  privateKey.key,
 	}, nil
 }
 

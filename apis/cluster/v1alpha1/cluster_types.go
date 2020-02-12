@@ -43,11 +43,18 @@ type CertificateAuthority struct {
 	PrivateKey  string `json:"privateKey,omitempty"`
 }
 
+// KeyPair represents a public/private key pair
+type KeyPair struct {
+	PublicKey  string `json:"publicKey,omitempty"`
+	PrivateKey string `json:"privateKey,omitempty"`
+}
+
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
-	CA            *CertificateAuthority `json:"ca,omitempty"`
-	TLSCert       string                `json:"tlsCert,omitempty"`
-	TLSPrivateKey string                `json:"tlsPrivateKey,omitempty"`
+	CA             *CertificateAuthority `json:"ca,omitempty"`
+	TLSCert        string                `json:"tlsCert,omitempty"`
+	TLSPrivateKey  string                `json:"tlsPrivateKey,omitempty"`
+	ServiceAccount KeyPair               `json:"serviceAccount,omitempty"`
 }
 
 // +kubebuilder:object:root=true

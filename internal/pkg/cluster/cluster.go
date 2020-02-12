@@ -57,9 +57,11 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			Kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
 		},
 		APIServer: &KubeAPIServer{
-			CA:            newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
-			TLSCert:       cluster.Spec.APIServer.TLSCert,
-			TLSPrivateKey: cluster.Spec.APIServer.TLSPrivateKey,
+			CA:                       newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
+			TLSCert:                  cluster.Spec.APIServer.TLSCert,
+			TLSPrivateKey:            cluster.Spec.APIServer.TLSPrivateKey,
+			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
+			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
 		},
 	}
 	return &res, nil
@@ -93,6 +95,10 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				},
 				TLSCert:       cluster.APIServer.TLSCert,
 				TLSPrivateKey: cluster.APIServer.TLSPrivateKey,
+				ServiceAccount: clusterv1alpha1.KeyPair{
+					PublicKey:  cluster.APIServer.ServiceAccountPublicKey,
+					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
+				},
 			},
 		},
 	}

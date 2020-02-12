@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Role defines the role of this machine
+// Role defines the role of this node
 type Role string
 
 const (

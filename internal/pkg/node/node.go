@@ -30,6 +30,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
+// Role defines the role of this node
 type Role string
 
 const (

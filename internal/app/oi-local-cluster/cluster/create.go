@@ -22,9 +22,10 @@ import (
 	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
 )
 
-// Create creates a cluster with name clusterName and size clusterSize
-func Create(clusterName string, clusterSize int) error {
-	cluster := localcluster.NewHypervisorCluster(clusterName, clusterSize)
+// Create creates a cluster with name clusterName, with private size
+// privateClusterSize and public size publicClusterSize
+func Create(clusterName string, privateClusterSize, publicClusterSize int) error {
+	cluster := localcluster.NewHypervisorCluster(clusterName, publicClusterSize, privateClusterSize)
 	if err := cluster.Create(); err != nil {
 		return err
 	}

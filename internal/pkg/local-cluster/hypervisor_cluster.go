@@ -18,7 +18,6 @@ package localcluster
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,16 +36,29 @@ type HypervisorCluster struct {
 }
 
 // NewHypervisorCluster creates a new cluster of local hypervisors
-func NewHypervisorCluster(name string, size int) *HypervisorCluster {
+func NewHypervisorCluster(name string, privateClusterSize, publicClusterSize int) *HypervisorCluster {
 	cluster := HypervisorCluster{
 		Name:        name,
 		Hypervisors: []*Hypervisor{},
 	}
 	exposedPortRange := 30000
-	for i := 0; i < size; i++ {
+	for i := 0; i < privateClusterSize; i++ {
 		cluster.addHypervisor(
 			&Hypervisor{
-				Name:                 fmt.Sprintf("hypervisor-%d", i),
+				Name:                 fmt.Sprintf("private-hypervisor-%d", i),
+				Public:               false,
+				HypervisorCluster:    &cluster,
+				ExposedPortRangeLow:  exposedPortRange,
+				ExposedPortRangeHigh: exposedPortRange + 99,
+			},
+		)
+		exposedPortRange += 100
+	}
+	for i := 0; i < publicClusterSize; i++ {
+		cluster.addHypervisor(
+			&Hypervisor{
+				Name:                 fmt.Sprintf("public-hypervisor-%d", i),
+				Public:               true,
 				HypervisorCluster:    &cluster,
 				ExposedPortRangeLow:  exposedPortRange,
 				ExposedPortRangeHigh: exposedPortRange + 99,
@@ -60,11 +72,15 @@ func NewHypervisorCluster(name string, size int) *HypervisorCluster {
 // LoadCluster loads a cluster with name from disk
 func LoadCluster(name string) (*HypervisorCluster, error) {
 	hypervisorCluster := HypervisorCluster{Name: name}
-	hypervisors, err := ioutil.ReadDir(hypervisorCluster.directory())
+	privateHypervisors, err := filepath.Glob(filepath.Join(hypervisorCluster.directory(), "private-hypervisor-*"))
 	if err != nil {
 		return nil, err
 	}
-	return NewHypervisorCluster(name, len(hypervisors)), nil
+	publicHypervisors, err := filepath.Glob(filepath.Join(hypervisorCluster.directory(), "public-hypervisor-*"))
+	if err != nil {
+		return nil, err
+	}
+	return NewHypervisorCluster(name, len(privateHypervisors), len(publicHypervisors)), nil
 }
 
 func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor) {

@@ -44,6 +44,7 @@ const (
 // Hypervisor represents an hypervisor
 type Hypervisor struct {
 	Name               string
+	Public             bool
 	CRIRuntimeEndpoint string
 	CRIImageEndpoint   string
 	criRuntime         criapi.RuntimeServiceClient
@@ -63,6 +64,7 @@ type HypervisorList []*Hypervisor
 func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
 	return &Hypervisor{
 		Name:               hypervisor.ObjectMeta.Name,
+		Public:             hypervisor.Spec.Public,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
 		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
 		portRangeLow:       hypervisor.Spec.PortRange.Low,
@@ -322,6 +324,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 			Name: hypervisor.Name,
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
+			Public:             hypervisor.Public,
 			CRIRuntimeEndpoint: hypervisor.CRIImageEndpoint,
 			PortRange: infrav1alpha1.HypervisorPortRange{
 				Low:  hypervisor.portRangeLow,
@@ -362,10 +365,24 @@ func (hypervisorMap HypervisorMap) Specs() (string, error) {
 	return res, nil
 }
 
-// List returns a list of hypervisors from this map
-func (hypervisorMap HypervisorMap) List() HypervisorList {
+// PublicList returns a list of public hypervisors from this map
+func (hypervisorMap HypervisorMap) PublicList() HypervisorList {
 	hypervisorList := HypervisorList{}
 	for _, hypervisor := range hypervisorMap {
+		if hypervisor.Public {
+			hypervisorList = append(hypervisorList, hypervisor)
+		}
+	}
+	return hypervisorList
+}
+
+// PrivateList returns a list of private hypervisors from this map
+func (hypervisorMap HypervisorMap) PrivateList() HypervisorList {
+	hypervisorList := HypervisorList{}
+	for _, hypervisor := range hypervisorMap {
+		if hypervisor.Public {
+			continue
+		}
 		hypervisorList = append(hypervisorList, hypervisor)
 	}
 	return hypervisorList

@@ -89,9 +89,14 @@ func main() {
 								Required: true,
 								Usage:    "cluster name",
 							},
+							&cli.StringFlag{
+								Name:     "role",
+								Required: true,
+								Usage:    "role of the node (controlplane, gater)",
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return node.Inject(c.String("name"), c.String("cluster"))
+							return node.Inject(c.String("name"), c.String("cluster"), c.String("role"))
 						},
 					},
 				},

@@ -43,13 +43,18 @@ func main() {
 								Usage: "test cluster name",
 							},
 							&cli.IntFlag{
-								Name:  "size",
-								Value: 3,
-								Usage: "test cluster size",
+								Name:  "size-private",
+								Value: 1,
+								Usage: "private hypervisor test cluster size",
+							},
+							&cli.IntFlag{
+								Name:  "size-public",
+								Value: 2,
+								Usage: "public hypervisor test cluster size",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Create(c.String("name"), c.Int("size"))
+							return cluster.Create(c.String("name"), c.Int("size-private"), c.Int("size-public"))
 						},
 					},
 					{

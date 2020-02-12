@@ -17,18 +17,20 @@ limitations under the License.
 package node
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 
+	"github.com/pkg/errors"
+
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 // Inject injects a node with name nodeName that belongs to cluster
 // with name clusterName
-func Inject(nodeName, clusterName string) error {
+func Inject(nodeName, clusterName, role string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -39,7 +41,21 @@ func Inject(nodeName, clusterName string) error {
 	}
 	clusters := manifests.RetrieveClusters(string(stdin))
 	nodes := manifests.RetrieveNodes(string(stdin))
-	injectedNode, err := node.NewNodeWithRandomHypervisor(clusterName, nodeName, hypervisors.List())
+
+	var injectedNodeRole node.Role
+	var hypervisorList infra.HypervisorList
+	switch role {
+	case "controlplane":
+		injectedNodeRole = node.ControlPlaneRole
+		hypervisorList = hypervisors.PrivateList()
+	case "gater":
+		injectedNodeRole = node.GaterRole
+		hypervisorList = hypervisors.PublicList()
+	default:
+		return errors.Errorf("unknown role %q", role)
+	}
+
+	injectedNode, err := node.NewNodeWithRandomHypervisor(clusterName, nodeName, injectedNodeRole, hypervisorList)
 	if err != nil {
 		return err
 	}

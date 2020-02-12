@@ -32,6 +32,7 @@ import (
 // Hypervisor represents a local hypervisor
 type Hypervisor struct {
 	Name                 string
+	Public               bool
 	HypervisorCluster    *HypervisorCluster
 	CRIRuntime           string
 	CRIImage             string
@@ -96,6 +97,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 			Name: hypervisor.Name,
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
+			Public:             hypervisor.Public,
 			CRIRuntimeEndpoint: hypervisor.containerdSockPath(),
 			PortRange: infrav1alpha1.HypervisorPortRange{
 				Low:  hypervisor.ExposedPortRangeLow,

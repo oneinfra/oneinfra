@@ -23,6 +23,7 @@ import (
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
 	CRIRuntimeEndpoint string              `json:"criRuntimeEndpoint,omitempty"`
+	Public             bool                `json:"public"`
 	PortRange          HypervisorPortRange `json:"portRange,omitempty"`
 }
 

@@ -30,9 +30,19 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
+type Role string
+
+const (
+	// ControlPlaneRole is the role used for a Control Plane instance
+	ControlPlaneRole Role = "control-plane"
+	// GaterRole is the role used for Control Plane ingress
+	GaterRole Role = "gater"
+)
+
 // Node represents a Control Plane node
 type Node struct {
 	Name              string
+	Role              Role
 	HypervisorName    string
 	ClusterName       string
 	RequestedHostPort int
@@ -43,7 +53,7 @@ type Node struct {
 type List []*Node
 
 // NewNodeWithRandomHypervisor creates a node with a random hypervisor from the provided hypervisorList
-func NewNodeWithRandomHypervisor(clusterName, nodeName string, hypervisorList infra.HypervisorList) (*Node, error) {
+func NewNodeWithRandomHypervisor(clusterName, nodeName string, role Role, hypervisorList infra.HypervisorList) (*Node, error) {
 	hypervisor, err := hypervisorList.Sample()
 	if err != nil {
 		return nil, err
@@ -57,6 +67,7 @@ func NewNodeWithRandomHypervisor(clusterName, nodeName string, hypervisorList in
 		HypervisorName: hypervisor.Name,
 		ClusterName:    clusterName,
 		HostPort:       assignedPort,
+		Role:           role,
 	}, nil
 }
 
@@ -67,6 +78,12 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 		HypervisorName: node.Spec.Hypervisor,
 		ClusterName:    node.Spec.Cluster,
 		HostPort:       node.Status.HostPort,
+	}
+	switch node.Spec.Role {
+	case clusterv1alpha1.ControlPlaneRole:
+		res.Role = ControlPlaneRole
+	case clusterv1alpha1.GaterRole:
+		res.Role = GaterRole
 	}
 	if node.Spec.HostPort != nil {
 		res.RequestedHostPort = *node.Spec.HostPort
@@ -89,8 +106,13 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 		Spec: clusterv1alpha1.NodeSpec{
 			Hypervisor: node.HypervisorName,
 			Cluster:    node.ClusterName,
-			Role:       clusterv1alpha1.ControlPlaneRole,
 		},
+	}
+	switch node.Role {
+	case ControlPlaneRole:
+		res.Spec.Role = clusterv1alpha1.ControlPlaneRole
+	case GaterRole:
+		res.Spec.Role = clusterv1alpha1.GaterRole
 	}
 	if node.RequestedHostPort > 0 {
 		res.Spec.HostPort = &node.RequestedHostPort

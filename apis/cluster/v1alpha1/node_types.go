@@ -21,20 +21,20 @@ import (
 )
 
 // Role defines the role of this machine
-type Role int
+type Role string
 
 const (
 	// ControlPlaneRole is the role used for a Control Plane instance
-	ControlPlaneRole Role = iota
-	// Gater is the role used for Control Plane ingress
-	Gater Role = iota
+	ControlPlaneRole Role = "control-plane"
+	// GaterRole is the role used for Control Plane ingress
+	GaterRole Role = "gater"
 )
 
 // NodeSpec defines the desired state of Node
 type NodeSpec struct {
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
-	Role       Role   `json:"role,omitempty"`
+	Role       Role   `json:"role"`
 	HostPort   *int   `json:"hostPort,omitempty"`
 }
 

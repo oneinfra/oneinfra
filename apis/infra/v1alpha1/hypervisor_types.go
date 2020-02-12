@@ -24,6 +24,7 @@ import (
 type HypervisorSpec struct {
 	CRIRuntimeEndpoint string              `json:"criRuntimeEndpoint,omitempty"`
 	Public             bool                `json:"public"`
+	IPAddress          string              `json:"ipAddress,omitempty"`
 	PortRange          HypervisorPortRange `json:"portRange,omitempty"`
 }
 

@@ -19,7 +19,6 @@ package node
 import (
 	"fmt"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -36,7 +35,10 @@ const (
 type ControlPlane struct{}
 
 // Reconcile reconciles the kube-apiserver
-func (controlPlane *ControlPlane) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster, node *Node) error {
+func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
+	node := inquirer.Node()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}

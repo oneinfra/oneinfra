@@ -42,16 +42,15 @@ func KubeConfig(clusterName string) error {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	// FIXME: simplification for now, use LB
 	var firstNode *node.Node
-	for _, node := range nodes {
-		if node.ClusterName == cluster.Name {
-			firstNode = node
+	for _, nodeObj := range nodes {
+		if nodeObj.ClusterName == cluster.Name && nodeObj.Role == node.GaterRole {
+			firstNode = nodeObj
 			break
 		}
 	}
 	if firstNode == nil {
-		return errors.Errorf("could not find any node assigned to cluster %q", cluster.Name)
+		return errors.Errorf("could not find any gater role node assigned to cluster %q", cluster.Name)
 	}
 
 	kubeConfig, err := cluster.KubeConfig(fmt.Sprintf("https://127.0.0.1:%d", firstNode.HostPort))

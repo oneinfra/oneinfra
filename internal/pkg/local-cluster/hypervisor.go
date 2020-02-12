@@ -22,8 +22,10 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog"
 
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
@@ -36,6 +38,7 @@ type Hypervisor struct {
 	HypervisorCluster    *HypervisorCluster
 	CRIRuntime           string
 	CRIImage             string
+	IPAddress            string
 	ExposedPortRangeLow  int
 	ExposedPortRangeHigh int
 }
@@ -49,17 +52,22 @@ func (hypervisor *Hypervisor) Create() error {
 	if err != nil {
 		return err
 	}
-	return exec.Command(
-		"docker", "run", "-d", "--privileged",
-		"--name", fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name),
+	arguments := []string{
+		"run", "-d", "--privileged",
+		"--name", hypervisor.fullName(),
 		"-v", fmt.Sprintf("%s:%s", hypervisor.runtimeDirectory(), hypervisor.localContainerdSockDirectory()),
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_UID=%s", currentUser.Uid),
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
-		"-p", fmt.Sprintf("%d-%d:%d-%d", hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh, hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh),
-		"oneinfra/containerd:latest",
-	).Run()
+	}
+	if hypervisor.Public {
+		arguments = append(arguments,
+			"-p", fmt.Sprintf("%d-%d:%d-%d", hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh, hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh),
+		)
+	}
+	arguments = append(arguments, "oneinfra/containerd:latest")
+	return exec.Command("docker", arguments...).Run()
 }
 
 // Destroy destroys the current hypervisor
@@ -90,8 +98,31 @@ func (hypervisor *Hypervisor) runtimeDirectory() string {
 	return filepath.Join(hypervisor.HypervisorCluster.directory(), hypervisor.Name)
 }
 
+func (hypervisor *Hypervisor) fullName() string {
+	return fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name)
+}
+
+func (hypervisor *Hypervisor) ipAddress() (string, error) {
+	if hypervisor.Public {
+		return "127.0.0.1", nil
+	}
+	ipAddress, err := exec.Command(
+		"docker",
+		"inspect", "-f", "{{ .NetworkSettings.IPAddress }}",
+		hypervisor.fullName(),
+	).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimRight(string(ipAddress), "\n"), nil
+}
+
 // Export exports the local hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
+	ipAddress, err := hypervisor.ipAddress()
+	if err != nil {
+		klog.Fatalf("error while retrieving hypervisor IP address: %v", err)
+	}
 	return &infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: hypervisor.Name,
@@ -99,6 +130,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		Spec: infrav1alpha1.HypervisorSpec{
 			Public:             hypervisor.Public,
 			CRIRuntimeEndpoint: hypervisor.containerdSockPath(),
+			IPAddress:          ipAddress,
 			PortRange: infrav1alpha1.HypervisorPortRange{
 				Low:  hypervisor.ExposedPortRangeLow,
 				High: hypervisor.ExposedPortRangeHigh,

@@ -41,19 +41,18 @@ func NewHypervisorCluster(name string, privateClusterSize, publicClusterSize int
 		Name:        name,
 		Hypervisors: []*Hypervisor{},
 	}
-	exposedPortRange := 30000
 	for i := 0; i < privateClusterSize; i++ {
 		cluster.addHypervisor(
 			&Hypervisor{
 				Name:                 fmt.Sprintf("private-hypervisor-%d", i),
 				Public:               false,
 				HypervisorCluster:    &cluster,
-				ExposedPortRangeLow:  exposedPortRange,
-				ExposedPortRangeHigh: exposedPortRange + 99,
+				ExposedPortRangeLow:  30000,
+				ExposedPortRangeHigh: 60000,
 			},
 		)
-		exposedPortRange += 100
 	}
+	exposedPortRange := 30000
 	for i := 0; i < publicClusterSize; i++ {
 		cluster.addHypervisor(
 			&Hypervisor{

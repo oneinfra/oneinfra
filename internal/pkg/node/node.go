@@ -17,8 +17,6 @@ limitations under the License.
 package node
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -49,9 +46,6 @@ type Node struct {
 	RequestedHostPort int
 	HostPort          int
 }
-
-// List represents a list of nodes
-type List []*Node
 
 // NewNodeWithRandomHypervisor creates a node with a random hypervisor from the provided hypervisorList
 func NewNodeWithRandomHypervisor(clusterName, nodeName string, role Role, hypervisorList infra.HypervisorList) (*Node, error) {
@@ -93,9 +87,15 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 }
 
 // Reconcile reconciles the node
-func (node *Node) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
-	controlPlane := ControlPlane{}
-	return controlPlane.Reconcile(hypervisor, cluster, node)
+func (node *Node) Reconcile(inquirer Inquirer) error {
+	var component Component
+	switch node.Role {
+	case ControlPlaneRole:
+		component = &ControlPlane{}
+	case GaterRole:
+		component = &Gater{}
+	}
+	return component.Reconcile(inquirer)
 }
 
 // Export exports the node to a versioned node
@@ -137,17 +137,4 @@ func (node *Node) Specs() (string, error) {
 		return string(encodedNode), nil
 	}
 	return "", errors.Errorf("could not encode node %q", node.Name)
-}
-
-// Specs returns the versioned specs of all nodes in this list
-func (list List) Specs() (string, error) {
-	res := ""
-	for _, node := range list {
-		nodeSpec, err := node.Specs()
-		if err != nil {
-			continue
-		}
-		res += fmt.Sprintf("---\n%s", nodeSpec)
-	}
-	return res, nil
 }

@@ -82,7 +82,7 @@ kubectl:
 # Run e2e (to be moved to a proper e2e framework)
 e2e: oi oi-local-cluster
 	mkdir -p ~/.kube
-	bin/oi-local-cluster cluster create | bin/oi cluster inject --name test | bin/oi node inject --name test --cluster test --role controlplane | tee cluster.txt | bin/oi reconcile
+	bin/oi-local-cluster cluster create | bin/oi cluster inject --name test | bin/oi node inject --name test --cluster test --role controlplane | bin/oi node inject --name loadbalancer --cluster test --role gater | tee cluster.txt | bin/oi reconcile
 	cat cluster.txt | bin/oi cluster kubeconfig --cluster test > ~/.kube/config
 	docker ps -a
 	kubectl cluster-info

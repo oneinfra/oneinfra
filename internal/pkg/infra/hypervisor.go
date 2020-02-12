@@ -45,6 +45,7 @@ const (
 type Hypervisor struct {
 	Name               string
 	Public             bool
+	IPAddress          string
 	CRIRuntimeEndpoint string
 	CRIImageEndpoint   string
 	criRuntime         criapi.RuntimeServiceClient
@@ -65,6 +66,7 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 	return &Hypervisor{
 		Name:               hypervisor.ObjectMeta.Name,
 		Public:             hypervisor.Spec.Public,
+		IPAddress:          hypervisor.Spec.IPAddress,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
 		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
 		portRangeLow:       hypervisor.Spec.PortRange.Low,
@@ -325,6 +327,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			Public:             hypervisor.Public,
+			IPAddress:          hypervisor.IPAddress,
 			CRIRuntimeEndpoint: hypervisor.CRIImageEndpoint,
 			PortRange: infrav1alpha1.HypervisorPortRange{
 				Low:  hypervisor.portRangeLow,

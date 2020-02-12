@@ -34,7 +34,7 @@ const (
 type NodeSpec struct {
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
-	Role       Role   `json:"role"`
+	Role       Role   `json:"role,omitempty"`
 	HostPort   *int   `json:"hostPort,omitempty"`
 }
 

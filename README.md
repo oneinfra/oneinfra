@@ -20,7 +20,7 @@ container will resemble a physical or virtual hypervisor in your
 infrastructure.
 
 ```
-$ oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test | tee cluster.txt | oi reconcile
+$ oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test --role controlplane | tee cluster.txt | oi reconcile
 $ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
 $ kubectl cluster-info
 Kubernetes master is running at https://127.0.0.1:30100
@@ -36,7 +36,7 @@ oi-local-cluster cluster create
 
 Generates a number of hypervisors, each one running as a docker
 container inside your machine. By default its size is three, and the
-name of the hypervisor set is `test`, you can tweak these though.
+name of the hypervisor set is `test`.
 
 > This command will output on `stdout` a versioned declaration of all
 > the hypervisors.
@@ -59,7 +59,7 @@ as they have different names.
 ### Node injection
 
 ```
-oi node inject --name test --cluster test
+oi node inject --name test --cluster test --role controlplane
 ```
 
 Each node represents a Kubernetes Master node.

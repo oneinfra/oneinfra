@@ -238,31 +238,6 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 	}
 }
 
-func (hypervisor *Hypervisor) GetPod(cluster, component string) (*criapi.PodSandbox, error) {
-	criRuntime, err := hypervisor.CRIRuntime()
-	if err != nil {
-		return nil, err
-	}
-	podList, err := criRuntime.ListPodSandbox(
-		context.Background(),
-		&criapi.ListPodSandboxRequest{
-			Filter: &criapi.PodSandboxFilter{
-				LabelSelector: map[string]string{
-					"cluster":   cluster,
-					"component": component,
-				},
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-	if len(podList.Items) == 0 {
-		return nil, errors.Errorf("could not find a %q component in cluster %q", component, cluster)
-	}
-	return podList.Items[0], nil
-}
-
 // DeletePod deletes a pod on the current hypervisor
 func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 	criRuntime, err := hypervisor.CRIRuntime()

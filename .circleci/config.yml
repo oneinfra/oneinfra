@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  unit_and_integration_tests:
+  unit and integration tests:
     docker:
       - image: circleci/golang:1.13
     environment:
@@ -16,7 +16,7 @@ jobs:
             GOFLAGS: ""
       - run: sudo make test-deps
       - run: make test
-  e2e_tests:
+  e2e tests:
     machine: true
     environment:
       GO111MODULE: "on"
@@ -41,5 +41,5 @@ workflows:
   version: 2
   test:
     jobs:
-      - unit_and_integration_tests
-      - e2e_tests
+      - unit and integration tests
+      - e2e tests

@@ -34,6 +34,7 @@ import (
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 )
 
 const (
@@ -121,7 +122,7 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 }
 
 // RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(pod Pod) (string, error) {
+func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod Pod) (string, error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err
@@ -139,8 +140,14 @@ func (hypervisor *Hypervisor) RunPod(pod Pod) (string, error) {
 			Uid:       uuid.New().String(),
 			Namespace: uuid.New().String(),
 		},
+		Labels: map[string]string{
+			"component": pod.Name,
+		},
 		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
+	}
+	if cluster != nil {
+		podSandboxConfig.Labels["cluster"] = cluster.Name
 	}
 	podSandboxResponse, err := criRuntime.RunPodSandbox(
 		context.Background(),
@@ -231,6 +238,31 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 	}
 }
 
+func (hypervisor *Hypervisor) GetPod(cluster, component string) (*criapi.PodSandbox, error) {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return nil, err
+	}
+	podList, err := criRuntime.ListPodSandbox(
+		context.Background(),
+		&criapi.ListPodSandboxRequest{
+			Filter: &criapi.PodSandboxFilter{
+				LabelSelector: map[string]string{
+					"cluster":   cluster,
+					"component": component,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(podList.Items) == 0 {
+		return nil, errors.Errorf("could not find a %q component in cluster %q", component, cluster)
+	}
+	return podList.Items[0], nil
+}
+
 // DeletePod deletes a pod on the current hypervisor
 func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 	criRuntime, err := hypervisor.CRIRuntime()
@@ -284,7 +316,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 		map[string]string{hostPathDir: hostPathDir},
 		map[int]int{},
 	)
-	podSandboxID, err := hypervisor.RunPod(uploadFilePod)
+	podSandboxID, err := hypervisor.RunPod(nil, uploadFilePod)
 	if err != nil {
 		return err
 	}

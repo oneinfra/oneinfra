@@ -30,14 +30,6 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
-var (
-	components = []ComponentType{
-		KubeAPIServerComponent,
-		KubeControllerManagerComponent,
-		KubeSchedulerComponent,
-	}
-)
-
 // Node represents a Control Plane node
 type Node struct {
 	Name              string
@@ -82,32 +74,10 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 	return &res, nil
 }
 
-// Component returns a component of type componentType
-func (node *Node) Component(componentType ComponentType) (Component, error) {
-	switch componentType {
-	case KubeAPIServerComponent:
-		return &KubeAPIServer{}, nil
-	case KubeControllerManagerComponent:
-		return &KubeControllerManager{}, nil
-	case KubeSchedulerComponent:
-		return &KubeScheduler{}, nil
-	default:
-		return nil, errors.Errorf("unknown component: %d", componentType)
-	}
-}
-
 // Reconcile reconciles the node
 func (node *Node) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster) error {
-	for _, componentType := range components {
-		component, err := node.Component(componentType)
-		if err != nil {
-			return err
-		}
-		if err := component.Reconcile(hypervisor, cluster, node); err != nil {
-			return err
-		}
-	}
-	return nil
+	controlPlane := ControlPlane{}
+	return controlPlane.Reconcile(hypervisor, cluster, node)
 }
 
 // Export exports the node to a versioned node

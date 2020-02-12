@@ -23,8 +23,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster/kubeconfig"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 // KubeConfig generates a kubeconfig for cluster clusterName
@@ -42,7 +42,19 @@ func KubeConfig(clusterName string) error {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	kubeConfig, err := kubeconfig.KubeConfig(cluster, nodes)
+	// FIXME: simplification for now, use LB
+	var firstNode *node.Node
+	for _, node := range nodes {
+		if node.ClusterName == cluster.Name {
+			firstNode = node
+			break
+		}
+	}
+	if firstNode == nil {
+		return errors.Errorf("could not find any node assigned to cluster %q", cluster.Name)
+	}
+
+	kubeConfig, err := cluster.KubeConfig(fmt.Sprintf("https://127.0.0.1:%d", firstNode.HostPort))
 	if err != nil {
 		return err
 	}

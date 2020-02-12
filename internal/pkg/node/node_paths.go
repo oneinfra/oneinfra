@@ -17,18 +17,15 @@ limitations under the License.
 package node
 
 import (
+	"path/filepath"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
-const (
-	kubeControllerManager = "k8s.gcr.io/kube-controller-manager:v1.17.0"
-)
+func secretsPath(cluster *cluster.Cluster) string {
+	return filepath.Join("/etc/kubernetes/clusters", cluster.Name)
+}
 
-// KubeControllerManager represents the kube-controller-manager
-type KubeControllerManager struct{}
-
-// Reconcile reconciles the kube-controller-manager
-func (kubeControllerManager *KubeControllerManager) Reconcile(hypervisor *infra.Hypervisor, cluster *cluster.Cluster, node *Node) error {
-	return nil
+func secretsPathFile(cluster *cluster.Cluster, file string) string {
+	return filepath.Join(secretsPath(cluster), file)
 }

@@ -11,6 +11,7 @@ RUN echo "Installing dependencies" \
   && mv $GOPATH/bin/golint /usr/local/bin \
   && go get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v$CONTROLLER_GEN_VERSION \
   && mv $GOPATH/bin/controller-gen /usr/local/bin \
+  && mv $GOPATH/bin/gofmt /usr/local/bin \
 && echo "Cleaning up image" \
   && rm -rf /go/pkg/* \
   && rm -rf ~/.cache/go-build

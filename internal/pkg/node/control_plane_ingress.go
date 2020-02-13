@@ -46,8 +46,9 @@ frontend control-plane
   bind *:6443
   default_backend apiservers
 backend apiservers
+  option httpchk GET /healthz
   {{ range $server, $address := .APIServers }}
-  server {{ $server }} {{ $address }}
+  server {{ $server }} {{ $address }} check check-ssl verify none
   {{- end }}
 `
 )

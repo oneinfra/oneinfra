@@ -83,6 +83,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 					Command: []string{"kube-apiserver"},
 					Args: []string{
 						"--etcd-servers", "http://127.0.0.1:2379",
+						"--anonymous-auth", "false",
+						"--authorization-mode", "Node,RBAC",
+						"--allow-privileged", "true",
 						"--tls-cert-file", secretsPathFile(cluster, "apiserver.crt"),
 						"--tls-private-key-file", secretsPathFile(cluster, "apiserver.key"),
 						"--client-ca-file", secretsPathFile(cluster, "apiserver-client-ca.crt"),

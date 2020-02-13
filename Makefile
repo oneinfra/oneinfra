@@ -87,3 +87,6 @@ e2e: oi oi-local-cluster
 	docker ps -a
 	kubectl cluster-info
 	kubectl version
+
+fake-workers:
+	./fake-workers.sh

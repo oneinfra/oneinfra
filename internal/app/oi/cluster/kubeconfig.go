@@ -28,7 +28,7 @@ import (
 )
 
 // KubeConfig generates a kubeconfig for cluster clusterName
-func KubeConfig(clusterName string) error {
+func KubeConfig(clusterName, endpointHostOverride string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -53,7 +53,19 @@ func KubeConfig(clusterName string) error {
 		return errors.Errorf("could not find any control plane ingress role node assigned to cluster %q", cluster.Name)
 	}
 
-	kubeConfig, err := cluster.KubeConfig(fmt.Sprintf("https://127.0.0.1:%d", firstNode.HostPort))
+	var endpoint string
+	if len(endpointHostOverride) > 0 {
+		endpoint = fmt.Sprintf("https://%s:%d", endpointHostOverride, firstNode.HostPort)
+	} else {
+		hypervisors := manifests.RetrieveHypervisors(string(stdin))
+		hypervisor, ok := hypervisors[firstNode.HypervisorName]
+		if !ok {
+			return errors.Errorf("hypervisor %q not found", firstNode.HypervisorName)
+		}
+		endpoint = fmt.Sprintf("https://%s:%d", hypervisor.IPAddress, firstNode.HostPort)
+	}
+
+	kubeConfig, err := cluster.KubeConfig(endpoint)
 	if err != nil {
 		return err
 	}

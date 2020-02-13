@@ -60,9 +60,13 @@ func main() {
 								Required: true,
 								Usage:    "cluster name",
 							},
+							&cli.StringFlag{
+								Name:  "endpoint-host-override",
+								Usage: "endpoint host override for the api server",
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.KubeConfig(c.String("cluster"))
+							return cluster.KubeConfig(c.String("cluster"), c.String("endpoint-host-override"))
 						},
 					},
 				},

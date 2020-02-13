@@ -46,9 +46,13 @@ func main() {
 								Required: true,
 								Usage:    "cluster name",
 							},
+							&cli.StringSliceFlag{
+								Name:  "apiserver-extra-sans",
+								Usage: "API server extra SANs",
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Inject(c.String("name"))
+							return cluster.Inject(c.String("name"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{
@@ -62,11 +66,43 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "endpoint-host-override",
-								Usage: "endpoint host override for the api server",
+								Usage: "endpoint host override for the API server",
 							},
 						},
 						Action: func(c *cli.Context) error {
 							return cluster.KubeConfig(c.String("cluster"), c.String("endpoint-host-override"))
+						},
+					},
+					{
+						Name:  "endpoint",
+						Usage: "print the endpoint for the cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+							&cli.StringFlag{
+								Name:  "endpoint-host-override",
+								Usage: "endpoint host override for the API server",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.Endpoint(c.String("cluster"), c.String("endpoint-host-override"))
+						},
+					},
+					{
+						Name:  "ingress-node-name",
+						Usage: "print the ingress node name",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.IngressNodeName(c.String("cluster"))
 						},
 					},
 				},

@@ -26,13 +26,12 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-// KubeConfig generates a kubeconfig for cluster clusterName
-func KubeConfig(clusterName, endpointHostOverride string) error {
+// IngressNodeName prints the ingress node name for this cluster
+func IngressNodeName(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
 	clusters := manifests.RetrieveClusters(string(stdin))
 	nodes := manifests.RetrieveNodes(string(stdin))
 
@@ -41,17 +40,12 @@ func KubeConfig(clusterName, endpointHostOverride string) error {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	endpointURI, err := endpoint.Endpoint(nodes, cluster, hypervisors, endpointHostOverride)
+	ingressNode, err := endpoint.IngressNode(nodes, cluster)
 	if err != nil {
 		return err
 	}
 
-	kubeConfig, err := cluster.KubeConfig(endpointURI)
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(kubeConfig)
+	fmt.Println(ingressNode.HypervisorName)
 
 	return nil
 }

@@ -1,18 +1,44 @@
 #!/usr/bin/env bash
 
-set -x
+export PATH=${GOPATH}/bin:./bin:${PATH}
 
-export PATH=$GOPATH/bin:./bin:$PATH
+CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
+CLUSTER_NAME="${CLUSTER_NAME:-test}"
 
 mkdir -p ~/.kube
-oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test --role controlplane | oi node inject --name loadbalancer --cluster test --role controlplane-ingress | tee cluster.txt | oi reconcile
-cat cluster.txt | oi cluster kubeconfig --cluster test --endpoint-host-override 127.0.0.1 > ~/.kube/config
+echo "Creating infrastructure"
+oi-local-cluster cluster create > "${CLUSTER_CONF}"
+
+# Get all IP addresses from docker containers, we don't care being
+# picky here. This is required because of how fake workers will
+# connect to the infrastructure, read more on the
+# `create-fake-worker.sh` script
+APISERVER_EXTRA_SANS="$(docker ps -aq | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
+
+echo "Injecting cluster and nodes"
+cat "${CLUSTER_CONF}" | \
+    oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
+    oi node inject --name test --cluster "${CLUSTER_NAME}" --role controlplane | \
+    oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
+    tee "${CLUSTER_CONF}"
+echo "Reconciling resources"
+cat "${CLUSTER_CONF}" | oi reconcile
+echo "Downloading kubeconfig file to ~/.kube/config"
+cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
+
+# Tests
+
 docker ps -a
 
-RETRIES=0
+RETRIES=1
 MAX_RETRIES=5
-until kubectl cluster-info &> /dev/null || [ $RETRIES -eq $MAX_RETRIES ]; do
-   sleep 1
+while ! kubectl cluster-info &> /dev/null; do
+    echo "API server not accessible; retrying..."
+    if [ ${RETRIES} -eq ${MAX_RETRIES} ]; then
+        exit 1
+    fi
+    ((RETRIES++))
+    sleep 1
 done
 
 kubectl cluster-info

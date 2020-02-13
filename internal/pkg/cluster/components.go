@@ -33,7 +33,8 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 		return nil, err
 	}
 	kubeAPIServer := KubeAPIServer{
-		CA: certificateAuthority,
+		CA:        certificateAuthority,
+		ExtraSANs: apiServerExtraSANs,
 	}
 	tlsCert, tlsKey, err := certificateAuthority.CreateCertificate("kube-apiserver", []string{"kube-apiserver"}, apiServerExtraSANs)
 	if err != nil {

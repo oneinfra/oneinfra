@@ -26,8 +26,9 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-// KubeConfig generates a kubeconfig for cluster clusterName
-func KubeConfig(clusterName, endpointHostOverride string) error {
+// Endpoint prints the endpoint of the clusterName, optionally
+// overriding the host
+func Endpoint(clusterName, endpointHostOverride string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -46,12 +47,7 @@ func KubeConfig(clusterName, endpointHostOverride string) error {
 		return err
 	}
 
-	kubeConfig, err := cluster.KubeConfig(endpointURI)
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(kubeConfig)
+	fmt.Println(endpointURI)
 
 	return nil
 }

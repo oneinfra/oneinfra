@@ -27,7 +27,7 @@ import (
 )
 
 // Inject injects a cluster with name nodeName
-func Inject(clusterName string) error {
+func Inject(clusterName string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -49,7 +49,19 @@ func Inject(clusterName string) error {
 		res += clustersSpecs
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName, hypervisors.PublicList().IPAddresses())
+	apiServerExtraSANsMap := map[string]struct{}{}
+	for _, apiServerExtraSAN := range apiServerExtraSANs {
+		apiServerExtraSANsMap[apiServerExtraSAN] = struct{}{}
+	}
+	for _, publicIPAddress := range hypervisors.PublicList().IPAddresses() {
+		apiServerExtraSANsMap[publicIPAddress] = struct{}{}
+	}
+	finalAPIServerExtraSANs := []string{}
+	for apiServerExtraSAN := range apiServerExtraSANsMap {
+		finalAPIServerExtraSANs = append(finalAPIServerExtraSANs, apiServerExtraSAN)
+	}
+
+	newCluster, err := cluster.NewCluster(clusterName, finalAPIServerExtraSANs)
 	if err != nil {
 		return err
 	}

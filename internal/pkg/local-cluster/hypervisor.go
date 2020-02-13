@@ -103,6 +103,9 @@ func (hypervisor *Hypervisor) fullName() string {
 }
 
 func (hypervisor *Hypervisor) ipAddress() (string, error) {
+	if hypervisor.Public {
+		return "127.0.0.1", nil
+	}
 	ipAddress, err := exec.Command(
 		"docker",
 		"inspect", "-f", "{{ .NetworkSettings.IPAddress }}",

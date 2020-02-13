@@ -1,5 +1,9 @@
 FROM ubuntu:18.04
 
+ARG CRI_TOOLS_VERSION=1.17.0
+ARG CNI_PLUGINS_VERSION=0.8.5
+ARG CONTAINERD_VERSION=1.3.3
+
 COPY /fs /
 
 RUN echo "Installing dependencies" \
@@ -12,18 +16,15 @@ RUN echo "Installing dependencies" \
        iptables \
        wget \
 && echo "Installing CRI tools" \
-  && export CRI_TOOLS_VERSION=1.17.0 \
   && wget https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRI_TOOLS_VERSION}/crictl-v${CRI_TOOLS_VERSION}-linux-amd64.tar.gz -O cri-tools.tar.gz \
   && tar -C /usr/local/bin -xf cri-tools.tar.gz \
   && rm cri-tools.tar.gz \
 && echo "Installing CNI plugins" \
-  && export CNI_PLUGINS_VERSION=0.8.5 \
   && mkdir -p /opt/cni/bin \
   && wget https://github.com/containernetworking/plugins/releases/download/v${CNI_PLUGINS_VERSION}/cni-plugins-linux-amd64-v${CNI_PLUGINS_VERSION}.tgz -O cni.tgz \
   && tar -C /opt/cni/bin -xf cni.tgz \
   && rm cni.tgz \
 && echo "Installing containerd" \
-  && export CONTAINERD_VERSION=1.3.3 \
   && wget https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}.linux-amd64.tar.gz -O containerd.tar.gz \
   && tar -C /usr/local -xf containerd.tar.gz \
   && rm containerd.tar.gz \

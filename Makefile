@@ -17,19 +17,19 @@ all: manager oi oi-local-cluster
 
 # Run tests
 test: lint fmt vet
-	./run.sh go test ./... -coverprofile cover.out
+	./scripts/run.sh go test ./... -coverprofile cover.out
 
 # Build and install manager binary
 manager: fmt vet
-	./run.sh go install ./cmd/oi-manager
+	./scripts/run.sh go install ./cmd/oi-manager
 
 # Build and install oi binary
 oi:
-	./run.sh go install ./cmd/oi
+	./scripts/run.sh go install ./cmd/oi
 
 # Build and install oi-local-cluster
 oi-local-cluster:
-	./run.sh go install ./cmd/oi-local-cluster
+	./scripts/run.sh go install ./cmd/oi-local-cluster
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -54,15 +54,15 @@ manifests:
 
 # Run golint against code
 lint:
-	./run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
+	./scripts/run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
 
 # Run gofmt against code
 fmt:
-	@test -z "$(shell ./run.sh gofmt -l ${PROJECT_GO_FOLDERS})" || (./run.sh gofmt -d -l ${PROJECT_GO_FOLDERS} && exit 1)
+	@test -z "$(shell ./scripts/run.sh gofmt -l ${PROJECT_GO_FOLDERS})" || (./scripts/run.sh gofmt -d -l ${PROJECT_GO_FOLDERS} && exit 1)
 
 # Run go vet against code
 vet:
-	./run.sh go vet ./...
+	./scripts/run.sh go vet ./...
 
 # Generate code
 generate:

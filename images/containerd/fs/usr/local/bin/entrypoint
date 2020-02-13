@@ -3,6 +3,10 @@
 # Most code coming from:
 #   https://github.com/kubernetes-sigs/kind/blob/779fcc88d8aa4c49c81719cff161cacd8dd77b81/images/base/files/usr/local/bin/entrypoint
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
 fix_mount() {
   # systemd-in-a-container should have read only /sys
   # https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/

@@ -26,12 +26,22 @@ $ oi-local-cluster cluster create | \
     oi node inject --name loadbalancer --cluster test --role controlplane-ingress | \
     tee cluster.txt | \
     oi reconcile
-$ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+```
+
+Generate a kubeconfig file for your cluster:
+
+```
+$ cat cluster.txt | oi cluster kubeconfig --cluster test --endpoint-host-override 127.0.0.1 > ~/.kube/config
+```
+
+And access it:
+
+```
 $ kubectl cluster-info
 Kubernetes master is running at https://127.0.0.1:30100
 ```
 
-And it's working. Let's degrain each step more in detail.
+It's working! Let's degrain each step more in detail.
 
 ### Infrastructure creation
 
@@ -108,14 +118,27 @@ effectively initializing your Kubernetes Master nodes.
 ### KubeConfig generation
 
 ```
-cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+cat cluster.txt | oi cluster kubeconfig --cluster test --endpoint-host-override 127.0.0.1 > ~/.kube/config
 ```
 
 Since the `cluster.txt` contains the authoritative information about
 our cluster, we can generate as many administrator `kubeconfig` files
 as desired, based on client certificate authentication.
 
-The KubeConfig file points to the ingress endpoint.
+The KubeConfig file automatically points to the ingress endpoint. In
+this case, we are also overriding the API endpoint host. This is to
+mimic that we are accessing to the public hypervisor through the
+internet facing interface (as opposed to the interface connected to
+the private network and hypervisors -- on the docker lab, the IP
+address of the container).
+
+Had we omitted this argument, we could connect normally as well:
+
+```
+cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+```
+
+But it does not reflect the suggested networking schema.
 
 > This command will print to `stdout` a `kubeconfig` file that is able
 > to access to the cluster with name `test`.

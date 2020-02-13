@@ -24,14 +24,14 @@ $ oi-local-cluster cluster create | \
     oi cluster inject --name test | \
     oi node inject --name test --cluster test --role controlplane | \
     oi node inject --name loadbalancer --cluster test --role controlplane-ingress | \
-    tee cluster.txt | \
+    tee cluster.conf | \
     oi reconcile
 ```
 
 Generate a kubeconfig file for your cluster:
 
 ```
-$ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+$ cat cluster.conf | oi cluster kubeconfig --cluster test > ~/.kube/config
 ```
 
 And access it:
@@ -101,8 +101,8 @@ provided cluster.
 
 ### Teeing
 
-By running `tee cluster.txt` we are saving all our hypervisor, cluster
-and node versioned resources into a file `cluster.txt`, so we can use
+By running `tee cluster.conf` we are saving all our hypervisor, cluster
+and node versioned resources into a file `cluster.conf`, so we can use
 it afterwards, since the next step will stop forwarding `stdin` to
 `stdout`.
 
@@ -118,10 +118,10 @@ effectively initializing your Kubernetes Master nodes.
 ### KubeConfig generation
 
 ```
-cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
+cat cluster.conf | oi cluster kubeconfig --cluster test > ~/.kube/config
 ```
 
-Since the `cluster.txt` contains the authoritative information about
+Since the `cluster.conf` contains the authoritative information about
 our cluster, we can generate as many administrator `kubeconfig` files
 as desired, based on client certificate authentication.
 
@@ -138,7 +138,7 @@ service, but in any case it can be handy to test joining some worker
 nodes, specially for end to end and acceptance testing.
 
 ```
-CLUSTER_CONF=cluster.txt CLUSTER_NAME=test scripts/create-fake-worker.sh
+CLUSTER_CONF=cluster.conf CLUSTER_NAME=test scripts/create-fake-worker.sh
 ```
 
 You can run this command as many times as you want. Every time, a new

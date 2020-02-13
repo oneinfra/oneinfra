@@ -20,7 +20,12 @@ container will resemble a physical or virtual hypervisor in your
 infrastructure.
 
 ```
-$ oi-local-cluster cluster create | oi cluster inject --name test | oi node inject --name test --cluster test --role controlplane | tee cluster.txt | oi reconcile
+$ oi-local-cluster cluster create | \
+    oi cluster inject --name test | \
+    oi node inject --name test --cluster test --role controlplane | \
+    oi node inject --name loadbalancer --cluster test --role controlplane-ingress | \
+    tee cluster.txt | \
+    oi reconcile
 $ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
 $ kubectl cluster-info
 Kubernetes master is running at https://127.0.0.1:30100
@@ -36,7 +41,8 @@ oi-local-cluster cluster create
 
 Generates a number of hypervisors, each one running as a docker
 container inside your machine. By default its size is three, and the
-name of the hypervisor set is `test`.
+name of the hypervisor set is `test`. By default, one hypervisor is
+public, two hypervisors are private.
 
 > This command will output on `stdout` a versioned declaration of all
 > the hypervisors.
@@ -73,6 +79,16 @@ they have different names for the same cluster.
 > This command will take previous definitions from `stdin`, append the
 > node definition and print everything to `stdout`.
 
+### Node injection (take two)
+
+```
+oi node inject --name loadbalancer --cluster test --role controlplane-ingress
+```
+
+Injects a Control Plane ingress (haproxy) instance, that will
+automatically point to all the Kubernetes Masters linked to the
+provided cluster.
+
 ### Teeing
 
 By running `tee cluster.txt` we are saving all our hypervisor, cluster
@@ -98,6 +114,8 @@ cat cluster.txt | oi cluster kubeconfig --cluster test > ~/.kube/config
 Since the `cluster.txt` contains the authoritative information about
 our cluster, we can generate as many administrator `kubeconfig` files
 as desired, based on client certificate authentication.
+
+The KubeConfig file points to the ingress endpoint.
 
 > This command will print to `stdout` a `kubeconfig` file that is able
 > to access to the cluster with name `test`.

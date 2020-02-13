@@ -181,10 +181,19 @@ func (ca *CertificateAuthority) init() error {
 }
 
 // CreateCertificate generates a new certificate and key signed with the current CA
-func (ca *CertificateAuthority) CreateCertificate(commonName string, organization []string) (string, string, error) {
+func (ca *CertificateAuthority) CreateCertificate(commonName string, organization []string, extraSANs []string) (string, string, error) {
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
 		return "", "", err
+	}
+	sansHosts := []string{"localhost"}
+	sansIps := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+	for _, extraSAN := range extraSANs {
+		if ip := net.ParseIP(extraSAN); ip != nil {
+			sansIps = append(sansIps, ip)
+		} else {
+			sansHosts = append(sansHosts, extraSAN)
+		}
 	}
 	certificate := x509.Certificate{
 		SerialNumber: serialNumber,
@@ -197,7 +206,8 @@ func (ca *CertificateAuthority) CreateCertificate(commonName string, organizatio
 			StreetAddress: []string{"Some StreetAddress"},
 			PostalCode:    []string{"Some PostalCode"},
 		},
-		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		DNSNames:     sansHosts,
+		IPAddresses:  sansIps,
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().AddDate(1, 0, 0),
 		SubjectKeyId: []byte{1, 2, 3, 4, 6},

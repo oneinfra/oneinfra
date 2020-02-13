@@ -39,9 +39,9 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns a cluster with name clusterName
-func NewCluster(clusterName string) (*Cluster, error) {
+func NewCluster(clusterName string, apiServerExtraSANs []string) (*Cluster, error) {
 	res := Cluster{Name: clusterName}
-	if err := res.generateCertificates(); err != nil {
+	if err := res.generateCertificates(apiServerExtraSANs); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -62,6 +62,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			TLSPrivateKey:            cluster.Spec.APIServer.TLSPrivateKey,
 			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
 			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
+			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
 		},
 	}
 	return &res, nil
@@ -99,6 +100,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 					PublicKey:  cluster.APIServer.ServiceAccountPublicKey,
 					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
 				},
+				ExtraSANs: cluster.APIServer.ExtraSANs,
 			},
 		},
 	}
@@ -119,13 +121,13 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) generateCertificates() error {
+func (cluster *Cluster) generateCertificates(apiServerExtraSANs []string) error {
 	certificateAuthorities, err := newCertificateAuthorities()
 	if err != nil {
 		return err
 	}
 	cluster.CertificateAuthorities = certificateAuthorities
-	kubeAPIServer, err := newKubeAPIServer()
+	kubeAPIServer, err := newKubeAPIServer(apiServerExtraSANs)
 	if err != nil {
 		return err
 	}

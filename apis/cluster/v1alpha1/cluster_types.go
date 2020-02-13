@@ -55,6 +55,7 @@ type KubeAPIServer struct {
 	TLSCert        string                `json:"tlsCert,omitempty"`
 	TLSPrivateKey  string                `json:"tlsPrivateKey,omitempty"`
 	ServiceAccount KeyPair               `json:"serviceAccount,omitempty"`
+	ExtraSANs      []string              `json:"extraSANs,omitempty"`
 }
 
 // +kubebuilder:object:root=true

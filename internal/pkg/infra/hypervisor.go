@@ -398,6 +398,15 @@ func (hypervisorMap HypervisorMap) PrivateList() HypervisorList {
 	return hypervisorList
 }
 
+// IPAddresses returns the list of IP addresses
+func (hypervisorList HypervisorList) IPAddresses() []string {
+	ipAddresses := []string{}
+	for _, hypervisor := range hypervisorList {
+		ipAddresses = append(ipAddresses, hypervisor.IPAddress)
+	}
+	return ipAddresses
+}
+
 // Sample returns a random hypervisor from the curent list
 func (hypervisorList HypervisorList) Sample() (*Hypervisor, error) {
 	if len(hypervisorList) == 0 {

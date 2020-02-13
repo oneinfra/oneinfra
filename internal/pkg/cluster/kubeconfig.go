@@ -43,7 +43,7 @@ func (cluster *Cluster) KubeConfig(endpoint string) (string, error) {
 }
 
 func (cluster *Cluster) kubeConfigClient(endpoint string) (*v1.Config, error) {
-	clientCertificate, clientCertificatePrivateKey, err := cluster.CertificateAuthorities.APIServerClient.CreateCertificate("kubernetes-admin", []string{"system:masters"})
+	clientCertificate, clientCertificatePrivateKey, err := cluster.CertificateAuthorities.APIServerClient.CreateCertificate("kubernetes-admin", []string{"system:masters"}, []string{})
 	if err != nil {
 		return nil, err
 	}

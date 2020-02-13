@@ -49,7 +49,7 @@ func Inject(clusterName string) error {
 		res += clustersSpecs
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName)
+	newCluster, err := cluster.NewCluster(clusterName, hypervisors.PublicList().IPAddresses())
 	if err != nil {
 		return err
 	}

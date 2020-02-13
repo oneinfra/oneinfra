@@ -83,5 +83,5 @@ kubectl:
 e2e: oi oi-local-cluster
 	./scripts/e2e.sh
 
-fake-workers:
-	./scripts/fake-workers.sh
+create-fake-worker:
+	./scripts/create-fake-worker.sh

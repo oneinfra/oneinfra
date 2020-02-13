@@ -45,7 +45,7 @@ name of the hypervisor set is `test`. By default, one hypervisor is
 public, two hypervisors are private.
 
 > This command will output on `stdout` a versioned declaration of all
-> the hypervisors.
+> hypervisors.
 
 ### Cluster injection
 

@@ -17,10 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/urfave/cli/v2"
+	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
 	"oneinfra.ereslibre.es/m/internal/app/oi/node"
@@ -67,7 +70,18 @@ func main() {
 			{
 				Name:  "reconcile",
 				Usage: "reconcile all clusters",
+				Flags: []cli.Flag{
+					&cli.IntFlag{
+						Name:    "verbosity",
+						Aliases: []string{"v"},
+						Usage:   "logging verbosity",
+						Value:   1,
+					},
+				},
 				Action: func(c *cli.Context) error {
+					flagSet := flag.FlagSet{}
+					klog.InitFlags(&flagSet)
+					flagSet.Set("v", strconv.Itoa(c.Int("verbosity")))
 					return cluster.Reconcile()
 				},
 			},

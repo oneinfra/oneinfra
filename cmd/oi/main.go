@@ -92,7 +92,7 @@ func main() {
 							&cli.StringFlag{
 								Name:     "role",
 								Required: true,
-								Usage:    "role of the node (controlplane, gater)",
+								Usage:    "role of the node (controlplane, controlplane-ingress)",
 							},
 						},
 						Action: func(c *cli.Context) error {

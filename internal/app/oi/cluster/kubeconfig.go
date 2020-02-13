@@ -44,13 +44,13 @@ func KubeConfig(clusterName string) error {
 
 	var firstNode *node.Node
 	for _, nodeObj := range nodes {
-		if nodeObj.ClusterName == cluster.Name && nodeObj.Role == node.GaterRole {
+		if nodeObj.ClusterName == cluster.Name && nodeObj.Role == node.ControlPlaneIngressRole {
 			firstNode = nodeObj
 			break
 		}
 	}
 	if firstNode == nil {
-		return errors.Errorf("could not find any gater role node assigned to cluster %q", cluster.Name)
+		return errors.Errorf("could not find any control plane ingress role node assigned to cluster %q", cluster.Name)
 	}
 
 	kubeConfig, err := cluster.KubeConfig(fmt.Sprintf("https://127.0.0.1:%d", firstNode.HostPort))

@@ -52,10 +52,10 @@ backend apiservers
 `
 )
 
-// Gater represents an endpoint to a set of control plane instances
-type Gater struct{}
+// ControlPlaneIngress represents an endpoint to a set of control plane instances
+type ControlPlaneIngress struct{}
 
-func (gater *Gater) haProxyConfiguration(inquirer Inquirer) (string, error) {
+func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer Inquirer) (string, error) {
 	template, err := template.New("").Parse(haProxyTemplate)
 	if err != nil {
 		return "", err
@@ -77,15 +77,15 @@ func (gater *Gater) haProxyConfiguration(inquirer Inquirer) (string, error) {
 	return rendered.String(), err
 }
 
-// Reconcile reconciles the gater
-func (gater *Gater) Reconcile(inquirer Inquirer) error {
+// Reconcile reconciles the control plane ingress
+func (ingress *ControlPlaneIngress) Reconcile(inquirer Inquirer) error {
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	if err := hypervisor.PullImage(haProxyImage); err != nil {
 		return err
 	}
-	haProxyConfig, err := gater.haProxyConfiguration(inquirer)
+	haProxyConfig, err := ingress.haProxyConfiguration(inquirer)
 	if err != nil {
 		return err
 	}

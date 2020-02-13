@@ -26,8 +26,8 @@ type Role string
 const (
 	// ControlPlaneRole is the role used for a Control Plane instance
 	ControlPlaneRole Role = "control-plane"
-	// GaterRole is the role used for Control Plane ingress
-	GaterRole Role = "gater"
+	// ControlPlaneIngressRole is the role used for Control Plane ingress
+	ControlPlaneIngressRole Role = "control-plane-ingress"
 )
 
 // NodeSpec defines the desired state of Node

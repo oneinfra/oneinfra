@@ -33,8 +33,8 @@ type Role string
 const (
 	// ControlPlaneRole is the role used for a Control Plane instance
 	ControlPlaneRole Role = "control-plane"
-	// GaterRole is the role used for Control Plane ingress
-	GaterRole Role = "gater"
+	// ControlPlaneIngressRole is the role used for Control Plane ingress
+	ControlPlaneIngressRole Role = "control-plane-ingress"
 )
 
 // Node represents a Control Plane node
@@ -77,8 +77,8 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 	switch node.Spec.Role {
 	case clusterv1alpha1.ControlPlaneRole:
 		res.Role = ControlPlaneRole
-	case clusterv1alpha1.GaterRole:
-		res.Role = GaterRole
+	case clusterv1alpha1.ControlPlaneIngressRole:
+		res.Role = ControlPlaneIngressRole
 	}
 	if node.Spec.HostPort != nil {
 		res.RequestedHostPort = *node.Spec.HostPort
@@ -92,8 +92,8 @@ func (node *Node) Reconcile(inquirer Inquirer) error {
 	switch node.Role {
 	case ControlPlaneRole:
 		component = &ControlPlane{}
-	case GaterRole:
-		component = &Gater{}
+	case ControlPlaneIngressRole:
+		component = &ControlPlaneIngress{}
 	}
 	return component.Reconcile(inquirer)
 }
@@ -112,8 +112,8 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 	switch node.Role {
 	case ControlPlaneRole:
 		res.Spec.Role = clusterv1alpha1.ControlPlaneRole
-	case GaterRole:
-		res.Spec.Role = clusterv1alpha1.GaterRole
+	case ControlPlaneIngressRole:
+		res.Spec.Role = clusterv1alpha1.ControlPlaneIngressRole
 	}
 	if node.RequestedHostPort > 0 {
 		res.Spec.HostPort = &node.RequestedHostPort

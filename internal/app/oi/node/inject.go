@@ -48,8 +48,8 @@ func Inject(nodeName, clusterName, role string) error {
 	case "controlplane":
 		injectedNodeRole = node.ControlPlaneRole
 		hypervisorList = hypervisors.PrivateList()
-	case "gater":
-		injectedNodeRole = node.GaterRole
+	case "controlplane-ingress":
+		injectedNodeRole = node.ControlPlaneIngressRole
 		hypervisorList = hypervisors.PublicList()
 	default:
 		return errors.Errorf("unknown role %q", role)

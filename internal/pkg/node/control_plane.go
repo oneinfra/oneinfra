@@ -19,6 +19,8 @@ package node
 import (
 	"fmt"
 
+	"k8s.io/klog"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -39,6 +41,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	klog.V(1).Infof("reconciling control plane in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}

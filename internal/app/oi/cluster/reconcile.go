@@ -20,12 +20,15 @@ import (
 	"io/ioutil"
 	"os"
 
+	"k8s.io/klog"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster/reconciler"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
 // Reconcile reconciles all clusters
 func Reconcile() error {
+	klog.V(1).Info("reading input manifests")
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err

@@ -19,9 +19,11 @@ package node
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"net"
 	"strconv"
+	"text/template"
+
+	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
@@ -83,6 +85,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer Inquirer) error {
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	klog.V(1).Infof("reconciling control plane ingress in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.PullImage(haProxyImage); err != nil {
 		return err
 	}

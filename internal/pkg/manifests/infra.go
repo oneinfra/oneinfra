@@ -19,6 +19,7 @@ package manifests
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/klog"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
@@ -30,6 +31,7 @@ import (
 
 // RetrieveHypervisors returns an hypervisor map from the given manifests
 func RetrieveHypervisors(manifests string) infra.HypervisorMap {
+	klog.V(1).Info("retrieving hypervisors from manifests")
 	hypervisors := infra.HypervisorMap{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()
@@ -53,6 +55,7 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 
 // RetrieveClusters returns a cluster list from the given manifests
 func RetrieveClusters(manifests string) cluster.Map {
+	klog.V(1).Info("retrieving clusters from manifests")
 	clusters := cluster.Map{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()
@@ -76,6 +79,7 @@ func RetrieveClusters(manifests string) cluster.Map {
 
 // RetrieveNodes returns a node list from the given manifests
 func RetrieveNodes(manifests string) node.List {
+	klog.V(1).Info("retrieving nodes from manifests")
 	nodes := node.List{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()

@@ -31,6 +31,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/klog"
 
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
@@ -103,6 +104,7 @@ func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 
 // PullImage pulls the requested image on the current hypervisor
 func (hypervisor *Hypervisor) PullImage(image string) error {
+	klog.V(2).Infof("ensuring that image %q exists in the hypervisor %q", image, hypervisor.Name)
 	criImage, err := hypervisor.CRIImage()
 	if err != nil {
 		return err
@@ -127,6 +129,7 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 
 // RunPod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod Pod) (string, error) {
+	klog.V(2).Infof("running a pod with name %q in the hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err
@@ -212,6 +215,7 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod Pod) (string,
 
 // WaitForPod waits for all containers in a pod to have exited
 func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
+	klog.V(2).Infof("waiting for pod %q to have completed on hypervisor %q", podSandboxID, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return err
@@ -244,6 +248,7 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 
 // DeletePod deletes a pod on the current hypervisor
 func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
+	klog.V(2).Infof("deleting pod %q from hypervisor %q", podSandboxID, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return err
@@ -280,6 +285,7 @@ func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
+	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
 	if err := hypervisor.PullImage(toolingImage); err != nil {
 		return err
 	}
@@ -316,6 +322,7 @@ func (hypervisor *Hypervisor) RequestPort(clusterName, nodeName string) (int, er
 		Node:    nodeName,
 		Port:    newPort,
 	})
+	klog.V(2).Infof("port requested for hypervisor %q; assigned: %d", hypervisor.Name, newPort)
 	return newPort, nil
 }
 

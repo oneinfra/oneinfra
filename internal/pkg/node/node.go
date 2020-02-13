@@ -22,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/klog"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
@@ -88,6 +89,7 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 
 // Reconcile reconciles the node
 func (node *Node) Reconcile(inquirer Inquirer) error {
+	klog.V(1).Infof("reconciling node %q with role %q", node.Name, node.Role)
 	var component Component
 	switch node.Role {
 	case ControlPlaneRole:

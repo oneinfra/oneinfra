@@ -17,6 +17,8 @@ limitations under the License.
 package reconciler
 
 import (
+	"k8s.io/klog"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
@@ -40,6 +42,7 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 
 // Reconcile reconciles all nodes known to this cluster reconciler
 func (clusterReconciler *ClusterReconciler) Reconcile() error {
+	klog.V(1).Info("starting reconciliation process")
 	clusterNodes := map[string]node.List{}
 	for _, nodeObj := range clusterReconciler.nodeList {
 		if _, ok := clusterReconciler.hypervisorMap[nodeObj.HypervisorName]; !ok {

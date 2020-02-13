@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 export PATH=$GOPATH/bin:./bin:$PATH
 
 mkdir -p ~/.kube

@@ -15,15 +15,12 @@ oi-local-cluster cluster create > "${CLUSTER_CONF}"
 # `create-fake-worker.sh` script
 APISERVER_EXTRA_SANS="$(docker ps -aq | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
 
-echo "Injecting cluster and nodes"
 cat "${CLUSTER_CONF}" | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
     oi node inject --name test --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
-    tee "${CLUSTER_CONF}"
-echo "Reconciling resources"
-cat "${CLUSTER_CONF}" | oi reconcile -v 2
-echo "Downloading kubeconfig file to ~/.kube/config"
+    tee "${CLUSTER_CONF}" | \
+    oi reconcile -v 2
 cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests

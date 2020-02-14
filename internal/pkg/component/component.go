@@ -14,18 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
-	"path/filepath"
-
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
 )
 
-func secretsPath(cluster *cluster.Cluster) string {
-	return filepath.Join("/etc/kubernetes/clusters", cluster.Name)
-}
-
-func secretsPathFile(cluster *cluster.Cluster, file string) string {
-	return filepath.Join(secretsPath(cluster), file)
+// Component is an interface that allows a component implementing this
+// interface to be reconciled
+type Component interface {
+	Reconcile(inquirer.ReconcilerInquirer) error
 }

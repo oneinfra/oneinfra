@@ -14,19 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"path/filepath"
 )
 
-// Inquirer represents an interface that allows a reconciliation cycle
-// to retrieve information about the cluster
-type Inquirer interface {
-	Node() *Node
-	Hypervisor() *infra.Hypervisor
-	Cluster() *cluster.Cluster
-	ClusterNodes(Role) List
-	NodeHypervisor(*Node) *infra.Hypervisor
+func secretsPath(clusterName string) string {
+	return filepath.Join("/etc/oneinfra/clusters", clusterName)
+}
+
+func secretsPathFile(clusterName, file string) string {
+	return filepath.Join(secretsPath(clusterName), file)
 }

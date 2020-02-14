@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package infra
+package pod
 
 // Pod represents a pod
 type Pod struct {

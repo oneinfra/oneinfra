@@ -14,10 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package inquirer
 
-// Component is an interface that allows a component implementing this
-// interface to be reconciled
-type Component interface {
-	Reconcile(Inquirer) error
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"oneinfra.ereslibre.es/m/internal/pkg/node"
+)
+
+// ReconcilerInquirer represents an interface that allows a
+// reconciliation cycle to retrieve information about the cluster
+type ReconcilerInquirer interface {
+	Node() *node.Node
+	Hypervisor() *infra.Hypervisor
+	Cluster() *cluster.Cluster
+	ClusterNodes(node.Role) node.List
+	NodeHypervisor(*node.Node) *infra.Hypervisor
 }

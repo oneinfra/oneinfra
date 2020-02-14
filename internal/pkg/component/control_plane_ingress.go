@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
 	"bytes"
@@ -25,7 +25,9 @@ import (
 
 	"k8s.io/klog"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
+	"oneinfra.ereslibre.es/m/internal/pkg/node"
+	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
 )
 
 const (
@@ -58,7 +60,7 @@ backend apiservers
 // ControlPlaneIngress represents an endpoint to a set of control plane instances
 type ControlPlaneIngress struct{}
 
-func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer Inquirer) (string, error) {
+func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.ReconcilerInquirer) (string, error) {
 	template, err := template.New("").Parse(haProxyTemplate)
 	if err != nil {
 		return "", err
@@ -68,7 +70,7 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer Inquirer) (str
 	}{
 		APIServers: map[string]string{},
 	}
-	clusterNodes := inquirer.ClusterNodes(ControlPlaneRole)
+	clusterNodes := inquirer.ClusterNodes(node.ControlPlaneRole)
 	for _, node := range clusterNodes {
 		haProxyConfigData.APIServers[node.Name] = net.JoinHostPort(
 			inquirer.NodeHypervisor(node).IPAddress,
@@ -81,7 +83,7 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer Inquirer) (str
 }
 
 // Reconcile reconciles the control plane ingress
-func (ingress *ControlPlaneIngress) Reconcile(inquirer Inquirer) error {
+func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
@@ -93,19 +95,19 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer Inquirer) error {
 	if err != nil {
 		return err
 	}
-	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster, "haproxy.cfg")); err != nil {
+	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, "haproxy.cfg")); err != nil {
 		return err
 	}
 	_, err = hypervisor.RunPod(
 		cluster,
-		infra.NewPod(
+		pod.NewPod(
 			fmt.Sprintf("haproxy-%s", cluster.Name),
-			[]infra.Container{
+			[]pod.Container{
 				{
 					Name:  "haproxy",
 					Image: haProxyImage,
 					Mounts: map[string]string{
-						secretsPathFile(cluster, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
+						secretsPathFile(cluster.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
 					},
 				},
 			},

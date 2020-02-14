@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
 	"fmt"
 
 	"k8s.io/klog"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
+	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
 )
 
 const (
@@ -37,7 +38,7 @@ const (
 type ControlPlane struct{}
 
 // Reconcile reconciles the kube-apiserver
-func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
+func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
@@ -56,15 +57,15 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 	err = hypervisor.UploadFiles(
 		map[string]string{
 			// API server secrets
-			secretsPathFile(cluster, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			secretsPathFile(cluster, "apiserver.crt"):           cluster.APIServer.TLSCert,
-			secretsPathFile(cluster, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
-			secretsPathFile(cluster, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
+			secretsPathFile(cluster.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
+			secretsPathFile(cluster.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
+			secretsPathFile(cluster.Name, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
+			secretsPathFile(cluster.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
 			// controller-manager secrets
-			secretsPathFile(cluster, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
-			secretsPathFile(cluster, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
+			secretsPathFile(cluster.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
+			secretsPathFile(cluster.Name, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
 			// scheduler secrets
-			secretsPathFile(cluster, "scheduler.kubeconfig"): schedulerKubeConfig,
+			secretsPathFile(cluster.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
 		},
 	)
 	if err != nil {
@@ -72,9 +73,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 	}
 	_, err = hypervisor.RunPod(
 		cluster,
-		infra.NewPod(
+		pod.NewPod(
 			fmt.Sprintf("kube-apiserver-%s", cluster.Name),
-			[]infra.Container{
+			[]pod.Container{
 				{
 					Name:    "kine",
 					Image:   kineImage,
@@ -89,13 +90,13 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--allow-privileged", "true",
-						"--tls-cert-file", secretsPathFile(cluster, "apiserver.crt"),
-						"--tls-private-key-file", secretsPathFile(cluster, "apiserver.key"),
-						"--client-ca-file", secretsPathFile(cluster, "apiserver-client-ca.crt"),
-						"--service-account-key-file", secretsPathFile(cluster, "service-account-pub.key"),
+						"--tls-cert-file", secretsPathFile(cluster.Name, "apiserver.crt"),
+						"--tls-private-key-file", secretsPathFile(cluster.Name, "apiserver.key"),
+						"--client-ca-file", secretsPathFile(cluster.Name, "apiserver-client-ca.crt"),
+						"--service-account-key-file", secretsPathFile(cluster.Name, "service-account-pub.key"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster): secretsPath(cluster),
+						secretsPath(cluster.Name): secretsPath(cluster.Name),
 					},
 				},
 				{
@@ -103,11 +104,11 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 					Image:   kubeControllerManagerImage,
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster, "controller-manager.kubeconfig"),
-						"--service-account-private-key-file", secretsPathFile(cluster, "service-account.key"),
+						"--kubeconfig", secretsPathFile(cluster.Name, "controller-manager.kubeconfig"),
+						"--service-account-private-key-file", secretsPathFile(cluster.Name, "service-account.key"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster): secretsPath(cluster),
+						secretsPath(cluster.Name): secretsPath(cluster.Name),
 					},
 				},
 				{
@@ -115,10 +116,10 @@ func (controlPlane *ControlPlane) Reconcile(inquirer Inquirer) error {
 					Image:   kubeSchedulerImage,
 					Command: []string{"kube-scheduler"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster, "scheduler.kubeconfig"),
+						"--kubeconfig", secretsPathFile(cluster.Name, "scheduler.kubeconfig"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster): secretsPath(cluster),
+						secretsPath(cluster.Name): secretsPath(cluster.Name),
 					},
 				},
 			},

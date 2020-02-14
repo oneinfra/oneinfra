@@ -22,6 +22,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
+	nodereconciler "oneinfra.ereslibre.es/m/internal/pkg/node/reconciler"
 )
 
 // ClusterReconciler represents a cluster reconciler
@@ -56,9 +57,9 @@ func (clusterReconciler *ClusterReconciler) Reconcile() error {
 		}
 		clusterNodes[nodeObj.ClusterName] = append(clusterNodes[nodeObj.ClusterName], nodeObj)
 	}
-	for _, node := range clusterReconciler.nodeList {
-		node.Reconcile(&ClusterReconcilerInquirer{
-			node:              node,
+	for _, nodeObj := range clusterReconciler.nodeList {
+		nodereconciler.Reconcile(nodeObj, &ClusterReconcilerInquirer{
+			node:              nodeObj,
 			clusterReconciler: clusterReconciler,
 		})
 	}

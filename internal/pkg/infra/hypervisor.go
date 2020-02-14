@@ -36,6 +36,7 @@ import (
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
 )
 
 const (
@@ -128,7 +129,7 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 }
 
 // RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod Pod) (string, error) {
+func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
 	klog.V(2).Infof("running a pod with name %q in the hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
@@ -290,7 +291,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 		return err
 	}
 	hostPathDir := filepath.Dir(hostPath)
-	uploadFilePod := NewSingleContainerPod(
+	uploadFilePod := pod.NewSingleContainerPod(
 		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
 		toolingImage,
 		[]string{"write-base64-file.sh"},

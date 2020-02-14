@@ -20,7 +20,7 @@ cat "${CLUSTER_CONF}" | \
     oi node inject --name test --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
     tee "${CLUSTER_CONF}" | \
-    oi reconcile -v 2
+    oi reconcile
 cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests

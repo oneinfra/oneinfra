@@ -1,16 +1,12 @@
 FROM oneinfra/containerd:latest
 
+ARG KUBERNETES_VERSION=1.17.0
+
 COPY /fs /
 
-RUN echo "Installing dependencies" \
-  && apt-get update -qq \
-  && apt-get install --no-install-recommends -qq -y \
-      apt-transport-https gpg gpg-agent \
-  && echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list \
-  && curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-  && apt-get update -qq \
-&& echo "Installing the kubelet" \
-  && apt-get install -y kubelet \
+RUN echo "Installing the kubelet" \
+  && wget -O /usr/bin/kubelet https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubelet \
+  && chmod +x /usr/bin/kubelet \
   && systemctl enable kubelet \
 && echo "Cleaning up image" \
   && apt-get clean -y \

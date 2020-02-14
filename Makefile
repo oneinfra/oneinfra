@@ -1,8 +1,8 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
-# kubectl version
-KUBECTL_VERSION ?= 1.17.0
+# Kubernetes version
+KUBERNETES_VERSION ?= 1.17.0
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -76,7 +76,7 @@ pull-builder:
 
 # Install kubectl
 kubectl:
-	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
 
 # Run e2e (to be moved to a proper e2e framework)

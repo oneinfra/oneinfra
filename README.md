@@ -33,7 +33,7 @@ And access it:
 
 ```
 $ kubectl cluster-info
-Kubernetes master is running at https://127.0.0.1:30100
+Kubernetes master is running at https://127.0.0.1:30000
 ```
 
 It's working! Let's degrain each step more in detail.

@@ -12,17 +12,20 @@ CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
 CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 
 mkdir -p ~/.kube
+
 echo "Creating infrastructure"
 oi-local-cluster cluster create > "${CLUSTER_CONF}"
 
+echo "Hypervisor list"
 docker ps -a
 
 # Get all IP addresses from docker containers, we don't care being
 # picky here. This is required because of how fake workers will
 # connect to the infrastructure, read more on the
 # `create-fake-worker.sh` script
-APISERVER_EXTRA_SANS="$(docker ps -aq | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
+APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
 
+echo "Initializing the infrastructure"
 cat "${CLUSTER_CONF}" | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
     oi node inject --name controlplane --cluster "${CLUSTER_NAME}" --role controlplane | \
@@ -32,6 +35,8 @@ cat "${CLUSTER_CONF}" | \
     oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
+
+echo "Running tests"
 
 set +e
 
@@ -46,7 +51,7 @@ while ! kubectl cluster-info &> /dev/null; do
     sleep 1
 done
 
-set -x
+set -ex
 
 kubectl cluster-info
 kubectl version

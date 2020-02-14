@@ -38,5 +38,7 @@ while ! kubectl cluster-info &> /dev/null; do
     sleep 1
 done
 
+set -x
+
 kubectl cluster-info
 kubectl version

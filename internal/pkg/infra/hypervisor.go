@@ -128,13 +128,8 @@ func (hypervisor *Hypervisor) PullImages(images ...string) error {
 	return nil
 }
 
-// RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
-	klog.V(2).Infof("running a pod with name %q in the hypervisor %q", pod.Name, hypervisor.Name)
-	criRuntime, err := hypervisor.CRIRuntime()
-	if err != nil {
-		return "", err
-	}
+// PodSandboxConfig returns a pod sandbox config for the given pod and cluster
+func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod.Pod) criapi.PodSandboxConfig {
 	portMappings := []*criapi.PortMapping{}
 	for hostPort, podPort := range pod.Ports {
 		portMappings = append(portMappings, &criapi.PortMapping{
@@ -144,9 +139,8 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (str
 	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
-			Name:      pod.Name,
-			Uid:       uuid.New().String(),
-			Namespace: uuid.New().String(),
+			Name: pod.Name,
+			Uid:  uuid.New().String(),
 		},
 		Labels: map[string]string{
 			"component": pod.Name,
@@ -156,7 +150,21 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (str
 	}
 	if cluster != nil {
 		podSandboxConfig.Labels["cluster"] = cluster.Name
+		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", cluster.Name, pod.Name)
+	} else {
+		podSandboxConfig.Metadata.Namespace = pod.Name
 	}
+	return podSandboxConfig
+}
+
+// RunPod runs a pod on the current hypervisor
+func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
+	klog.V(2).Infof("running a pod with name %q in the hypervisor %q", pod.Name, hypervisor.Name)
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return "", err
+	}
+	podSandboxConfig := hypervisor.PodSandboxConfig(cluster, pod)
 	podSandboxResponse, err := criRuntime.RunPodSandbox(
 		context.Background(),
 		&criapi.RunPodSandboxRequest{

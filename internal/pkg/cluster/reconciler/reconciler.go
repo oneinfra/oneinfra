@@ -44,21 +44,8 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 // Reconcile reconciles all nodes known to this cluster reconciler
 func (clusterReconciler *ClusterReconciler) Reconcile() error {
 	klog.V(1).Info("starting reconciliation process")
-	clusterNodes := map[string]node.List{}
 	for _, nodeObj := range clusterReconciler.nodeList {
-		if _, ok := clusterReconciler.hypervisorMap[nodeObj.HypervisorName]; !ok {
-			continue
-		}
-		if _, ok := clusterReconciler.clusterMap[nodeObj.ClusterName]; !ok {
-			continue
-		}
-		if _, ok := clusterNodes[nodeObj.ClusterName]; !ok {
-			clusterNodes[nodeObj.ClusterName] = node.List{}
-		}
-		clusterNodes[nodeObj.ClusterName] = append(clusterNodes[nodeObj.ClusterName], nodeObj)
-	}
-	for _, nodeObj := range clusterReconciler.nodeList {
-		nodereconciler.Reconcile(nodeObj, &ClusterReconcilerInquirer{
+		nodereconciler.Reconcile(&ClusterReconcilerInquirer{
 			node:              nodeObj,
 			clusterReconciler: clusterReconciler,
 		})

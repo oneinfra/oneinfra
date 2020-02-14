@@ -25,10 +25,10 @@ import (
 )
 
 // Reconcile reconciles the node
-func Reconcile(nodeObj *node.Node, inquirer inquirer.ReconcilerInquirer) error {
-	klog.V(1).Infof("reconciling node %q with role %q", nodeObj.Name, nodeObj.Role)
+func Reconcile(inquirer inquirer.ReconcilerInquirer) error {
+	klog.V(1).Infof("reconciling node %q with role %q", inquirer.Node().Name, inquirer.Node().Role)
 	var componentObj component.Component
-	switch nodeObj.Role {
+	switch inquirer.Node().Role {
 	case node.ControlPlaneRole:
 		componentObj = &component.ControlPlane{}
 	case node.ControlPlaneIngressRole:

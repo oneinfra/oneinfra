@@ -7,7 +7,7 @@
 
 `oneinfra` is a Kubernetes Masters as a Service platform, or KMaaS.
 
-It features a declarative infrastructure declaration.
+It features a declarative infrastructure definition.
 
 `oneinfra` relies on a number of hypervisors exposing a `CRI`
 endpoint. `oneinfra` will only connect to this `CRI` endpoint in order

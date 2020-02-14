@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-export PATH=${GOPATH}/bin:./bin:${PATH}
+set -e
+
+if [ -z "$CI" ]; then
+    export PATH=${GOPATH}/bin:${PATH}
+else
+    export PATH=${PWD}/bin:${PATH}
+fi
 
 CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
 CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
@@ -26,6 +32,8 @@ cat "${CLUSTER_CONF}" | \
     oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
+
+set +e
 
 RETRIES=1
 MAX_RETRIES=5

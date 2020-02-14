@@ -3,7 +3,7 @@
 export PATH=${GOPATH}/bin:./bin:${PATH}
 
 CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
-CLUSTER_NAME="${CLUSTER_NAME:-test}"
+CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 
 mkdir -p ~/.kube
 echo "Creating infrastructure"
@@ -17,11 +17,11 @@ APISERVER_EXTRA_SANS="$(docker ps -aq | xargs docker inspect -f '{{ .NetworkSett
 
 cat "${CLUSTER_CONF}" | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
-    oi node inject --name test --cluster "${CLUSTER_NAME}" --role controlplane | \
+    oi node inject --name controlplane --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
+    oi reconcile | \
     tee "${CLUSTER_CONF}" | \
-    oi reconcile
-cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
+    oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
 

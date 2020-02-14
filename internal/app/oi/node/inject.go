@@ -80,5 +80,6 @@ func Inject(nodeName, clusterName, role string) error {
 	}
 
 	fmt.Print(res)
+
 	return nil
 }

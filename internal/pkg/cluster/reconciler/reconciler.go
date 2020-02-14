@@ -65,3 +65,24 @@ func (clusterReconciler *ClusterReconciler) Reconcile() error {
 	}
 	return nil
 }
+
+// Specs returns the versioned specs for all resources
+func (clusterReconciler *ClusterReconciler) Specs() (string, error) {
+	res := ""
+	hypervisors, err := clusterReconciler.hypervisorMap.Specs()
+	if err != nil {
+		return "", nil
+	}
+	res += hypervisors
+	clusters, err := clusterReconciler.clusterMap.Specs()
+	if err != nil {
+		return "", nil
+	}
+	res += clusters
+	nodes, err := clusterReconciler.nodeList.Specs()
+	if err != nil {
+		return "", nil
+	}
+	res += nodes
+	return res, nil
+}

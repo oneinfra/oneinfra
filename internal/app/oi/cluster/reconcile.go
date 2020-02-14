@@ -17,6 +17,7 @@ limitations under the License.
 package cluster
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -37,5 +38,16 @@ func Reconcile() error {
 	clusters := manifests.RetrieveClusters(string(stdin))
 	nodes := manifests.RetrieveNodes(string(stdin))
 
-	return reconciler.NewClusterReconciler(hypervisors, clusters, nodes).Reconcile()
+	clusterReconciler := reconciler.NewClusterReconciler(hypervisors, clusters, nodes)
+	if err := clusterReconciler.Reconcile(); err != nil {
+		return err
+	}
+	clusterSpecs, err := clusterReconciler.Specs()
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(clusterSpecs)
+
+	return nil
 }

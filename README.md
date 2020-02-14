@@ -21,17 +21,12 @@ infrastructure.
 
 ```
 $ oi-local-cluster cluster create | \
-    oi cluster inject --name test | \
-    oi node inject --name test --cluster test --role controlplane | \
-    oi node inject --name loadbalancer --cluster test --role controlplane-ingress | \
+    oi cluster inject --name cluster | \
+    oi node inject --name controlplane --cluster cluster --role controlplane | \
+    oi node inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
+    oi reconcile | \
     tee cluster.conf | \
-    oi reconcile
-```
-
-Generate a kubeconfig file for your cluster:
-
-```
-$ cat cluster.conf | oi cluster kubeconfig --cluster test > ~/.kube/config
+    oi cluster kubeconfig --cluster cluster > ~/.kube/config
 ```
 
 And access it:
@@ -60,10 +55,10 @@ public, two hypervisors are private.
 ### Cluster injection
 
 ```
-oi cluster inject --name test
+oi cluster inject --name cluster
 ```
 
-Injects a versioned cluster with name `test`. Also generates a number
+Injects a versioned cluster with name `cluster`. Also generates a number
 of certificate and certificate keys tied to the cluster.
 
 You can inject as many clusters as you want, by piping them, as long
@@ -75,13 +70,13 @@ as they have different names.
 ### Node injection
 
 ```
-oi node inject --name test --cluster test --role controlplane
+oi node inject --name controlplane --cluster cluster --role controlplane
 ```
 
 Each node represents a Kubernetes Master node.
 
-Injects a versioned node with name `test`, assigned to the cluster
-with name `test`, created on the previous step.
+Injects a versioned node with name `controlplane`, assigned to the
+cluster with name `cluster`, created on the previous step.
 
 You can inject as many nodes as you want, by piping them, as long as
 they have different names for the same cluster.
@@ -92,7 +87,7 @@ they have different names for the same cluster.
 ### Node injection (take two)
 
 ```
-oi node inject --name loadbalancer --cluster test --role controlplane-ingress
+oi node inject --name loadbalancer --cluster cluster --role controlplane-ingress
 ```
 
 Injects a Control Plane ingress (haproxy) instance, that will
@@ -102,9 +97,9 @@ provided cluster.
 ### Teeing
 
 By running `tee cluster.conf` we are saving all our hypervisor, cluster
-and node versioned resources into a file `cluster.conf`, so we can use
-it afterwards, since the next step will stop forwarding `stdin` to
-`stdout`.
+and node versioned resources into a file `cluster.conf`, so we can
+inspect it for further reference, since we are relying on the CLI on
+this example.
 
 ### Infrastructure reconciliation
 
@@ -118,7 +113,7 @@ effectively initializing your Kubernetes Master nodes.
 ### KubeConfig generation
 
 ```
-cat cluster.conf | oi cluster kubeconfig --cluster test > ~/.kube/config
+oi cluster kubeconfig --cluster cluster > ~/.kube/config
 ```
 
 Since the `cluster.conf` contains the authoritative information about
@@ -128,7 +123,7 @@ as desired, based on client certificate authentication.
 The KubeConfig file automatically points to the ingress endpoint.
 
 > This command will print to `stdout` a `kubeconfig` file that is able
-> to access to the cluster with name `test`.
+> to access to the cluster with name `cluster`.
 
 ### (Bonus track) Join workers
 
@@ -138,7 +133,7 @@ service, but in any case it can be handy to test joining some worker
 nodes, specially for end to end and acceptance testing.
 
 ```
-CLUSTER_CONF=cluster.conf CLUSTER_NAME=test scripts/create-fake-worker.sh
+CLUSTER_CONF=cluster.conf CLUSTER_NAME=cluster scripts/create-fake-worker.sh
 ```
 
 You can run this command as many times as you want. Every time, a new

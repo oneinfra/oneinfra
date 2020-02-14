@@ -35,7 +35,8 @@ type NodeSpec struct {
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
 	Role       Role   `json:"role,omitempty"`
-	HostPort   *int   `json:"hostPort,omitempty"`
+	// +optional
+	HostPort *int `json:"hostPort,omitempty"`
 }
 
 // NodeStatus defines the observed state of Node

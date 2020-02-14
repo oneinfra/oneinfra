@@ -94,13 +94,6 @@ Injects a Control Plane ingress (haproxy) instance, that will
 automatically point to all the Kubernetes Masters linked to the
 provided cluster.
 
-### Teeing
-
-By running `tee cluster.conf` we are saving all our hypervisor, cluster
-and node versioned resources into a file `cluster.conf`, so we can
-inspect it for further reference, since we are relying on the CLI on
-this example.
-
 ### Infrastructure reconciliation
 
 ```
@@ -109,6 +102,16 @@ oi reconcile
 
 This step will reconcile clusters and nodes passed by `stdin`,
 effectively initializing your Kubernetes Master nodes.
+
+> This command will take previous definitions from `stdin`, and print
+> the updated infrastructure definition to `stdout`.
+
+### Teeing
+
+By running `tee cluster.conf` we are saving all our hypervisor, cluster
+and node versioned resources into a file `cluster.conf`, so we can
+inspect it for further reference, since we are relying on the CLI on
+this example.
 
 ### KubeConfig generation
 

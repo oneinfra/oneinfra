@@ -15,8 +15,6 @@ mkdir -p ~/.kube
 
 echo "Creating infrastructure"
 oi-local-cluster cluster create > "${CLUSTER_CONF}"
-
-echo "Hypervisor list"
 docker ps -a
 
 # Get all IP addresses from docker containers, we don't care being
@@ -25,7 +23,7 @@ docker ps -a
 # `create-fake-worker.sh` script
 APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
 
-echo "Initializing the infrastructure"
+echo "Initializing infrastructure"
 cat "${CLUSTER_CONF}" | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
     oi node inject --name controlplane --cluster "${CLUSTER_NAME}" --role controlplane | \

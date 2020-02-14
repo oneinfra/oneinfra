@@ -20,8 +20,8 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/component"
+	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
-	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
 )
 
 // Reconcile reconciles the node

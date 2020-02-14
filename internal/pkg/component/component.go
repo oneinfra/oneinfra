@@ -17,7 +17,7 @@ limitations under the License.
 package component
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
+	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
 )
 
 // Component is an interface that allows a component implementing this

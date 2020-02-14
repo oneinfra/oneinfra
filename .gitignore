@@ -22,3 +22,6 @@ bin
 *.swp
 *.swo
 *~
+
+# other files
+/cluster.conf

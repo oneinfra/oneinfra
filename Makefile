@@ -79,6 +79,10 @@ kubectl:
 	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
 
+# Build a containerd image with many images already present (for faster local testing cycles)
+e2e-build-all-deps-containerd-image:
+	./scripts/build-all-deps-containerd-image.sh
+
 # Run e2e (to be moved to a proper e2e framework)
 e2e: oi oi-local-cluster
 	./scripts/e2e.sh

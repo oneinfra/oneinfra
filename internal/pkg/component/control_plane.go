@@ -22,7 +22,7 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
-	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
+	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
 )
 
 const (
@@ -74,7 +74,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	_, err = hypervisor.RunPod(
 		cluster,
 		pod.NewPod(
-			fmt.Sprintf("kube-apiserver-%s", cluster.Name),
+			fmt.Sprintf("control-plane-%s", cluster.Name),
 			[]pod.Container{
 				{
 					Name:    "kine",

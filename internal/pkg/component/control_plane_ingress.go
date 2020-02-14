@@ -26,8 +26,8 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
+	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
-	"oneinfra.ereslibre.es/m/internal/pkg/node/inquirer"
 )
 
 const (
@@ -101,7 +101,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	_, err = hypervisor.RunPod(
 		cluster,
 		pod.NewPod(
-			fmt.Sprintf("haproxy-%s", cluster.Name),
+			fmt.Sprintf("control-plane-ingress-%s", cluster.Name),
 			[]pod.Container{
 				{
 					Name:  "haproxy",

@@ -22,7 +22,7 @@ cat "${CLUSTER_CONF}" | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
     tee "${CLUSTER_CONF}"
 echo "Reconciling resources"
-cat "${CLUSTER_CONF}" | oi reconcile
+cat "${CLUSTER_CONF}" | oi reconcile -v 2
 echo "Downloading kubeconfig file to ~/.kube/config"
 cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 

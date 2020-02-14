@@ -9,6 +9,8 @@ mkdir -p ~/.kube
 echo "Creating infrastructure"
 oi-local-cluster cluster create > "${CLUSTER_CONF}"
 
+docker ps -a
+
 # Get all IP addresses from docker containers, we don't care being
 # picky here. This is required because of how fake workers will
 # connect to the infrastructure, read more on the
@@ -24,8 +26,6 @@ cat "${CLUSTER_CONF}" | \
     oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
-
-docker ps -a
 
 RETRIES=1
 MAX_RETRIES=5

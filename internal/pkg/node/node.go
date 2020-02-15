@@ -39,12 +39,11 @@ const (
 
 // Node represents a Control Plane node
 type Node struct {
-	Name              string
-	Role              Role
-	HypervisorName    string
-	ClusterName       string
-	RequestedHostPort int
-	HostPort          int
+	Name               string
+	Role               Role
+	HypervisorName     string
+	ClusterName        string
+	AllocatedHostPorts map[string]int
 }
 
 // NewNodeWithRandomHypervisor creates a node with a random hypervisor from the provided hypervisorList
@@ -53,17 +52,19 @@ func NewNodeWithRandomHypervisor(clusterName, nodeName string, role Role, hyperv
 	if err != nil {
 		return nil, err
 	}
-	assignedPort, err := hypervisor.RequestPort(clusterName, nodeName)
+	node := Node{
+		Name:               nodeName,
+		HypervisorName:     hypervisor.Name,
+		ClusterName:        clusterName,
+		Role:               role,
+		AllocatedHostPorts: map[string]int{},
+	}
+	apiserverHostPort, err := hypervisor.RequestPort(clusterName, nodeName)
 	if err != nil {
 		return nil, err
 	}
-	return &Node{
-		Name:           nodeName,
-		HypervisorName: hypervisor.Name,
-		ClusterName:    clusterName,
-		HostPort:       assignedPort,
-		Role:           role,
-	}, nil
+	node.AllocatedHostPorts["apiserver"] = apiserverHostPort
+	return &node, nil
 }
 
 // NewNodeFromv1alpha1 returns a node based on a versioned node
@@ -72,7 +73,6 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 		Name:           node.ObjectMeta.Name,
 		HypervisorName: node.Spec.Hypervisor,
 		ClusterName:    node.Spec.Cluster,
-		HostPort:       node.Status.HostPort,
 	}
 	switch node.Spec.Role {
 	case clusterv1alpha1.ControlPlaneRole:
@@ -80,8 +80,9 @@ func NewNodeFromv1alpha1(node *clusterv1alpha1.Node) (*Node, error) {
 	case clusterv1alpha1.ControlPlaneIngressRole:
 		res.Role = ControlPlaneIngressRole
 	}
-	if node.Spec.HostPort != nil {
-		res.RequestedHostPort = *node.Spec.HostPort
+	res.AllocatedHostPorts = map[string]int{}
+	for _, hostPort := range node.Status.AllocatedHostPorts {
+		res.AllocatedHostPorts[hostPort.Name] = hostPort.Port
 	}
 	return &res, nil
 }
@@ -103,11 +104,15 @@ func (node *Node) Export() *clusterv1alpha1.Node {
 	case ControlPlaneIngressRole:
 		res.Spec.Role = clusterv1alpha1.ControlPlaneIngressRole
 	}
-	if node.RequestedHostPort > 0 {
-		res.Spec.HostPort = &node.RequestedHostPort
-	}
-	if node.HostPort > 0 {
-		res.Status.HostPort = node.HostPort
+	res.Status.AllocatedHostPorts = []clusterv1alpha1.NodeHostPortAllocation{}
+	for hostPortName, hostPort := range node.AllocatedHostPorts {
+		res.Status.AllocatedHostPorts = append(
+			res.Status.AllocatedHostPorts,
+			clusterv1alpha1.NodeHostPortAllocation{
+				Name: hostPortName,
+				Port: hostPort,
+			},
+		)
 	}
 	return res
 }

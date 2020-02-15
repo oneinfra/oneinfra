@@ -22,13 +22,15 @@ else
     export PATH=${PWD}/bin:${PATH}
 fi
 
+INFRA_TEST_CLUSTER_NAME=test
+INFRA_NODE_IMAGE=oneinfra/all-in-one:latest
 CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
 CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 
 mkdir -p ~/.kube
 
 echo "Creating infrastructure"
-oi-local-cluster cluster create > "${CLUSTER_CONF}"
+oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" --node-image "${INFRA_NODE_IMAGE}" > "${CLUSTER_CONF}"
 docker ps -a
 
 # Get all IP addresses from docker containers, we don't care being
@@ -37,12 +39,14 @@ docker ps -a
 # `create-fake-worker.sh` script
 APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
 
-echo "Initializing infrastructure"
+echo "Reconciling infrastructure"
 cat "${CLUSTER_CONF}" | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
-    oi node inject --name controlplane --cluster "${CLUSTER_NAME}" --role controlplane | \
+    oi node inject --name controlplane1 --cluster "${CLUSTER_NAME}" --role controlplane | \
+    oi node inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role controlplane | \
+    oi node inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
-    oi reconcile | \
+    oi reconcile -v 2 | \
     tee "${CLUSTER_CONF}" | \
     oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
@@ -65,5 +69,8 @@ done
 
 set -ex
 
+find "/tmp/oneinfra-clusters/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} ps -a'
+
 kubectl cluster-info
+
 kubectl version

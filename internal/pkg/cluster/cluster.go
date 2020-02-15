@@ -33,6 +33,8 @@ type Cluster struct {
 	Name                   string
 	CertificateAuthorities *CertificateAuthorities
 	APIServer              *KubeAPIServer
+	StorageClientEndpoints []string
+	StoragePeerEndpoints   []string
 }
 
 // Map represents a map of clusters
@@ -64,6 +66,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
 			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
 		},
+		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
+		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
 	}
 	return &res, nil
 }
@@ -102,6 +106,10 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				},
 				ExtraSANs: cluster.APIServer.ExtraSANs,
 			},
+		},
+		Status: clusterv1alpha1.ClusterStatus{
+			StorageClientEndpoints: cluster.StorageClientEndpoints,
+			StoragePeerEndpoints:   cluster.StoragePeerEndpoints,
 		},
 	}
 }

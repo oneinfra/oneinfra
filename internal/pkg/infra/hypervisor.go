@@ -103,25 +103,36 @@ func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 	return hypervisor.criImage, nil
 }
 
-// PullImage pulls the requested image on the current hypervisor
-func (hypervisor *Hypervisor) PullImage(image string) error {
+// EnsureImage ensures that the requested image is present on the current hypervisor
+func (hypervisor *Hypervisor) EnsureImage(image string) error {
 	klog.V(2).Infof("ensuring that image %q exists in the hypervisor %q", image, hypervisor.Name)
 	criImage, err := hypervisor.CRIImage()
 	if err != nil {
 		return err
 	}
-	_, err = criImage.PullImage(context.Background(), &criapi.PullImageRequest{
+	imageStatus, err := criImage.ImageStatus(context.Background(), &criapi.ImageStatusRequest{
 		Image: &criapi.ImageSpec{
 			Image: image,
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if imageStatus.Image == nil {
+		_, err = criImage.PullImage(context.Background(), &criapi.PullImageRequest{
+			Image: &criapi.ImageSpec{
+				Image: image,
+			},
+		})
+		return err
+	}
+	return nil
 }
 
-// PullImages pulls the requested images on the current hypervisor
-func (hypervisor *Hypervisor) PullImages(images ...string) error {
+// EnsureImages ensures that the requested images are present on the current hypervisor
+func (hypervisor *Hypervisor) EnsureImages(images ...string) error {
 	for _, image := range images {
-		if err := hypervisor.PullImage(image); err != nil {
+		if err := hypervisor.EnsureImage(image); err != nil {
 			return err
 		}
 	}
@@ -150,9 +161,9 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 	}
 	if cluster != nil {
 		podSandboxConfig.Labels["cluster"] = cluster.Name
-		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", cluster.Name, pod.Name)
+		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s-%s", cluster.Name, pod.Name, podSandboxConfig.Metadata.Uid)
 	} else {
-		podSandboxConfig.Metadata.Namespace = pod.Name
+		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", pod.Name, podSandboxConfig.Metadata.Uid)
 	}
 	return podSandboxConfig
 }
@@ -280,6 +291,19 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 	return err
 }
 
+// RunAndWaitForPod runs and waits for all containers within a pod to be finished
+func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod pod.Pod) error {
+	podSandboxID, err := hypervisor.RunPod(cluster, pod)
+	if err != nil {
+		return err
+	}
+	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
+		return err
+	}
+	//return hypervisor.DeletePod(podSandboxID)
+	return nil
+}
+
 // UploadFiles uploads a map of files, with location as keys, and
 // contents as values
 func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
@@ -295,7 +319,7 @@ func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
-	if err := hypervisor.PullImage(toolingImage); err != nil {
+	if err := hypervisor.EnsureImage(toolingImage); err != nil {
 		return err
 	}
 	hostPathDir := filepath.Dir(hostPath)

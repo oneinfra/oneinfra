@@ -3,4 +3,5 @@ language: minimal
 script:
   - make pull
   - make kubectl
+  - make crictl
   - make e2e

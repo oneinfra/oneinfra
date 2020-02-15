@@ -17,6 +17,7 @@ limitations under the License.
 package component
 
 import (
+	"errors"
 	"fmt"
 
 	"k8s.io/klog"
@@ -26,8 +27,6 @@ import (
 )
 
 const (
-	dqliteImage                = "oneinfra/dqlite:latest"
-	kineImage                  = "oneinfra/kine:latest"
 	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v1.17.0"
 	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v1.17.0"
 	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v1.17.0"
@@ -43,7 +42,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	klog.V(1).Infof("reconciling control plane in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
-	if err := hypervisor.PullImages(kineImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
+	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}
 	controllerManagerKubeConfig, err := cluster.KubeConfig("https://127.0.0.1:6443")
@@ -71,22 +70,32 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
+	if err := controlPlane.runEtcd(inquirer); err != nil {
+		return err
+	}
+	apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+	if !ok {
+		return errors.New("apiserver host port not found")
+	}
+	etcdClientHostPort, ok := node.AllocatedHostPorts["etcd-client"]
+	if !ok {
+		return errors.New("etcd client host port not found")
+	}
 	_, err = hypervisor.RunPod(
 		cluster,
 		pod.NewPod(
 			fmt.Sprintf("control-plane-%s", cluster.Name),
 			[]pod.Container{
 				{
-					Name:    "kine",
-					Image:   kineImage,
-					Command: []string{"kine"},
-				},
-				{
 					Name:    "kube-apiserver",
 					Image:   kubeAPIServerImage,
 					Command: []string{"kube-apiserver"},
 					Args: []string{
-						"--etcd-servers", "http://127.0.0.1:2379",
+						// Each API server accesses the local etcd node only, to
+						// avoid reconfigurations; this could be improved in the
+						// future though, to reconfigure them pointing to all
+						// available etcd instances
+						"--etcd-servers", fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdClientHostPort),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--allow-privileged", "true",
@@ -124,7 +133,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 				},
 			},
 			map[int]int{
-				node.HostPort: 6443,
+				apiserverHostPort: 6443,
 			},
 		),
 	)

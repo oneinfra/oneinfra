@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/node"
@@ -41,15 +42,19 @@ func Endpoint(nodes node.List, cluster *cluster.Cluster, hypervisors infra.Hyper
 	if err != nil {
 		return "", nil
 	}
+	apiserverHostPort, ok := ingressNode.AllocatedHostPorts["apiserver"]
+	if !ok {
+		return "", errors.New("apiserver host port not found")
+	}
 	var endpoint string
 	if len(endpointHostOverride) > 0 {
-		endpoint = fmt.Sprintf("https://%s:%d", endpointHostOverride, ingressNode.HostPort)
+		endpoint = fmt.Sprintf("https://%s:%d", endpointHostOverride, apiserverHostPort)
 	} else {
 		hypervisor, ok := hypervisors[ingressNode.HypervisorName]
 		if !ok {
 			return "", errors.Errorf("hypervisor %q not found", ingressNode.HypervisorName)
 		}
-		endpoint = fmt.Sprintf("https://%s:%d", hypervisor.IPAddress, ingressNode.HostPort)
+		endpoint = fmt.Sprintf("https://%s:%d", hypervisor.IPAddress, apiserverHostPort)
 	}
 	return endpoint, nil
 }

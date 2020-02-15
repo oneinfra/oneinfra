@@ -66,7 +66,7 @@ func (hypervisor *Hypervisor) Create() error {
 			"-p", fmt.Sprintf("%d-%d:%d-%d", hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh, hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh),
 		)
 	}
-	arguments = append(arguments, "oneinfra/containerd:latest")
+	arguments = append(arguments, hypervisor.HypervisorCluster.NodeImage)
 	return exec.Command("docker", arguments...).Run()
 }
 

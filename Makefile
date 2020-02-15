@@ -69,7 +69,7 @@ generate:
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 pull: pull-builder
-	@docker pull oneinfra/containerd:latest
+	@docker pull oneinfra/node:latest
 
 pull-builder:
 	@docker pull oneinfra/builder:latest
@@ -78,6 +78,12 @@ pull-builder:
 kubectl:
 	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
+
+# Install crictl
+crictl:
+	wget -O cri-tools.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v${KUBERNETES_VERSION}/crictl-v${KUBERNETES_VERSION}-linux-amd64.tar.gz
+	sudo tar -C /usr/local/bin -xf cri-tools.tar.gz
+	rm cri-tools.tar.gz
 
 # Build a containerd image with many images already present (for faster local testing cycles)
 e2e-build-all-deps-containerd-image:

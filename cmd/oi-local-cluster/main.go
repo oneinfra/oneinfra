@@ -42,6 +42,11 @@ func main() {
 								Value: "test",
 								Usage: "test cluster name",
 							},
+							&cli.StringFlag{
+								Name:  "node-image",
+								Value: "oneinfra/node:latest",
+								Usage: "node image",
+							},
 							&cli.IntFlag{
 								Name:  "size-private",
 								Value: 1,
@@ -54,7 +59,7 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Create(c.String("name"), c.Int("size-private"), c.Int("size-public"))
+							return cluster.Create(c.String("name"), c.String("node-image"), c.Int("size-private"), c.Int("size-public"))
 						},
 					},
 					{

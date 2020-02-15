@@ -18,6 +18,7 @@ package component
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -72,9 +73,13 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 	}
 	clusterNodes := inquirer.ClusterNodes(node.ControlPlaneRole)
 	for _, node := range clusterNodes {
+		apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+		if !ok {
+			return "", errors.New("apiserver host port not found")
+		}
 		haProxyConfigData.APIServers[node.Name] = net.JoinHostPort(
 			inquirer.NodeHypervisor(node).IPAddress,
-			strconv.Itoa(node.HostPort),
+			strconv.Itoa(apiserverHostPort),
 		)
 	}
 	var rendered bytes.Buffer
@@ -88,7 +93,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	klog.V(1).Infof("reconciling control plane ingress in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
-	if err := hypervisor.PullImage(haProxyImage); err != nil {
+	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
 	haProxyConfig, err := ingress.haProxyConfiguration(inquirer)
@@ -97,6 +102,10 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	}
 	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, "haproxy.cfg")); err != nil {
 		return err
+	}
+	apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+	if !ok {
+		return errors.New("apiserver host port not found")
 	}
 	_, err = hypervisor.RunPod(
 		cluster,
@@ -112,7 +121,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 				},
 			},
 			map[int]int{
-				node.HostPort: 6443,
+				apiserverHostPort: 6443,
 			},
 		),
 	)

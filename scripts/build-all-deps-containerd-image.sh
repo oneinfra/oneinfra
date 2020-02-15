@@ -26,11 +26,13 @@ IMAGES=(oneinfra/dqlite:latest
         oneinfra/haproxy:latest
         oneinfra/tooling:latest
         oneinfra/wireguard:latest
+        oneinfra/etcd:3.4.3
+        k8s.gcr.io/pause:3.1
         k8s.gcr.io/kube-apiserver:v${KUBERNETES_VERSION}
         k8s.gcr.io/kube-controller-manager:v${KUBERNETES_VERSION}
         k8s.gcr.io/kube-scheduler:v${KUBERNETES_VERSION})
 for image in "${IMAGES[@]}"; do
     docker exec -e IMAGE_SERVICE_ENDPOINT="${CONTAINERD_LOCAL_ENDPOINT}" -it "${CONTAINER_ID}" crictl pull "${image}"
 done
-docker commit "${CONTAINER_ID}" oneinfra/containerd:latest
+docker commit "${CONTAINER_ID}" oneinfra/node:latest
 docker rm -f "${CONTAINER_ID}"

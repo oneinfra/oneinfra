@@ -24,8 +24,8 @@ import (
 
 // Create creates a cluster with name clusterName, with private size
 // privateClusterSize and public size publicClusterSize
-func Create(clusterName string, privateClusterSize, publicClusterSize int) error {
-	cluster := localcluster.NewHypervisorCluster(clusterName, publicClusterSize, privateClusterSize)
+func Create(clusterName, nodeImage string, privateClusterSize, publicClusterSize int) error {
+	cluster := localcluster.NewHypervisorCluster(clusterName, nodeImage, publicClusterSize, privateClusterSize)
 	if err := cluster.Create(); err != nil {
 		return err
 	}

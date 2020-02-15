@@ -32,13 +32,15 @@ import (
 // HypervisorCluster represents a cluster of local hypervisors
 type HypervisorCluster struct {
 	Name        string
+	NodeImage   string
 	Hypervisors []*Hypervisor
 }
 
 // NewHypervisorCluster creates a new cluster of local hypervisors
-func NewHypervisorCluster(name string, privateClusterSize, publicClusterSize int) *HypervisorCluster {
+func NewHypervisorCluster(name, nodeImage string, privateClusterSize, publicClusterSize int) *HypervisorCluster {
 	cluster := HypervisorCluster{
 		Name:        name,
+		NodeImage:   nodeImage,
 		Hypervisors: []*Hypervisor{},
 	}
 	for i := 0; i < privateClusterSize; i++ {
@@ -79,7 +81,7 @@ func LoadCluster(name string) (*HypervisorCluster, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewHypervisorCluster(name, len(privateHypervisors), len(publicHypervisors)), nil
+	return NewHypervisorCluster(name, "", len(privateHypervisors), len(publicHypervisors)), nil
 }
 
 func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor) {

@@ -35,13 +35,17 @@ type NodeSpec struct {
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
 	Role       Role   `json:"role,omitempty"`
-	// +optional
-	HostPort *int `json:"hostPort,omitempty"`
 }
 
 // NodeStatus defines the observed state of Node
 type NodeStatus struct {
-	HostPort int `json:"hostPort,omitempty"`
+	AllocatedHostPorts []NodeHostPortAllocation `json:"allocatedHostPorts,omitempty"`
+}
+
+// NodeHostPortAllocation represents a port allocation in a node
+type NodeHostPortAllocation struct {
+	Name string `json:"name,omitempty"`
+	Port int    `json:"port,omitempty"`
 }
 
 // +kubebuilder:object:root=true

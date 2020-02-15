@@ -28,6 +28,8 @@ type ClusterSpec struct {
 
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
+	StorageClientEndpoints []string `json:"storageClientEndpoints,omitempty"`
+	StoragePeerEndpoints   []string `json:"storagePeerEndpoints,omitempty"`
 }
 
 // CertificateAuthorities represents a set of Certificate Authorities

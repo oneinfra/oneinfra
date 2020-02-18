@@ -29,7 +29,8 @@ CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 mkdir -p ~/.kube
 
 echo "Creating infrastructure"
-oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" > ${CLUSTER_CONF}
+oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" > "${CLUSTER_CONF}"
+sync
 docker ps -a
 
 # Get all IP addresses from docker containers, we don't care being

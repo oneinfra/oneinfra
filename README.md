@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra)
 [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=master)](https://travis-ci.org/oneinfra/oneinfra)
 [![CircleCI](https://circleci.com/gh/oneinfra/oneinfra.svg?style=shield)](https://circleci.com/gh/oneinfra/oneinfra)
+[![Azure Pipelines](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/oneinfra.oneinfra?branchName=master)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=1&branchName=master)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ![oneinfra logo](logos/oneinfra.png)

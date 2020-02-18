@@ -44,7 +44,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "node-image",
-								Value: "oneinfra/node:latest",
+								Value: "oneinfra/hypervisor:latest",
 								Usage: "node image",
 							},
 							&cli.IntFlag{

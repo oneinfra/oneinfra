@@ -21,11 +21,8 @@ CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
 
 docker pull oneinfra/containerd:latest
 CONTAINER_ID=$(docker run --privileged -d -it oneinfra/containerd:latest)
-IMAGES=(oneinfra/dqlite:latest
-        oneinfra/kine:latest
-        oneinfra/haproxy:latest
+IMAGES=(oneinfra/haproxy:latest
         oneinfra/tooling:latest
-        oneinfra/wireguard:latest
         oneinfra/etcd:3.4.3
         k8s.gcr.io/pause:3.1
         k8s.gcr.io/kube-apiserver:v${KUBERNETES_VERSION}
@@ -34,5 +31,5 @@ IMAGES=(oneinfra/dqlite:latest
 for image in "${IMAGES[@]}"; do
     docker exec -e IMAGE_SERVICE_ENDPOINT="${CONTAINERD_LOCAL_ENDPOINT}" -it "${CONTAINER_ID}" crictl pull "${image}"
 done
-docker commit "${CONTAINER_ID}" oneinfra/node:latest
+docker commit "${CONTAINER_ID}" oneinfra/hypervisor:latest
 docker rm -f "${CONTAINER_ID}"

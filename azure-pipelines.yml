@@ -9,12 +9,14 @@ jobs:
   - bash: make pull-builder
   - bash: make
 - job: unit_and_integration_tests
+  displayName: unit and integration tests
   pool:
     vmImage: 'ubuntu-18.04'
   steps:
   - bash: make pull-builder
   - bash: make test
 - job: e2e_tests
+  displayName: e2e tests
   pool:
     vmImage: 'ubuntu-18.04'
   steps:

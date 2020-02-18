@@ -23,14 +23,13 @@ else
 fi
 
 INFRA_TEST_CLUSTER_NAME=test
-INFRA_NODE_IMAGE=oneinfra/all-in-one:latest
 CLUSTER_CONF="${CLUSTER_CONF:-cluster.conf}"
 CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 
 mkdir -p ~/.kube
 
 echo "Creating infrastructure"
-oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" --node-image "${INFRA_NODE_IMAGE}" > "${CLUSTER_CONF}"
+oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" > "${CLUSTER_CONF}"
 docker ps -a
 
 # Get all IP addresses from docker containers, we don't care being

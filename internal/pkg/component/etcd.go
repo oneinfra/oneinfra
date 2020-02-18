@@ -52,16 +52,11 @@ func (controlPlane *ControlPlane) etcdClientWithEndpoints(endpoints []string) (*
 }
 
 func (controlPlane *ControlPlane) etcdClientEndpoints(inquirer inquirer.ReconcilerInquirer) []string {
-	node := inquirer.Node()
 	cluster := inquirer.Cluster()
-	hypervisor := inquirer.Hypervisor()
 	endpoints := []string{}
 	for _, endpoint := range cluster.StorageClientEndpoints {
 		endpointURL := strings.Split(endpoint, "=")
 		endpoints = append(endpoints, endpointURL[1])
-	}
-	if etcdClientHostPort, ok := node.AllocatedHostPorts["etcd-client"]; ok {
-		endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdClientHostPort))
 	}
 	return endpoints
 }
@@ -177,10 +172,6 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 		return err
 	}
 	node.AllocatedHostPorts["etcd-client"] = etcdClientHostPort
-	cluster.StorageClientEndpoints = append(
-		cluster.StorageClientEndpoints,
-		fmt.Sprintf("%s=%s:%d", node.Name, hypervisor.IPAddress, etcdClientHostPort),
-	)
 	cluster.StoragePeerEndpoints = append(
 		cluster.StoragePeerEndpoints,
 		fmt.Sprintf("%s=%s:%d", node.Name, hypervisor.IPAddress, etcdPeerHostPort),
@@ -206,8 +197,15 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 		return err
 	}
 	if settingUpLearner {
-		return controlPlane.promoteEtcdLearner(inquirer)
+		if err := controlPlane.promoteEtcdLearner(inquirer); err != nil {
+			return err
+		}
+		klog.V(2).Infof("etcd learner %s successfully promoted", node.Name)
 	}
+	cluster.StorageClientEndpoints = append(
+		cluster.StorageClientEndpoints,
+		fmt.Sprintf("%s=%s:%d", node.Name, hypervisor.IPAddress, etcdClientHostPort),
+	)
 	return nil
 }
 

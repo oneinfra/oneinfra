@@ -105,7 +105,7 @@ func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 
 // EnsureImage ensures that the requested image is present on the current hypervisor
 func (hypervisor *Hypervisor) EnsureImage(image string) error {
-	klog.V(2).Infof("ensuring that image %q exists in the hypervisor %q", image, hypervisor.Name)
+	klog.V(2).Infof("ensuring that image %q exists in hypervisor %q", image, hypervisor.Name)
 	criImage, err := hypervisor.CRIImage()
 	if err != nil {
 		return err

@@ -170,7 +170,7 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 
 // RunPod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
-	klog.V(2).Infof("running a pod with name %q in the hypervisor %q", pod.Name, hypervisor.Name)
+	klog.V(2).Infof("running a pod with name %q in hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err

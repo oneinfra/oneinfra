@@ -125,7 +125,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	}
 	return &infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: hypervisor.Name,
+			Name: hypervisor.fullName(),
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			Public:             hypervisor.Public,

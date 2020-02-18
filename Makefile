@@ -69,7 +69,7 @@ generate:
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 pull: pull-builder
-	@docker pull oneinfra/node:latest
+	@docker pull oneinfra/hypervisor:latest
 
 pull-builder:
 	@docker pull oneinfra/builder:latest

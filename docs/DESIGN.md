@@ -12,14 +12,11 @@ premises or in the public cloud.
     with respect to the control plane nodes (e.g. workers behind several
     NAT levels)
   * CNI overlay will be set on top of the VPN tunnel
-* Operating System agnostic
 * Provide both a CLI and a set of controllers (TODO) to drive the
   reconciliation process
-  * This makes it easier to either use the CLI directly, or deploy
-    `oneinfra` controllers and custom resources on top of an existing
-    Kubernetes cluster (management cluster)
   * Both CLI and these set of controllers should rely on the same
     API's (custom resources) to drive the reconciliation process
+* Operating System agnostic
 
 # Components
 
@@ -40,7 +37,7 @@ hypervisors.
 
 Public hypervisors is where the ingress for the control plane nodes
 will live. This is, a load balancer (or set of load balancers), and a
-VPN server.
+VPN server per cluster.
 
 Public hypervisors are therefore exposed to the outer world, and
 should have an interface inside a public network. They should also
@@ -51,34 +48,33 @@ to private hypervisors.
 
 Private hypervisors is where the control plane components will
 run. These private hypervisors should have an interface inside a
-private network, only reachable by public hypervisors.
+private network, only reachable by public hypervisors, and other
+private hypervisors.
 
 ## Cluster
 
-A cluster is the abstraction of a whole Kubernetes cluster. It has
-all the certificate authorities and shared information required by the
-different nodes that are part of the same cluster.
+A cluster is the abstraction of a whole Kubernetes cluster -- with
+control plane and control plane ingresses. It has all the certificate
+authorities and shared information required by the different nodes
+that are part of the same cluster.
 
 ## Node
 
 A node represents a schedulable unit. A node belongs both to a
-cluster, and to an hypervisor. A cluster can (and will) have any
-number of nodes associated with it.
+cluster, and to an hypervisor.
 
-Two types of nodes exist right now:
+Two types of nodes exist at the moment:
 
-* Control Plane
-  * Control Plane nodes are formed by:
-    * An `etcd` instance
-    * An `API server` instance
-    * A `Controller Manager` instance
-    * A `Scheduler` instance
+* Control Plane nodes, formed by:
+  * An `etcd` instance
+  * An `API server` instance
+  * A `Controller Manager` instance
+  * A `Scheduler` instance
 
-* Control Plane Ingress
-  * Control Plane ingress nodes are formed by:
-    * An `haproxy` instance, pointing to all control plane instances
-      that are part of the same cluster.
-    * (Soon) by a VPN server.
+* Control Plane Ingress, formed by:
+  * An `haproxy` instance, pointing to all control plane instances
+    that are part of the same cluster.
+  * (Soon) by a VPN server.
 
 In the future, it will be possible to scale Control Plane components
 in a fine grained way; you will be able to create more `API server`

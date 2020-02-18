@@ -2,6 +2,18 @@ variables:
   CI: "1"
 
 jobs:
+- job: build
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - bash: make pull-builder
+  - bash: make
+- job: unit_and_integration_tests
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - bash: make pull-builder
+  - bash: make test
 - job: e2e_tests
   pool:
     vmImage: 'ubuntu-18.04'

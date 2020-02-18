@@ -128,17 +128,3 @@ The KubeConfig file automatically points to the ingress endpoint.
 
 > This command will print to `stdout` a `kubeconfig` file that is able
 > to access to the cluster with name `cluster`.
-
-### (Bonus track) Join workers
-
-For development purposes, you might want to join worker nodes. Note
-that `oneinfra` is focused on creating Control Plane instances as a
-service, but in any case it can be handy to test joining some worker
-nodes, specially for end to end and acceptance testing.
-
-```
-CLUSTER_CONF=cluster.conf CLUSTER_NAME=cluster scripts/create-fake-worker.sh
-```
-
-You can run this command as many times as you want. Every time, a new
-worker node will join within seconds!

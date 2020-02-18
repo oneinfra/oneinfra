@@ -12,9 +12,7 @@
 
 It features a declarative infrastructure definition.
 
-`oneinfra` relies on a number of hypervisors exposing a `CRI`
-endpoint. `oneinfra` will only connect to this `CRI` endpoint in order
-to create the Kubernetes Master nodes.
+You can read more about its [design here](docs/DESIGN.md).
 
 ## Quick start with docker
 
@@ -70,7 +68,7 @@ as they have different names.
 > This command will take previous definitions from `stdin`, append the
 > cluster definition and print everything to `stdout`.
 
-### Node injection
+### Node injection (control plane node)
 
 ```
 oi node inject --name controlplane --cluster cluster --role controlplane
@@ -87,7 +85,7 @@ they have different names for the same cluster.
 > This command will take previous definitions from `stdin`, append the
 > node definition and print everything to `stdout`.
 
-### Node injection (take two)
+### Node injection (control plane ingress node)
 
 ```
 oi node inject --name loadbalancer --cluster cluster --role controlplane-ingress

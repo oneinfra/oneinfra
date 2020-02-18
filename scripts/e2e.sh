@@ -29,9 +29,10 @@ CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 mkdir -p ~/.kube
 
 echo "Creating infrastructure"
-oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" > "${CLUSTER_CONF}"
-sync
+oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" > ${CLUSTER_CONF}
 docker ps -a
+
+RECONCILED_CLUSTER_CONF=$(mktemp /tmp/reconciled-cluster-${INFRA_TEST_CLUSTER_NAME}-XXXXXXX.conf)
 
 # Get all IP addresses from docker containers, we don't care being
 # picky here. This is required because of how fake workers will
@@ -40,15 +41,17 @@ docker ps -a
 APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
 
 echo "Reconciling infrastructure"
-cat "${CLUSTER_CONF}" | \
+cat ${CLUSTER_CONF} | \
     oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
     oi node inject --name controlplane1 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi node inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
-    oi reconcile -v 2 | \
-    tee "${CLUSTER_CONF}" | \
-    oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
+    oi reconcile -v 2 > ${RECONCILED_CLUSTER_CONF}
+
+mv ${RECONCILED_CLUSTER_CONF} ${CLUSTER_CONF}
+
+cat ${CLUSTER_CONF} | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
 

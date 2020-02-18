@@ -300,8 +300,7 @@ func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod pod
 	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
 		return err
 	}
-	//return hypervisor.DeletePod(podSandboxID)
-	return nil
+	return hypervisor.DeletePod(podSandboxID)
 }
 
 // UploadFiles uploads a map of files, with location as keys, and

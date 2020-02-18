@@ -24,7 +24,7 @@ import (
 type List []*Node
 
 // WithRole returns a subset of the current list matching the given
-// role
+// role.
 func (list List) WithRole(role Role) List {
 	res := List{}
 	for _, node := range list {
@@ -35,7 +35,19 @@ func (list List) WithRole(role Role) List {
 	return res
 }
 
-// Specs returns the versioned specs of all nodes in this list
+// WithCluster returns a subset of the current list matching the given
+// cluster.
+func (list List) WithCluster(clusterName string) List {
+	res := List{}
+	for _, node := range list {
+		if node.ClusterName == clusterName {
+			res = append(res, node)
+		}
+	}
+	return res
+}
+
+// Specs returns the versioned specs of all nodes in this list.
 func (list List) Specs() (string, error) {
 	res := ""
 	for _, node := range list {

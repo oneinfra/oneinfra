@@ -47,7 +47,7 @@ func (inquirer *ClusterReconcilerInquirer) Cluster() *cluster.Cluster {
 // ClusterNodes returns a list of nodes with the provided role for the
 // current cluster in reconciliation
 func (inquirer *ClusterReconcilerInquirer) ClusterNodes(role node.Role) node.List {
-	return inquirer.clusterReconciler.nodeList.WithRole(role)
+	return inquirer.clusterReconciler.nodeList.WithCluster(inquirer.Cluster().Name).WithRole(role)
 }
 
 // NodeHypervisor returns the hypervisor where the provided node is

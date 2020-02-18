@@ -1,0 +1,12 @@
+variables:
+  CI: "1"
+
+jobs:
+- job: e2e_tests
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - bash: make pull
+  - bash: make kubectl
+  - bash: make crictl
+  - bash: make e2e

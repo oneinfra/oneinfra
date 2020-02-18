@@ -19,7 +19,10 @@ package component
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,7 +74,8 @@ func (controlPlane *ControlPlane) etcdPeerEndpoints(inquirer inquirer.Reconciler
 		endpoints = append(endpoints, endpointURL[1])
 	}
 	if etcdPeerHostPort, ok := node.AllocatedHostPorts["etcd-peer"]; ok {
-		endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdPeerHostPort))
+		endpointURL := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+		endpoints = append(endpoints, endpointURL.String())
 	}
 	return endpoints
 }
@@ -91,11 +95,10 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 		if !ok {
 			return errors.Errorf("etcd peer host port not found for node %s", node.Name)
 		}
+		peerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 		_, err = etcdClient.MemberAddAsLearner(
 			ctx,
-			[]string{
-				fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdPeerHostPort),
-			},
+			[]string{peerURLs.String()},
 		)
 		if err == nil {
 			break
@@ -174,7 +177,7 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	node.AllocatedHostPorts["etcd-client"] = etcdClientHostPort
 	cluster.StoragePeerEndpoints = append(
 		cluster.StoragePeerEndpoints,
-		fmt.Sprintf("%s=%s:%d", node.Name, hypervisor.IPAddress, etcdPeerHostPort),
+		fmt.Sprintf("%s=%s", node.Name, net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))),
 	)
 	etcdContainer, err := controlPlane.etcdContainer(inquirer, etcdClientHostPort, etcdPeerHostPort)
 	if err != nil {
@@ -204,7 +207,7 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	}
 	cluster.StorageClientEndpoints = append(
 		cluster.StorageClientEndpoints,
-		fmt.Sprintf("%s=%s:%d", node.Name, hypervisor.IPAddress, etcdClientHostPort),
+		fmt.Sprintf("%s=%s", node.Name, net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))),
 	)
 	return nil
 }
@@ -213,6 +216,10 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 	node := inquirer.Node()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	listenClientURLs := url.URL{Scheme: "http", Host: "0.0.0.0:2379"}
+	advertiseClientURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
+	listenPeerURLs := url.URL{Scheme: "http", Host: "0.0.0.0:2380"}
+	initialAdvertisePeerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 	etcdContainer := pod.Container{
 		Name:    "etcd",
 		Image:   etcdImage,
@@ -220,10 +227,10 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 		Args: []string{
 			"--name", node.Name,
 			"--data-dir", etcdDataDir,
-			"--listen-client-urls", "http://0.0.0.0:2379",
-			"--advertise-client-urls", fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdClientHostPort),
-			"--listen-peer-urls", "http://0.0.0.0:2380",
-			"--initial-advertise-peer-urls", fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdPeerHostPort),
+			"--listen-client-urls", listenClientURLs.String(),
+			"--advertise-client-urls", advertiseClientURLs.String(),
+			"--listen-peer-urls", listenPeerURLs.String(),
+			"--initial-advertise-peer-urls", initialAdvertisePeerURLs.String(),
 		},
 		Mounts: map[string]string{
 			filepath.Join(storagePath(cluster.Name), "etcd", node.Name): etcdDataDir,
@@ -237,8 +244,9 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 	} else {
 		endpoints := []string{}
 		for _, endpoint := range cluster.StoragePeerEndpoints {
-			endpointURL := strings.Split(endpoint, "=")
-			endpoints = append(endpoints, fmt.Sprintf("%s=http://%s", endpointURL[0], endpointURL[1]))
+			endpointURLRaw := strings.Split(endpoint, "=")
+			endpointURL := url.URL{Scheme: "http", Host: endpointURLRaw[1]}
+			endpoints = append(endpoints, fmt.Sprintf("%s=%s", endpointURLRaw[0], endpointURL.String()))
 		}
 		etcdContainer.Args = append(
 			etcdContainer.Args,

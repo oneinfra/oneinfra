@@ -18,6 +18,8 @@ package endpoint
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 
 	"github.com/pkg/errors"
 
@@ -48,13 +50,13 @@ func Endpoint(nodes node.List, cluster *cluster.Cluster, hypervisors infra.Hyper
 	}
 	var endpoint string
 	if len(endpointHostOverride) > 0 {
-		endpoint = fmt.Sprintf("https://%s:%d", endpointHostOverride, apiserverHostPort)
+		endpoint = fmt.Sprintf("https://%s", net.JoinHostPort(endpointHostOverride, strconv.Itoa(apiserverHostPort)))
 	} else {
 		hypervisor, ok := hypervisors[ingressNode.HypervisorName]
 		if !ok {
 			return "", errors.Errorf("hypervisor %q not found", ingressNode.HypervisorName)
 		}
-		endpoint = fmt.Sprintf("https://%s:%d", hypervisor.IPAddress, apiserverHostPort)
+		endpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
 	}
 	return endpoint, nil
 }

@@ -19,6 +19,9 @@ package component
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
+	"strconv"
 
 	"k8s.io/klog"
 
@@ -81,6 +84,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if !ok {
 		return errors.New("etcd client host port not found")
 	}
+	etcdServers := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	_, err = hypervisor.RunPod(
 		cluster,
 		pod.NewPod(
@@ -95,7 +99,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						// avoid reconfigurations; this could be improved in the
 						// future though, to reconfigure them pointing to all
 						// available etcd instances
-						"--etcd-servers", fmt.Sprintf("http://%s:%d", hypervisor.IPAddress, etcdClientHostPort),
+						"--etcd-servers", etcdServers.String(),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--allow-privileged", "true",

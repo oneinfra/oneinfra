@@ -5,6 +5,8 @@
 [![CircleCI](https://circleci.com/gh/oneinfra/oneinfra.svg?style=shield)](https://circleci.com/gh/oneinfra/oneinfra)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
+![oneinfra logo](logos/oneinfra.png)
+
 `oneinfra` is a Kubernetes Masters as a Service platform, or KMaaS.
 
 It features a declarative infrastructure definition.

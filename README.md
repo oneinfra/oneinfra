@@ -23,8 +23,8 @@ infrastructure.
 ```
 $ oi-local-cluster cluster create | \
     oi cluster inject --name cluster | \
-    oi node inject --name controlplane --cluster cluster --role controlplane | \
-    oi node inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
+    oi component inject --name controlplane --cluster cluster --role controlplane | \
+    oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
     oi reconcile | \
     tee cluster.conf | \
     oi cluster kubeconfig --cluster cluster > ~/.kube/config
@@ -68,27 +68,25 @@ as they have different names.
 > This command will take previous definitions from `stdin`, append the
 > cluster definition and print everything to `stdout`.
 
-### Node injection (control plane node)
+### Control plane injection
 
 ```
-oi node inject --name controlplane --cluster cluster --role controlplane
+oi component inject --name controlplane --cluster cluster --role controlplane
 ```
 
-Each node represents a Kubernetes Master node.
+Injects a versioned control plane with name `controlplane`, assigned
+to the cluster with name `cluster`, created on the previous step.
 
-Injects a versioned node with name `controlplane`, assigned to the
-cluster with name `cluster`, created on the previous step.
-
-You can inject as many nodes as you want, by piping them, as long as
-they have different names for the same cluster.
+You can inject as many control planes as you want, by piping them, as
+long as they have different names for the same cluster.
 
 > This command will take previous definitions from `stdin`, append the
-> node definition and print everything to `stdout`.
+> control plane definition and print everything to `stdout`.
 
-### Node injection (control plane ingress node)
+### Control plane ingress injection
 
 ```
-oi node inject --name loadbalancer --cluster cluster --role controlplane-ingress
+oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress
 ```
 
 Injects a Control Plane ingress (haproxy) instance, that will
@@ -101,7 +99,7 @@ provided cluster.
 oi reconcile
 ```
 
-This step will reconcile clusters and nodes passed by `stdin`,
+This step will reconcile clusters and components passed by `stdin`,
 effectively initializing your Kubernetes Master nodes.
 
 > This command will take previous definitions from `stdin`, and print
@@ -109,10 +107,10 @@ effectively initializing your Kubernetes Master nodes.
 
 ### Teeing
 
-By running `tee cluster.conf` we are saving all our hypervisor, cluster
-and node versioned resources into a file `cluster.conf`, so we can
-inspect it for further reference, since we are relying on the CLI on
-this example.
+By running `tee cluster.conf` we are saving all our hypervisor,
+cluster and component versioned resources into a file `cluster.conf`,
+so we can inspect it for further reference, since we are relying on
+the CLI on this example.
 
 ### KubeConfig generation
 

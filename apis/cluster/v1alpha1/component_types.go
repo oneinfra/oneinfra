@@ -20,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Role defines the role of this node
+// Role defines the role of this component
 type Role string
 
 const (
@@ -30,44 +30,44 @@ const (
 	ControlPlaneIngressRole Role = "control-plane-ingress"
 )
 
-// NodeSpec defines the desired state of Node
-type NodeSpec struct {
+// ComponentSpec defines the desired state of Component
+type ComponentSpec struct {
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
 	Role       Role   `json:"role,omitempty"`
 }
 
-// NodeStatus defines the observed state of Node
-type NodeStatus struct {
-	AllocatedHostPorts []NodeHostPortAllocation `json:"allocatedHostPorts,omitempty"`
+// ComponentStatus defines the observed state of Component
+type ComponentStatus struct {
+	AllocatedHostPorts []ComponentHostPortAllocation `json:"allocatedHostPorts,omitempty"`
 }
 
-// NodeHostPortAllocation represents a port allocation in a node
-type NodeHostPortAllocation struct {
+// ComponentHostPortAllocation represents a port allocation in a component
+type ComponentHostPortAllocation struct {
 	Name string `json:"name,omitempty"`
 	Port int    `json:"port,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// Node is the Schema for the nodes API
-type Node struct {
+// Component is the Schema for the components API
+type Component struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   NodeSpec   `json:"spec,omitempty"`
-	Status NodeStatus `json:"status,omitempty"`
+	Spec   ComponentSpec   `json:"spec,omitempty"`
+	Status ComponentStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// NodeList contains a list of Node
-type NodeList struct {
+// ComponentList contains a list of Component
+type ComponentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Node `json:"items"`
+	Items           []Component `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Node{}, &NodeList{})
+	SchemeBuilder.Register(&Component{}, &ComponentList{})
 }

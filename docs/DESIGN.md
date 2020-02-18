@@ -9,8 +9,8 @@ premises or in the public cloud.
 * Manage control planes with a well defined API
 * Edge ready (TODO)
   * Allow to safely join worker nodes, regardless of where they are
-    with respect to the control plane nodes (e.g. workers behind several
-    NAT levels)
+    located networking-wise with respect to control plane components
+    (e.g. workers behind several NAT levels), or among them
   * CNI overlay will be set on top of the VPN tunnel
 * Provide both a CLI and a set of controllers (TODO) to drive the
   reconciliation process
@@ -23,7 +23,7 @@ premises or in the public cloud.
 ## Hypervisor
 
 An hypervisor is a physical or virtual machine where `oneinfra` will
-create the control plane nodes.
+create the control plane components.
 
 Hypervisors are user provided in the form of a CRI endpoint to connect
 to.
@@ -35,9 +35,9 @@ hypervisors.
 
 #### Public hypervisors
 
-Public hypervisors is where the ingress for the control plane nodes
-will live. This is, a load balancer (or set of load balancers), and a
-VPN server per cluster.
+Public hypervisors is where the ingress for the control plane
+components will live. This is, a load balancer (or set of load
+balancers), and a VPN server per cluster.
 
 Public hypervisors are therefore exposed to the outer world, and
 should have an interface inside a public network. They should also
@@ -55,17 +55,17 @@ private hypervisors.
 
 A cluster is the abstraction of a whole Kubernetes cluster -- with
 control plane and control plane ingresses. It has all the certificate
-authorities and shared information required by the different nodes
+authorities and shared information required by the different components
 that are part of the same cluster.
 
-## Node
+## Component
 
-A node represents a schedulable unit. A node belongs both to a
+A component represents a schedulable unit. A component belongs both to a
 cluster, and to an hypervisor.
 
-Two types of nodes exist at the moment:
+Two types of components exist at the moment:
 
-* Control Plane nodes, formed by:
+* Control Plane components, formed by:
   * An `etcd` instance
   * An `API server` instance
   * A `Controller Manager` instance

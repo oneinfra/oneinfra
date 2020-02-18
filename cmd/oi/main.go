@@ -26,7 +26,7 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
-	"oneinfra.ereslibre.es/m/internal/app/oi/node"
+	"oneinfra.ereslibre.es/m/internal/app/oi/component"
 )
 
 func main() {
@@ -92,8 +92,8 @@ func main() {
 						},
 					},
 					{
-						Name:  "ingress-node-name",
-						Usage: "print the ingress node name",
+						Name:  "ingress-component-name",
+						Usage: "print the ingress component name",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "cluster",
@@ -102,7 +102,7 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.IngressNodeName(c.String("cluster"))
+							return cluster.IngressComponentName(c.String("cluster"))
 						},
 					},
 				},
@@ -126,17 +126,17 @@ func main() {
 				},
 			},
 			{
-				Name:  "node",
-				Usage: "node operations",
+				Name:  "component",
+				Usage: "component operations",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "inject",
-						Usage: "inject a node",
+						Usage: "inject a component",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "name",
 								Required: true,
-								Usage:    "node name",
+								Usage:    "component name",
 							},
 							&cli.StringFlag{
 								Name:     "cluster",
@@ -146,11 +146,11 @@ func main() {
 							&cli.StringFlag{
 								Name:     "role",
 								Required: true,
-								Usage:    "role of the node (controlplane, controlplane-ingress)",
+								Usage:    "role of the component (controlplane, controlplane-ingress)",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return node.Inject(c.String("name"), c.String("cluster"), c.String("role"))
+							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
 						},
 					},
 				},

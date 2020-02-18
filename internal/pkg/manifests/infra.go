@@ -24,8 +24,8 @@ import (
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
 )
 
@@ -77,26 +77,26 @@ func RetrieveClusters(manifests string) cluster.Map {
 	return clusters
 }
 
-// RetrieveNodes returns a node list from the given manifests
-func RetrieveNodes(manifests string) node.List {
-	klog.V(1).Info("retrieving nodes from manifests")
-	nodes := node.List{}
+// RetrieveComponents returns a component list from the given manifests
+func RetrieveComponents(manifests string) component.List {
+	klog.V(1).Info("retrieving components from manifests")
+	components := component.List{}
 	documents := yamlutils.SplitDocuments(manifests)
 	scheme := runtime.NewScheme()
 	if err := clusterv1alpha1.AddToScheme(scheme); err != nil {
-		return node.List{}
+		return component.List{}
 	}
 	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{Yaml: true})
 	for _, document := range documents {
-		nodeObj := clusterv1alpha1.Node{}
-		if _, _, err := serializer.Decode([]byte(document), nil, &nodeObj); err != nil || nodeObj.TypeMeta.Kind != "Node" {
+		componentObj := clusterv1alpha1.Component{}
+		if _, _, err := serializer.Decode([]byte(document), nil, &componentObj); err != nil || componentObj.TypeMeta.Kind != "Component" {
 			continue
 		}
-		internalNode, err := node.NewNodeFromv1alpha1(&nodeObj)
+		internalComponent, err := component.NewComponentFromv1alpha1(&componentObj)
 		if err != nil {
 			continue
 		}
-		nodes = append(nodes, internalNode)
+		components = append(components, internalComponent)
 	}
-	return nodes
+	return components
 }

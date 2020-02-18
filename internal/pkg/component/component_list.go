@@ -14,22 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
 	"fmt"
 )
 
-// List represents a list of nodes
-type List []*Node
+// List represents a list of components
+type List []*Component
 
 // WithRole returns a subset of the current list matching the given
 // role.
 func (list List) WithRole(role Role) List {
 	res := List{}
-	for _, node := range list {
-		if node.Role == role {
-			res = append(res, node)
+	for _, component := range list {
+		if component.Role == role {
+			res = append(res, component)
 		}
 	}
 	return res
@@ -39,23 +39,23 @@ func (list List) WithRole(role Role) List {
 // cluster.
 func (list List) WithCluster(clusterName string) List {
 	res := List{}
-	for _, node := range list {
-		if node.ClusterName == clusterName {
-			res = append(res, node)
+	for _, component := range list {
+		if component.ClusterName == clusterName {
+			res = append(res, component)
 		}
 	}
 	return res
 }
 
-// Specs returns the versioned specs of all nodes in this list.
+// Specs returns the versioned specs of all components in this list.
 func (list List) Specs() (string, error) {
 	res := ""
-	for _, node := range list {
-		nodeSpec, err := node.Specs()
+	for _, component := range list {
+		componentSpec, err := component.Specs()
 		if err != nil {
 			continue
 		}
-		res += fmt.Sprintf("---\n%s", nodeSpec)
+		res += fmt.Sprintf("---\n%s", componentSpec)
 	}
 	return res, nil
 }

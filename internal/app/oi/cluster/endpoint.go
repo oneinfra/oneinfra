@@ -35,14 +35,14 @@ func Endpoint(clusterName, endpointHostOverride string) error {
 	}
 	hypervisors := manifests.RetrieveHypervisors(string(stdin))
 	clusters := manifests.RetrieveClusters(string(stdin))
-	nodes := manifests.RetrieveNodes(string(stdin))
+	components := manifests.RetrieveComponents(string(stdin))
 
 	cluster, ok := clusters[clusterName]
 	if !ok {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	endpointURI, err := endpoint.Endpoint(nodes, cluster, hypervisors, endpointHostOverride)
+	endpointURI, err := endpoint.Endpoint(components, cluster, hypervisors, endpointHostOverride)
 	if err != nil {
 		return err
 	}

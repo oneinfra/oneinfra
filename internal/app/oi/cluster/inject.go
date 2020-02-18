@@ -26,7 +26,7 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-// Inject injects a cluster with name nodeName
+// Inject injects a cluster with name componentName
 func Inject(clusterName string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
@@ -70,9 +70,9 @@ func Inject(clusterName string, apiServerExtraSANs []string) error {
 		res += injectedClusterSpecs
 	}
 
-	nodes := manifests.RetrieveNodes(string(stdin))
-	if nodesSpecs, err := nodes.Specs(); err == nil {
-		res += nodesSpecs
+	components := manifests.RetrieveComponents(string(stdin))
+	if componentsSpecs, err := components.Specs(); err == nil {
+		res += componentsSpecs
 	}
 
 	fmt.Print(res)

@@ -39,7 +39,7 @@ fi
 # having a perfect match with the intended real world production
 # design.
 
-INGRESS_CONTAINER_NAME=$(cat "${CLUSTER_CONF}" | oi cluster ingress-node-name --cluster "${CLUSTER_NAME}")
+INGRESS_CONTAINER_NAME=$(cat "${CLUSTER_CONF}" | oi cluster ingress-component-name --cluster "${CLUSTER_NAME}")
 INGRESS_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' "${INGRESS_CONTAINER_NAME}")
 
 KUBECONFIG=$(mktemp /tmp/kubeconfig-XXXXXXX)

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package component
+package components
 
 import (
 	"errors"
@@ -41,10 +41,10 @@ type ControlPlane struct{}
 
 // Reconcile reconciles the kube-apiserver
 func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
-	node := inquirer.Node()
+	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	klog.V(1).Infof("reconciling control plane in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
+	klog.V(1).Infof("reconciling control plane in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}
@@ -76,11 +76,11 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
-	apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+	apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
 	if !ok {
 		return errors.New("apiserver host port not found")
 	}
-	etcdClientHostPort, ok := node.AllocatedHostPorts["etcd-client"]
+	etcdClientHostPort, ok := component.AllocatedHostPorts["etcd-client"]
 	if !ok {
 		return errors.New("etcd client host port not found")
 	}
@@ -95,7 +95,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   kubeAPIServerImage,
 					Command: []string{"kube-apiserver"},
 					Args: []string{
-						// Each API server accesses the local etcd node only, to
+						// Each API server accesses the local etcd component only, to
 						// avoid reconfigurations; this could be improved in the
 						// future though, to reconfigure them pointing to all
 						// available etcd instances

@@ -24,27 +24,27 @@ import (
 	"github.com/pkg/errors"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-// IngressNode returns the ingress node for the given cluster
-func IngressNode(nodes node.List, cluster *cluster.Cluster) (*node.Node, error) {
-	for _, nodeObj := range nodes {
-		if nodeObj.ClusterName == cluster.Name && nodeObj.Role == node.ControlPlaneIngressRole {
-			return nodeObj, nil
+// IngressComponent returns the ingress component for the given cluster
+func IngressComponent(components component.List, cluster *cluster.Cluster) (*component.Component, error) {
+	for _, componentObj := range components {
+		if componentObj.ClusterName == cluster.Name && componentObj.Role == component.ControlPlaneIngressRole {
+			return componentObj, nil
 		}
 	}
-	return nil, errors.Errorf("could not find ingress node for cluster %q", cluster.Name)
+	return nil, errors.Errorf("could not find ingress component for cluster %q", cluster.Name)
 }
 
 // Endpoint returns the endpoint URI for the given cluster
-func Endpoint(nodes node.List, cluster *cluster.Cluster, hypervisors infra.HypervisorMap, endpointHostOverride string) (string, error) {
-	ingressNode, err := IngressNode(nodes, cluster)
+func Endpoint(components component.List, cluster *cluster.Cluster, hypervisors infra.HypervisorMap, endpointHostOverride string) (string, error) {
+	ingressComponent, err := IngressComponent(components, cluster)
 	if err != nil {
 		return "", nil
 	}
-	apiserverHostPort, ok := ingressNode.AllocatedHostPorts["apiserver"]
+	apiserverHostPort, ok := ingressComponent.AllocatedHostPorts["apiserver"]
 	if !ok {
 		return "", errors.New("apiserver host port not found")
 	}
@@ -52,9 +52,9 @@ func Endpoint(nodes node.List, cluster *cluster.Cluster, hypervisors infra.Hyper
 	if len(endpointHostOverride) > 0 {
 		endpoint = fmt.Sprintf("https://%s", net.JoinHostPort(endpointHostOverride, strconv.Itoa(apiserverHostPort)))
 	} else {
-		hypervisor, ok := hypervisors[ingressNode.HypervisorName]
+		hypervisor, ok := hypervisors[ingressComponent.HypervisorName]
 		if !ok {
-			return "", errors.Errorf("hypervisor %q not found", ingressNode.HypervisorName)
+			return "", errors.Errorf("hypervisor %q not found", ingressComponent.HypervisorName)
 		}
 		endpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
 	}

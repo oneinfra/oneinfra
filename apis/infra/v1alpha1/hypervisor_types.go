@@ -41,9 +41,9 @@ type HypervisorPortRange struct {
 
 // HypervisorPortAllocation represents a port allocation in an hypervisor
 type HypervisorPortAllocation struct {
-	Cluster string `json:"cluster,omitempty"`
-	Node    string `json:"node,omitempty"`
-	Port    int    `json:"port,omitempty"`
+	Cluster   string `json:"cluster,omitempty"`
+	Component string `json:"component,omitempty"`
+	Port      int    `json:"port,omitempty"`
 }
 
 // +kubebuilder:object:root=true

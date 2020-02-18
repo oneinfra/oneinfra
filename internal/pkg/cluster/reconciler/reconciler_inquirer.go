@@ -18,40 +18,40 @@ package reconciler
 
 import (
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 // ClusterReconcilerInquirer represents the cluster reconciler that
 // allows to retrieve information about the cluster
 type ClusterReconcilerInquirer struct {
-	node              *node.Node
+	component         *component.Component
 	clusterReconciler *ClusterReconciler
 }
 
-// Node returns the current node in reconciliation
-func (inquirer *ClusterReconcilerInquirer) Node() *node.Node {
-	return inquirer.node
+// Component returns the current component in reconciliation
+func (inquirer *ClusterReconcilerInquirer) Component() *component.Component {
+	return inquirer.component
 }
 
 // Hypervisor returns the current hypervisor in reconciliation
 func (inquirer *ClusterReconcilerInquirer) Hypervisor() *infra.Hypervisor {
-	return inquirer.NodeHypervisor(inquirer.node)
+	return inquirer.ComponentHypervisor(inquirer.component)
 }
 
 // Cluster returns the current cluster in reconciliation
 func (inquirer *ClusterReconcilerInquirer) Cluster() *cluster.Cluster {
-	return inquirer.clusterReconciler.clusterMap[inquirer.Node().ClusterName]
+	return inquirer.clusterReconciler.clusterMap[inquirer.Component().ClusterName]
 }
 
-// ClusterNodes returns a list of nodes with the provided role for the
+// ClusterComponents returns a list of components with the provided role for the
 // current cluster in reconciliation
-func (inquirer *ClusterReconcilerInquirer) ClusterNodes(role node.Role) node.List {
-	return inquirer.clusterReconciler.nodeList.WithCluster(inquirer.Cluster().Name).WithRole(role)
+func (inquirer *ClusterReconcilerInquirer) ClusterComponents(role component.Role) component.List {
+	return inquirer.clusterReconciler.componentList.WithCluster(inquirer.Cluster().Name).WithRole(role)
 }
 
-// NodeHypervisor returns the hypervisor where the provided node is
+// ComponentHypervisor returns the hypervisor where the provided component is
 // located
-func (inquirer *ClusterReconcilerInquirer) NodeHypervisor(node *node.Node) *infra.Hypervisor {
-	return inquirer.clusterReconciler.hypervisorMap[node.HypervisorName]
+func (inquirer *ClusterReconcilerInquirer) ComponentHypervisor(component *component.Component) *infra.Hypervisor {
+	return inquirer.clusterReconciler.hypervisorMap[component.HypervisorName]
 }

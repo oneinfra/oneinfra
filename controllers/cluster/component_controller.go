@@ -27,29 +27,29 @@ import (
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
 )
 
-// NodeReconciler reconciles a Node object
-type NodeReconciler struct {
+// ComponentReconciler reconciles a Component object
+type ComponentReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=nodes,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=nodes/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components/status,verbs=get;update;patch
 
-// Reconcile reconciles the node resources
-func (r *NodeReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+// Reconcile reconciles the component resources
+func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = r.Log.WithValues("node", req.NamespacedName)
+	_ = r.Log.WithValues("component", req.NamespacedName)
 
 	// your logic here
 
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the node reconciler with mgr manager
-func (r *NodeReconciler) SetupWithManager(mgr ctrl.Manager) error {
+// SetupWithManager sets up the component reconciler with mgr manager
+func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&clusterv1alpha1.Node{}).
+		For(&clusterv1alpha1.Component{}).
 		Complete(r)
 }

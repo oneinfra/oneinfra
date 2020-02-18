@@ -26,26 +26,26 @@ import (
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
 )
 
-// IngressNodeName prints the ingress node name for this cluster
-func IngressNodeName(clusterName string) error {
+// IngressComponentName prints the ingress component name for this cluster
+func IngressComponentName(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
 	clusters := manifests.RetrieveClusters(string(stdin))
-	nodes := manifests.RetrieveNodes(string(stdin))
+	components := manifests.RetrieveComponents(string(stdin))
 
 	cluster, ok := clusters[clusterName]
 	if !ok {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	ingressNode, err := endpoint.IngressNode(nodes, cluster)
+	ingressComponent, err := endpoint.IngressComponent(components, cluster)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(ingressNode.HypervisorName)
+	fmt.Println(ingressComponent.HypervisorName)
 
 	return nil
 }

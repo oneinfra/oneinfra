@@ -20,34 +20,34 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
+	componentreconciler "oneinfra.ereslibre.es/m/internal/pkg/component/reconciler"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
-	nodereconciler "oneinfra.ereslibre.es/m/internal/pkg/node/reconciler"
 )
 
 // ClusterReconciler represents a cluster reconciler
 type ClusterReconciler struct {
 	hypervisorMap infra.HypervisorMap
 	clusterMap    cluster.Map
-	nodeList      node.List
+	componentList component.List
 }
 
-// NewClusterReconciler creates a cluster reconciler with the provided hypervisors, clusters and nodes
-func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.Map, nodeList node.List) *ClusterReconciler {
+// NewClusterReconciler creates a cluster reconciler with the provided hypervisors, clusters and components
+func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.Map, componentList component.List) *ClusterReconciler {
 	return &ClusterReconciler{
 		hypervisorMap: hypervisorMap,
 		clusterMap:    clusterMap,
-		nodeList:      nodeList,
+		componentList: componentList,
 	}
 }
 
-// Reconcile reconciles all nodes known to this cluster reconciler
+// Reconcile reconciles all components known to this cluster reconciler
 func (clusterReconciler *ClusterReconciler) Reconcile() error {
 	klog.V(1).Info("starting reconciliation process")
-	for _, nodeObj := range clusterReconciler.nodeList {
-		nodereconciler.Reconcile(
+	for _, componentObj := range clusterReconciler.componentList {
+		componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
-				node:              nodeObj,
+				component:         componentObj,
 				clusterReconciler: clusterReconciler,
 			},
 		)
@@ -68,10 +68,10 @@ func (clusterReconciler *ClusterReconciler) Specs() (string, error) {
 		return "", nil
 	}
 	res += clusters
-	nodes, err := clusterReconciler.nodeList.Specs()
+	components, err := clusterReconciler.componentList.Specs()
 	if err != nil {
 		return "", nil
 	}
-	res += nodes
+	res += components
 	return res, nil
 }

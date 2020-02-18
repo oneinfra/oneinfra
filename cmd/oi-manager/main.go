@@ -86,12 +86,12 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
 	}
-	if err = (&clustercontroller.NodeReconciler{
+	if err = (&clustercontroller.ComponentReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Node"),
+		Log:    ctrl.Log.WithName("controllers").WithName("Component"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Node")
+		setupLog.Error(err, "unable to create controller", "controller", "Component")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

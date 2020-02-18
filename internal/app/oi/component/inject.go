@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package node
+package component
 
 import (
 	"fmt"
@@ -23,14 +23,14 @@ import (
 
 	"github.com/pkg/errors"
 
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-// Inject injects a node with name nodeName that belongs to cluster
+// Inject injects a component with name componentName that belongs to cluster
 // with name clusterName
-func Inject(nodeName, clusterName, role string) error {
+func Inject(componentName, clusterName, role string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -40,26 +40,26 @@ func Inject(nodeName, clusterName, role string) error {
 		return errors.New("empty list of hypervisors")
 	}
 	clusters := manifests.RetrieveClusters(string(stdin))
-	nodes := manifests.RetrieveNodes(string(stdin))
+	components := manifests.RetrieveComponents(string(stdin))
 
-	var injectedNodeRole node.Role
+	var injectedComponentRole component.Role
 	var hypervisorList infra.HypervisorList
 	switch role {
 	case "controlplane":
-		injectedNodeRole = node.ControlPlaneRole
+		injectedComponentRole = component.ControlPlaneRole
 		hypervisorList = hypervisors.PrivateList()
 	case "controlplane-ingress":
-		injectedNodeRole = node.ControlPlaneIngressRole
+		injectedComponentRole = component.ControlPlaneIngressRole
 		hypervisorList = hypervisors.PublicList()
 	default:
 		return errors.Errorf("unknown role %q", role)
 	}
 
-	injectedNode, err := node.NewNodeWithRandomHypervisor(clusterName, nodeName, injectedNodeRole, hypervisorList)
+	injectedComponent, err := component.NewComponentWithRandomHypervisor(clusterName, componentName, injectedComponentRole, hypervisorList)
 	if err != nil {
 		return err
 	}
-	injectedNodeList := node.List{injectedNode}
+	injectedComponentList := component.List{injectedComponent}
 
 	res := ""
 
@@ -71,12 +71,12 @@ func Inject(nodeName, clusterName, role string) error {
 		res += clustersSpecs
 	}
 
-	if nodesSpecs, err := nodes.Specs(); err == nil {
-		res += nodesSpecs
+	if componentsSpecs, err := components.Specs(); err == nil {
+		res += componentsSpecs
 	}
 
-	if injectedNodeSpecs, err := injectedNodeList.Specs(); err == nil {
-		res += injectedNodeSpecs
+	if injectedComponentSpecs, err := injectedComponentList.Specs(); err == nil {
+		res += injectedComponentSpecs
 	}
 
 	fmt.Print(res)

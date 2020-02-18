@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package component
+package components
 
 import (
 	"bytes"
@@ -26,9 +26,9 @@ import (
 
 	"k8s.io/klog"
 
+	"oneinfra.ereslibre.es/m/internal/pkg/component"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
 	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
 const (
@@ -71,14 +71,14 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 	}{
 		APIServers: map[string]string{},
 	}
-	clusterNodes := inquirer.ClusterNodes(node.ControlPlaneRole)
-	for _, node := range clusterNodes {
-		apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+	clusterComponents := inquirer.ClusterComponents(component.ControlPlaneRole)
+	for _, component := range clusterComponents {
+		apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
 		if !ok {
 			return "", errors.New("apiserver host port not found")
 		}
-		haProxyConfigData.APIServers[node.Name] = net.JoinHostPort(
-			inquirer.NodeHypervisor(node).IPAddress,
+		haProxyConfigData.APIServers[component.Name] = net.JoinHostPort(
+			inquirer.ComponentHypervisor(component).IPAddress,
 			strconv.Itoa(apiserverHostPort),
 		)
 	}
@@ -89,10 +89,10 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 
 // Reconcile reconciles the control plane ingress
 func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
-	node := inquirer.Node()
+	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	klog.V(1).Infof("reconciling control plane ingress in node %q, present in hypervisor %q, belonging to cluster %q", node.Name, hypervisor.Name, cluster.Name)
+	klog.V(1).Infof("reconciling control plane ingress in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, "haproxy.cfg")); err != nil {
 		return err
 	}
-	apiserverHostPort, ok := node.AllocatedHostPorts["apiserver"]
+	apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
 	if !ok {
 		return errors.New("apiserver host port not found")
 	}

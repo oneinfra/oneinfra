@@ -344,15 +344,15 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 }
 
 // RequestPort requests a port on the current hypervisor
-func (hypervisor *Hypervisor) RequestPort(clusterName, nodeName string) (int, error) {
+func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (int, error) {
 	newPort := hypervisor.portRangeLow + len(hypervisor.allocatedPorts)
 	if newPort > hypervisor.portRangeHigh {
 		return 0, errors.Errorf("no available ports on hypervisor %q", hypervisor.Name)
 	}
 	hypervisor.allocatedPorts = append(hypervisor.allocatedPorts, HypervisorPortAllocation{
-		Cluster: clusterName,
-		Node:    nodeName,
-		Port:    newPort,
+		Cluster:   clusterName,
+		Component: componentName,
+		Port:      newPort,
 	})
 	klog.V(2).Infof("port requested for hypervisor %q; assigned: %d", hypervisor.Name, newPort)
 	return newPort, nil

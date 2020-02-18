@@ -20,19 +20,19 @@ import (
 	"k8s.io/klog"
 
 	"oneinfra.ereslibre.es/m/internal/pkg/component"
+	"oneinfra.ereslibre.es/m/internal/pkg/component/components"
 	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
-	"oneinfra.ereslibre.es/m/internal/pkg/node"
 )
 
-// Reconcile reconciles the node
+// Reconcile reconciles the component
 func Reconcile(inquirer inquirer.ReconcilerInquirer) error {
-	klog.V(1).Infof("reconciling node %q with role %q", inquirer.Node().Name, inquirer.Node().Role)
-	var componentObj component.Component
-	switch inquirer.Node().Role {
-	case node.ControlPlaneRole:
-		componentObj = &component.ControlPlane{}
-	case node.ControlPlaneIngressRole:
-		componentObj = &component.ControlPlaneIngress{}
+	klog.V(1).Infof("reconciling component %q with role %q", inquirer.Component().Name, inquirer.Component().Role)
+	var componentObj components.Component
+	switch inquirer.Component().Role {
+	case component.ControlPlaneRole:
+		componentObj = &components.ControlPlane{}
+	case component.ControlPlaneIngressRole:
+		componentObj = &components.ControlPlaneIngress{}
 	}
 	return componentObj.Reconcile(inquirer)
 }

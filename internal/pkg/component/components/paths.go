@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package inquirer
+package components
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/component"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"path/filepath"
 )
 
-// ReconcilerInquirer represents an interface that allows a
-// reconciliation cycle to retrieve information about the cluster
-type ReconcilerInquirer interface {
-	Component() *component.Component
-	Hypervisor() *infra.Hypervisor
-	Cluster() *cluster.Cluster
-	ClusterComponents(component.Role) component.List
-	ComponentHypervisor(*component.Component) *infra.Hypervisor
+func secretsPath(clusterName string) string {
+	return filepath.Join("/etc/oneinfra/clusters", clusterName)
+}
+
+func storagePath(clusterName string) string {
+	return filepath.Join("/var/lib/oneinfra/clusters", clusterName)
+}
+
+func secretsPathFile(clusterName, file string) string {
+	return filepath.Join(secretsPath(clusterName), file)
 }

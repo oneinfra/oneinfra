@@ -1,13 +1,13 @@
-# permissions for end users to edit nodes.
+# permissions for end users to edit components.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: node-editor-role
+  name: component-editor-role
 rules:
 - apiGroups:
   - cluster.oneinfra.ereslibre.es
   resources:
-  - nodes
+  - components
   verbs:
   - create
   - delete
@@ -19,6 +19,6 @@ rules:
 - apiGroups:
   - cluster.oneinfra.ereslibre.es
   resources:
-  - nodes/status
+  - components/status
   verbs:
   - get

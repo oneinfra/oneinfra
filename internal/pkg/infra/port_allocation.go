@@ -22,9 +22,9 @@ import (
 
 // HypervisorPortAllocation represents a port allocation in an hypervisor
 type HypervisorPortAllocation struct {
-	Cluster string
-	Node    string
-	Port    int
+	Cluster   string
+	Component string
+	Port      int
 }
 
 // HypervisorPortAllocationList represents a list of port allocations in an hypervisor
@@ -35,9 +35,9 @@ func NewHypervisorPortAllocationListFromv1alpha1(hypervisorPortAllocationList []
 	res := HypervisorPortAllocationList{}
 	for _, hypervisorPortAllocation := range hypervisorPortAllocationList {
 		res = append(res, HypervisorPortAllocation{
-			Cluster: hypervisorPortAllocation.Cluster,
-			Node:    hypervisorPortAllocation.Node,
-			Port:    hypervisorPortAllocation.Port,
+			Cluster:   hypervisorPortAllocation.Cluster,
+			Component: hypervisorPortAllocation.Component,
+			Port:      hypervisorPortAllocation.Port,
 		})
 	}
 	return res
@@ -48,9 +48,9 @@ func (hypervisorPortAllocationList HypervisorPortAllocationList) Export() []infr
 	res := []infrav1alpha1.HypervisorPortAllocation{}
 	for _, hypervisorPortAllocation := range hypervisorPortAllocationList {
 		res = append(res, infrav1alpha1.HypervisorPortAllocation{
-			Cluster: hypervisorPortAllocation.Cluster,
-			Node:    hypervisorPortAllocation.Node,
-			Port:    hypervisorPortAllocation.Port,
+			Cluster:   hypervisorPortAllocation.Cluster,
+			Component: hypervisorPortAllocation.Component,
+			Port:      hypervisorPortAllocation.Port,
 		})
 	}
 	return res

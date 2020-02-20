@@ -38,6 +38,8 @@ type CertificateAuthorities struct {
 	APIServerClient   *CertificateAuthority
 	CertificateSigner *CertificateAuthority
 	Kubelet           *CertificateAuthority
+	EtcdClient        *CertificateAuthority
+	EtcdPeer          *CertificateAuthority
 }
 
 // CertificateAuthority represents a certificate authority
@@ -56,15 +58,23 @@ type KeyPair struct {
 }
 
 func newCertificateAuthorities() (*CertificateAuthorities, error) {
-	apiserverClientAuthority, err := newCertificateAuthority()
+	apiserverClientAuthority, err := newCertificateAuthority("apiserver-client-authority")
 	if err != nil {
 		return nil, err
 	}
-	certificateSignerAuthority, err := newCertificateAuthority()
+	certificateSignerAuthority, err := newCertificateAuthority("certificate-signer-authority")
 	if err != nil {
 		return nil, err
 	}
-	kubeletAuthority, err := newCertificateAuthority()
+	kubeletAuthority, err := newCertificateAuthority("kubelet-authority")
+	if err != nil {
+		return nil, err
+	}
+	etcdClientAuthority, err := newCertificateAuthority("etcd-client-authority")
+	if err != nil {
+		return nil, err
+	}
+	etcdPeerAuthority, err := newCertificateAuthority("etcd-peer-authority")
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +82,8 @@ func newCertificateAuthorities() (*CertificateAuthorities, error) {
 		APIServerClient:   apiserverClientAuthority,
 		CertificateSigner: certificateSignerAuthority,
 		Kubelet:           kubeletAuthority,
+		EtcdClient:        etcdClientAuthority,
+		EtcdPeer:          etcdPeerAuthority,
 	}, nil
 }
 
@@ -101,7 +113,7 @@ func newPrivateKey() (*KeyPair, error) {
 	}, nil
 }
 
-func newCertificateAuthority() (*CertificateAuthority, error) {
+func newCertificateAuthority(authorityName string) (*CertificateAuthority, error) {
 	privateKey, err := newPrivateKey()
 	if err != nil {
 		return nil, err
@@ -113,6 +125,7 @@ func newCertificateAuthority() (*CertificateAuthority, error) {
 	caCertificate := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
+			CommonName:    authorityName,
 			Organization:  []string{"Some Company"},
 			Country:       []string{"Some Country"},
 			Province:      []string{"Some Province"},
@@ -186,8 +199,10 @@ func (ca *CertificateAuthority) CreateCertificate(commonName string, organizatio
 	if err != nil {
 		return "", "", err
 	}
-	sansHosts := []string{"localhost"}
-	sansIps := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+	var sansHosts []string
+	var sansIps []net.IP
+	sansHosts = []string{"localhost"}
+	sansIps = []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
 	for _, extraSAN := range extraSANs {
 		if ip := net.ParseIP(extraSAN); ip != nil {
 			sansIps = append(sansIps, ip)

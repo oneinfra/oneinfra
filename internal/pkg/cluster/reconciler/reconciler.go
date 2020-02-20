@@ -45,12 +45,15 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 func (clusterReconciler *ClusterReconciler) Reconcile() error {
 	klog.V(1).Info("starting reconciliation process")
 	for _, componentObj := range clusterReconciler.componentList {
-		componentreconciler.Reconcile(
+		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
 				component:         componentObj,
 				clusterReconciler: clusterReconciler,
 			},
 		)
+		if err != nil {
+			klog.Errorf("failed to reconcile component %q: %v", componentObj.Name, err)
+		}
 	}
 	return nil
 }

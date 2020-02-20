@@ -32,6 +32,7 @@ import (
 type Cluster struct {
 	Name                   string
 	CertificateAuthorities *CertificateAuthorities
+	EtcdServer             *EtcdServer
 	APIServer              *KubeAPIServer
 	StorageClientEndpoints []string
 	StoragePeerEndpoints   []string
@@ -41,9 +42,9 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns a cluster with name clusterName
-func NewCluster(clusterName string, apiServerExtraSANs []string) (*Cluster, error) {
+func NewCluster(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
 	res := Cluster{Name: clusterName}
-	if err := res.generateCertificates(apiServerExtraSANs); err != nil {
+	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -57,6 +58,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			APIServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
 			CertificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
 			Kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
+			EtcdClient:        newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdClient),
+			EtcdPeer:          newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdPeer),
 		},
 		APIServer: &KubeAPIServer{
 			CA:                       newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
@@ -65,6 +68,12 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
 			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
 			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
+		},
+		EtcdServer: &EtcdServer{
+			CA:            newCertificateAuthorityFromv1alpha1(cluster.Spec.EtcdServer.CA),
+			TLSCert:       cluster.Spec.EtcdServer.TLSCert,
+			TLSPrivateKey: cluster.Spec.EtcdServer.TLSPrivateKey,
+			ExtraSANs:     cluster.Spec.EtcdServer.ExtraSANs,
 		},
 		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
@@ -92,6 +101,14 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
 				},
+				EtcdClient: clusterv1alpha1.CertificateAuthority{
+					Certificate: cluster.CertificateAuthorities.EtcdClient.Certificate,
+					PrivateKey:  cluster.CertificateAuthorities.EtcdClient.PrivateKey,
+				},
+				EtcdPeer: clusterv1alpha1.CertificateAuthority{
+					Certificate: cluster.CertificateAuthorities.EtcdPeer.Certificate,
+					PrivateKey:  cluster.CertificateAuthorities.EtcdPeer.PrivateKey,
+				},
 			},
 			APIServer: clusterv1alpha1.KubeAPIServer{
 				CA: &clusterv1alpha1.CertificateAuthority{
@@ -105,6 +122,15 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
 				},
 				ExtraSANs: cluster.APIServer.ExtraSANs,
+			},
+			EtcdServer: clusterv1alpha1.EtcdServer{
+				CA: &clusterv1alpha1.CertificateAuthority{
+					Certificate: cluster.EtcdServer.CA.Certificate,
+					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,
+				},
+				TLSCert:       cluster.EtcdServer.TLSCert,
+				TLSPrivateKey: cluster.EtcdServer.TLSPrivateKey,
+				ExtraSANs:     cluster.EtcdServer.ExtraSANs,
 			},
 		},
 		Status: clusterv1alpha1.ClusterStatus{
@@ -129,12 +155,17 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) generateCertificates(apiServerExtraSANs []string) error {
+func (cluster *Cluster) generateCertificates(etcdServerExtraSANs []string, apiServerExtraSANs []string) error {
 	certificateAuthorities, err := newCertificateAuthorities()
 	if err != nil {
 		return err
 	}
 	cluster.CertificateAuthorities = certificateAuthorities
+	etcdServer, err := newEtcdServer(etcdServerExtraSANs)
+	if err != nil {
+		return err
+	}
+	cluster.EtcdServer = etcdServer
 	kubeAPIServer, err := newKubeAPIServer(apiServerExtraSANs)
 	if err != nil {
 		return err

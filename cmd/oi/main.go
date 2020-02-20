@@ -47,12 +47,16 @@ func main() {
 								Usage:    "cluster name",
 							},
 							&cli.StringSliceFlag{
+								Name:  "etcdserver-extra-sans",
+								Usage: "etcd server extra SANs",
+							},
+							&cli.StringSliceFlag{
 								Name:  "apiserver-extra-sans",
 								Usage: "API server extra SANs",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Inject(c.String("name"), c.StringSlice("apiserver-extra-sans"))
+							return cluster.Inject(c.String("name"), c.StringSlice("etcdserver-extra-sans"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{

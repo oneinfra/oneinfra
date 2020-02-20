@@ -39,10 +39,11 @@ RECONCILED_CLUSTER_CONF=$(mktemp /tmp/reconciled-cluster-${INFRA_TEST_CLUSTER_NA
 # connect to the infrastructure, read more on the
 # `create-fake-worker.sh` script
 APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--apiserver-extra-sans {}" | paste -sd " " -)"
+ETCDSERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSettings.IPAddress }}' | xargs -I{} echo "--etcdserver-extra-sans {}" | paste -sd " " -)"
 
 echo "Reconciling infrastructure"
 cat ${CLUSTER_CONF} | \
-    oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} | \
+    oi cluster inject --name "${CLUSTER_NAME}" ${APISERVER_EXTRA_SANS} ${ETCDSERVER_EXTRA_SANS} | \
     oi component inject --name controlplane1 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi component inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi component inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role controlplane | \

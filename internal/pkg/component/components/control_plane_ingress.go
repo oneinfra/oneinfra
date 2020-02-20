@@ -100,7 +100,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err != nil {
 		return err
 	}
-	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, "haproxy.cfg")); err != nil {
+	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, component.Name, "haproxy.cfg")); err != nil {
 		return err
 	}
 	apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
@@ -116,7 +116,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 					Name:  "haproxy",
 					Image: haProxyImage,
 					Mounts: map[string]string{
-						secretsPathFile(cluster.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
+						secretsPathFile(cluster.Name, component.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
 					},
 				},
 			},

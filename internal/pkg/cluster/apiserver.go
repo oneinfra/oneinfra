@@ -28,7 +28,7 @@ type KubeAPIServer struct {
 
 func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	// TODO: allow no CA generation, provided cert and key
-	certificateAuthority, err := newCertificateAuthority()
+	certificateAuthority, err := newCertificateAuthority("apiserver-authority")
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,11 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 		CA:        certificateAuthority,
 		ExtraSANs: apiServerExtraSANs,
 	}
-	tlsCert, tlsKey, err := certificateAuthority.CreateCertificate("kube-apiserver", []string{"kube-apiserver"}, apiServerExtraSANs)
+	tlsCert, tlsKey, err := certificateAuthority.CreateCertificate(
+		"kube-apiserver",
+		[]string{"kube-apiserver"},
+		apiServerExtraSANs,
+	)
 	if err != nil {
 		return nil, err
 	}

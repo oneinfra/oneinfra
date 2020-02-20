@@ -20,14 +20,14 @@ import (
 	"path/filepath"
 )
 
-func secretsPath(clusterName string) string {
-	return filepath.Join("/etc/oneinfra/clusters", clusterName)
+func secretsPath(clusterName, componentName string) string {
+	return filepath.Join("/etc/oneinfra/clusters", clusterName, componentName)
 }
 
 func storagePath(clusterName string) string {
 	return filepath.Join("/var/lib/oneinfra/clusters", clusterName)
 }
 
-func secretsPathFile(clusterName, file string) string {
-	return filepath.Join(secretsPath(clusterName), file)
+func secretsPathFile(clusterName, componentName, file string) string {
+	return filepath.Join(secretsPath(clusterName, componentName), file)
 }

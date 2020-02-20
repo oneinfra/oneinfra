@@ -18,6 +18,9 @@ package components
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"net"
 	"net/url"
@@ -42,16 +45,43 @@ const (
 )
 
 func (controlPlane *ControlPlane) etcdClient(inquirer inquirer.ReconcilerInquirer) (*clientv3.Client, error) {
-	return clientv3.New(clientv3.Config{
-		Endpoints:   controlPlane.etcdClientEndpoints(inquirer),
-		DialTimeout: etcdDialTimeout,
-	})
+	return controlPlane.etcdClientWithEndpoints(
+		inquirer,
+		controlPlane.etcdClientEndpoints(inquirer),
+	)
 }
 
-func (controlPlane *ControlPlane) etcdClientWithEndpoints(endpoints []string) (*clientv3.Client, error) {
+func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.ReconcilerInquirer, endpoints []string) (*clientv3.Client, error) {
+	cluster := inquirer.Cluster()
+	etcdServerCABlock, _ := pem.Decode([]byte(cluster.EtcdServer.CA.Certificate))
+	if etcdServerCABlock == nil {
+		return nil, errors.Errorf("cannot decode etcd server CA certificate")
+	}
+	etcdServerCA, err := x509.ParseCertificate(etcdServerCABlock.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	etcdClientCert, etcdClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
+		"oneinfra-client",
+		[]string{cluster.Name},
+		[]string{},
+	)
+	if err != nil {
+		return nil, err
+	}
+	etcdClient, err := tls.X509KeyPair([]byte(etcdClientCert), []byte(etcdClientPrivateKey))
+	if err != nil {
+		return nil, err
+	}
+	etcdServerCAPool := x509.NewCertPool()
+	etcdServerCAPool.AddCert(etcdServerCA)
 	return clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
 		DialTimeout: etcdDialTimeout,
+		TLS: &tls.Config{
+			RootCAs:      etcdServerCAPool,
+			Certificates: []tls.Certificate{etcdClient},
+		},
 	})
 }
 
@@ -75,7 +105,7 @@ func (controlPlane *ControlPlane) etcdPeerEndpoints(inquirer inquirer.Reconciler
 		endpoints = append(endpoints, endpointURL[1])
 	}
 	if etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]; ok {
-		endpointURL := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+		endpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 		endpoints = append(endpoints, endpointURL.String())
 	}
 	return endpoints
@@ -91,12 +121,12 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	for {
-		klog.V(2).Infof("adding etcd learner %s", component.Name)
+		klog.V(2).Infof("adding etcd learner %q", component.Name)
 		etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]
 		if !ok {
-			return errors.Errorf("etcd peer host port not found for component %s", component.Name)
+			return errors.Errorf("etcd peer host port not found for component %q", component.Name)
 		}
-		peerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+		peerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 		_, err = etcdClient.MemberAddAsLearner(
 			ctx,
 			[]string{peerURLs.String()},
@@ -107,6 +137,7 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 		// TODO: retry timeout
 		time.Sleep(time.Second)
 	}
+	klog.V(2).Infof("etcd learner %q added", component.Name)
 	return nil
 }
 
@@ -142,7 +173,7 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 			klog.V(2).Infof("member %q not found", component.Name)
 			continue
 		}
-		etcdClient, err = controlPlane.etcdClientWithEndpoints(endpoints)
+		etcdClient, err = controlPlane.etcdClientWithEndpoints(inquirer, endpoints)
 		if err != nil {
 			return err
 		}
@@ -199,7 +230,7 @@ func (controlPlane *ControlPlane) hasEtcdMember(inquirer inquirer.ReconcilerInqu
 	if !ok {
 		return false, errors.Errorf("etcd peer host port not found for component %s", component.Name)
 	}
-	peerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+	peerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 	memberList, err := etcdClient.MemberList(ctx)
 	if err != nil {
 		return false, err
@@ -227,6 +258,24 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	if isEtcdRunning {
 		return nil
 	}
+	etcdPeerCertificate, etcdPeerPrivateKey, err := cluster.CertificateAuthorities.EtcdPeer.CreateCertificate(
+		fmt.Sprintf("%s.etcd.cluster", cluster.Name),
+		[]string{cluster.Name},
+		cluster.EtcdServer.ExtraSANs,
+	)
+	if err != nil {
+		return err
+	}
+	err = hypervisor.UploadFiles(
+		map[string]string{
+			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           cluster.EtcdServer.TLSCert,
+			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           cluster.EtcdServer.TLSPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"): cluster.CertificateAuthorities.EtcdClient.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"):   cluster.CertificateAuthorities.EtcdPeer.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"):      etcdPeerPrivateKey,
+		},
+	)
 	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))
 	if err != nil {
 		return err
@@ -279,23 +328,34 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	listenClientURLs := url.URL{Scheme: "http", Host: "0.0.0.0:2379"}
-	advertiseClientURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
-	listenPeerURLs := url.URL{Scheme: "http", Host: "0.0.0.0:2380"}
-	initialAdvertisePeerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+	listenClientURLs := url.URL{Scheme: "https", Host: "0.0.0.0:2379"}
+	advertiseClientURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
+	listenPeerURLs := url.URL{Scheme: "https", Host: "0.0.0.0:2380"}
+	initialAdvertisePeerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 	etcdContainer := pod.Container{
 		Name:    "etcd",
 		Image:   etcdImage,
 		Command: []string{"etcd"},
 		Args: []string{
 			"--name", component.Name,
+			"--client-cert-auth",
+			"--peer-cert-allowed-cn", fmt.Sprintf("%s.etcd.cluster", cluster.Name),
+			"--experimental-peer-skip-client-san-verification",
+			"--cert-file", secretsPathFile(cluster.Name, component.Name, "etcd.crt"),
+			"--key-file", secretsPathFile(cluster.Name, component.Name, "etcd.key"),
+			"--trusted-ca-file", secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"),
+			"--peer-trusted-ca-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"),
+			"--peer-cert-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"),
+			"--peer-key-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"),
 			"--data-dir", etcdDataDir,
 			"--listen-client-urls", listenClientURLs.String(),
 			"--advertise-client-urls", advertiseClientURLs.String(),
 			"--listen-peer-urls", listenPeerURLs.String(),
 			"--initial-advertise-peer-urls", initialAdvertisePeerURLs.String(),
+			"--enable-grpc-gateway=false",
 		},
 		Mounts: map[string]string{
+			secretsPath(cluster.Name, component.Name):                        secretsPath(cluster.Name, component.Name),
 			filepath.Join(storagePath(cluster.Name), "etcd", component.Name): etcdDataDir,
 		},
 	}
@@ -308,7 +368,7 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 		endpoints := []string{}
 		for _, endpoint := range cluster.StoragePeerEndpoints {
 			endpointURLRaw := strings.Split(endpoint, "=")
-			endpointURL := url.URL{Scheme: "http", Host: endpointURLRaw[1]}
+			endpointURL := url.URL{Scheme: "https", Host: endpointURLRaw[1]}
 			endpoints = append(endpoints, fmt.Sprintf("%s=%s", endpointURLRaw[0], endpointURL.String()))
 		}
 		etcdContainer.Args = append(

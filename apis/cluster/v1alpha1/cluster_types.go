@@ -23,6 +23,7 @@ import (
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
 	CertificateAuthorities CertificateAuthorities `json:"certificateAuthorities,omitempty"`
+	EtcdServer             EtcdServer             `json:"etcdServer,omitempty"`
 	APIServer              KubeAPIServer          `json:"apiServer,omitempty"`
 }
 
@@ -37,6 +38,8 @@ type CertificateAuthorities struct {
 	APIServerClient   CertificateAuthority `json:"apiServerClient,omitempty"`
 	CertificateSigner CertificateAuthority `json:"certificateSigner,omitempty"`
 	Kubelet           CertificateAuthority `json:"kubelet,omitempty"`
+	EtcdClient        CertificateAuthority `json:"etcdClient,omitempty"`
+	EtcdPeer          CertificateAuthority `json:"etcdPeer,omitempty"`
 }
 
 // CertificateAuthority represents a Certificate Authority
@@ -58,6 +61,14 @@ type KubeAPIServer struct {
 	TLSPrivateKey  string                `json:"tlsPrivateKey,omitempty"`
 	ServiceAccount KeyPair               `json:"serviceAccount,omitempty"`
 	ExtraSANs      []string              `json:"extraSANs,omitempty"`
+}
+
+// EtcdServer represents an etcd server
+type EtcdServer struct {
+	CA            *CertificateAuthority `json:"ca,omitempty"`
+	TLSCert       string                `json:"tlsCert,omitempty"`
+	TLSPrivateKey string                `json:"tlsPrivateKey,omitempty"`
+	ExtraSANs     []string              `json:"extraSANs,omitempty"`
 }
 
 // +kubebuilder:object:root=true

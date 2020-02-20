@@ -48,6 +48,14 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}
+	etcdClientCertificate, etcdClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
+		fmt.Sprintf("apiserver-%s", component.Name),
+		[]string{cluster.Name},
+		[]string{},
+	)
+	if err != nil {
+		return err
+	}
 	controllerManagerKubeConfig, err := cluster.KubeConfig("https://127.0.0.1:6443")
 	if err != nil {
 		return err
@@ -58,16 +66,20 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	}
 	err = hypervisor.UploadFiles(
 		map[string]string{
+			// etcd secrets
+			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):     cluster.EtcdServer.CA.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-client.crt"): etcdClientCertificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-client.key"): etcdClientPrivateKey,
 			// API server secrets
-			secretsPathFile(cluster.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			secretsPathFile(cluster.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
-			secretsPathFile(cluster.Name, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
-			secretsPathFile(cluster.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
 			// controller-manager secrets
-			secretsPathFile(cluster.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
-			secretsPathFile(cluster.Name, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
+			secretsPathFile(cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
 			// scheduler secrets
-			secretsPathFile(cluster.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
+			secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
 		},
 	)
 	if err != nil {
@@ -84,7 +96,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if !ok {
 		return errors.New("etcd client host port not found")
 	}
-	etcdServers := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
+	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	_, err = hypervisor.RunPod(
 		cluster,
 		pod.NewPod(
@@ -100,16 +112,19 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						// future though, to reconfigure them pointing to all
 						// available etcd instances
 						"--etcd-servers", etcdServers.String(),
+						"--etcd-cafile", secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"),
+						"--etcd-certfile", secretsPathFile(cluster.Name, component.Name, "etcd-client.crt"),
+						"--etcd-keyfile", secretsPathFile(cluster.Name, component.Name, "etcd-client.key"),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--allow-privileged", "true",
-						"--tls-cert-file", secretsPathFile(cluster.Name, "apiserver.crt"),
-						"--tls-private-key-file", secretsPathFile(cluster.Name, "apiserver.key"),
-						"--client-ca-file", secretsPathFile(cluster.Name, "apiserver-client-ca.crt"),
-						"--service-account-key-file", secretsPathFile(cluster.Name, "service-account-pub.key"),
+						"--tls-cert-file", secretsPathFile(cluster.Name, component.Name, "apiserver.crt"),
+						"--tls-private-key-file", secretsPathFile(cluster.Name, component.Name, "apiserver.key"),
+						"--client-ca-file", secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"),
+						"--service-account-key-file", secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name): secretsPath(cluster.Name),
+						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
 					},
 				},
 				{
@@ -117,11 +132,11 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   kubeControllerManagerImage,
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster.Name, "controller-manager.kubeconfig"),
-						"--service-account-private-key-file", secretsPathFile(cluster.Name, "service-account.key"),
+						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"),
+						"--service-account-private-key-file", secretsPathFile(cluster.Name, component.Name, "service-account.key"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name): secretsPath(cluster.Name),
+						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
 					},
 				},
 				{
@@ -129,10 +144,10 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   kubeSchedulerImage,
 					Command: []string{"kube-scheduler"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster.Name, "scheduler.kubeconfig"),
+						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name): secretsPath(cluster.Name),
+						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
 					},
 				},
 			},

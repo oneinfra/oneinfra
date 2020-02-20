@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/url"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -155,48 +156,110 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 	return nil
 }
 
+func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) (pod.Pod, error) {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))
+	if err != nil {
+		return pod.Pod{}, err
+	}
+	component.AllocatedHostPorts["etcd-peer"] = etcdPeerHostPort
+	etcdClientHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-client", component.Name))
+	if err != nil {
+		return pod.Pod{}, err
+	}
+	component.AllocatedHostPorts["etcd-client"] = etcdClientHostPort
+	etcdContainer, err := controlPlane.etcdContainer(inquirer, etcdClientHostPort, etcdPeerHostPort)
+	if err != nil {
+		return pod.Pod{}, err
+	}
+	return pod.NewPod(
+		fmt.Sprintf("etcd-%s", cluster.Name),
+		[]pod.Container{
+			etcdContainer,
+		},
+		map[int]int{
+			etcdClientHostPort: 2379,
+			etcdPeerHostPort:   2380,
+		},
+	), nil
+}
+
+func (controlPlane *ControlPlane) hasEtcdMember(inquirer inquirer.ReconcilerInquirer) (bool, error) {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	etcdClient, err := controlPlane.etcdClient(inquirer)
+	if err != nil {
+		return false, err
+	}
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+	etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]
+	if !ok {
+		return false, errors.Errorf("etcd peer host port not found for component %s", component.Name)
+	}
+	peerURLs := url.URL{Scheme: "http", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+	memberList, err := etcdClient.MemberList(ctx)
+	if err != nil {
+		return false, err
+	}
+	for _, member := range memberList.Members {
+		if reflect.DeepEqual([]string{peerURLs.String()}, member.PeerURLs) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, component.Name)
+	etcdPod, err := controlPlane.etcdPod(inquirer)
 	if err != nil {
 		return err
 	}
-	component.AllocatedHostPorts["etcd-peer"] = etcdPeerHostPort
+	isEtcdRunning, _, err := hypervisor.IsPodRunning(cluster, etcdPod)
+	if err != nil {
+		return err
+	}
+	if isEtcdRunning {
+		return nil
+	}
+	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))
+	if err != nil {
+		return err
+	}
+	hasEtcdMember := false
+	if len(controlPlane.etcdClientEndpoints(inquirer)) > 0 {
+		hasEtcdMember, err = controlPlane.hasEtcdMember(inquirer)
+		if err != nil {
+			return err
+		}
+	}
+	if hasEtcdMember {
+		return nil
+	}
 	settingUpLearner := len(cluster.StoragePeerEndpoints) > 0
 	if settingUpLearner {
 		if err := controlPlane.setupEtcdLearner(inquirer); err != nil {
 			return err
 		}
 	}
-	etcdClientHostPort, err := hypervisor.RequestPort(cluster.Name, component.Name)
+	etcdClientHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-client", component.Name))
 	if err != nil {
 		return err
 	}
-	component.AllocatedHostPorts["etcd-client"] = etcdClientHostPort
 	cluster.StoragePeerEndpoints = append(
 		cluster.StoragePeerEndpoints,
 		fmt.Sprintf("%s=%s", component.Name, net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))),
 	)
-	etcdContainer, err := controlPlane.etcdContainer(inquirer, etcdClientHostPort, etcdPeerHostPort)
+	etcdPod, err = controlPlane.etcdPod(inquirer)
 	if err != nil {
 		return err
 	}
-	_, err = hypervisor.RunPod(
-		cluster,
-		pod.NewPod(
-			fmt.Sprintf("etcd-%s", cluster.Name),
-			[]pod.Container{
-				etcdContainer,
-			},
-			map[int]int{
-				etcdClientHostPort: 2379,
-				etcdPeerHostPort:   2380,
-			},
-		),
-	)
-	if err != nil {
+	if _, err = hypervisor.RunPod(cluster, etcdPod); err != nil {
 		return err
 	}
 	if settingUpLearner {

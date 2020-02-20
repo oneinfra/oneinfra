@@ -17,6 +17,8 @@ limitations under the License.
 package component
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,7 +61,7 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 		Role:               role,
 		AllocatedHostPorts: map[string]int{},
 	}
-	apiserverHostPort, err := hypervisor.RequestPort(clusterName, componentName)
+	apiserverHostPort, err := hypervisor.RequestPort(clusterName, fmt.Sprintf("%s-apiserver", componentName))
 	if err != nil {
 		return nil, err
 	}

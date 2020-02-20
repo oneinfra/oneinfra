@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +39,9 @@ import (
 )
 
 const (
-	toolingImage = "oneinfra/tooling:latest"
+	toolingImage           = "oneinfra/tooling:latest"
+	podSandboxSHA1SumLabel = "oneinfra-pod-sha1sum"
+	componentLabel         = "component"
 )
 
 // Hypervisor represents an hypervisor
@@ -140,7 +141,7 @@ func (hypervisor *Hypervisor) EnsureImages(images ...string) error {
 }
 
 // PodSandboxConfig returns a pod sandbox config for the given pod and cluster
-func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod.Pod) criapi.PodSandboxConfig {
+func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod.Pod) (criapi.PodSandboxConfig, error) {
 	portMappings := []*criapi.PortMapping{}
 	for hostPort, podPort := range pod.Ports {
 		portMappings = append(portMappings, &criapi.PortMapping{
@@ -148,13 +149,18 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 			ContainerPort: int32(podPort),
 		})
 	}
+	podSum, err := pod.SHA1Sum()
+	if err != nil {
+		return criapi.PodSandboxConfig{}, err
+	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
 			Name: pod.Name,
-			Uid:  uuid.New().String(),
+			Uid:  podSum,
 		},
 		Labels: map[string]string{
-			"component": pod.Name,
+			componentLabel:         pod.Name,
+			podSandboxSHA1SumLabel: podSum,
 		},
 		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
@@ -165,17 +171,91 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 	} else {
 		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", pod.Name, podSandboxConfig.Metadata.Uid)
 	}
-	return podSandboxConfig
+	return podSandboxConfig, nil
+}
+
+// IsPodRunning returns whether a pod is running on the current hypervisor
+func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod pod.Pod) (bool, string, error) {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return false, "", err
+	}
+	podSum, err := pod.SHA1Sum()
+	if err != nil {
+		return false, "", err
+	}
+	klog.V(2).Infof("checking if a pod %q in hypervisor %q is running", pod.Name, hypervisor.Name)
+	podSandboxList, err := criRuntime.ListPodSandbox(
+		context.Background(),
+		&criapi.ListPodSandboxRequest{
+			Filter: &criapi.PodSandboxFilter{
+				LabelSelector: map[string]string{
+					podSandboxSHA1SumLabel: podSum,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return false, "", err
+	}
+	podSandboxID := ""
+	for _, podSandbox := range podSandboxList.Items {
+		if podSandbox.State == criapi.PodSandboxState_SANDBOX_READY {
+			podSandboxID = podSandbox.Id
+			break
+		}
+	}
+	if len(podSandboxID) == 0 {
+		return false, "", nil
+	}
+	klog.V(2).Infof("checking if all containers within pod %q in hypervisor %q are running", pod.Name, hypervisor.Name)
+	containerList, err := criRuntime.ListContainers(
+		context.Background(),
+		&criapi.ListContainersRequest{
+			Filter: &criapi.ContainerFilter{
+				PodSandboxId: podSandboxID,
+			},
+		},
+	)
+	if err != nil {
+		return false, podSandboxID, err
+	}
+	for _, container := range containerList.Containers {
+		containerStatus, err := criRuntime.ContainerStatus(
+			context.Background(),
+			&criapi.ContainerStatusRequest{
+				ContainerId: container.Id,
+			},
+		)
+		if err != nil {
+			return false, podSandboxID, err
+		}
+		if containerStatus.Status.State != criapi.ContainerState_CONTAINER_RUNNING {
+			return false, podSandboxID, nil
+		}
+	}
+	return true, podSandboxID, nil
 }
 
 // RunPod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
-	klog.V(2).Infof("running a pod with name %q in hypervisor %q", pod.Name, hypervisor.Name)
+	isPodRunning, podSandboxID, err := hypervisor.IsPodRunning(cluster, pod)
+	if err != nil {
+		return "", err
+	}
+	if isPodRunning {
+		klog.V(2).Infof("all containers within pod %q in hypervisor %q are running", pod.Name, hypervisor.Name)
+		return podSandboxID, nil
+	}
+	klog.V(2).Infof("running a pod %q in hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err
 	}
-	podSandboxConfig := hypervisor.PodSandboxConfig(cluster, pod)
+	podSandboxConfig, err := hypervisor.PodSandboxConfig(cluster, pod)
+	if err != nil {
+		return "", err
+	}
 	podSandboxResponse, err := criRuntime.RunPodSandbox(
 		context.Background(),
 		&criapi.RunPodSandboxRequest{
@@ -185,7 +265,7 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (str
 	if err != nil {
 		return "", err
 	}
-	podSandboxID := podSandboxResponse.PodSandboxId
+	podSandboxID = podSandboxResponse.PodSandboxId
 	containerIds := []string{}
 	for _, container := range pod.Containers {
 		containerMounts := []*criapi.Mount{}
@@ -343,8 +423,21 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	return hypervisor.DeletePod(podSandboxID)
 }
 
+// HasPort returns whether a port exists for the given clusterName and componentName
+func (hypervisor *Hypervisor) HasPort(clusterName, componentName string) (bool, int) {
+	for _, allocatedPort := range hypervisor.allocatedPorts {
+		if allocatedPort.Cluster == clusterName && allocatedPort.Component == componentName {
+			return true, allocatedPort.Port
+		}
+	}
+	return false, 0
+}
+
 // RequestPort requests a port on the current hypervisor
 func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (int, error) {
+	if hasPort, existingPort := hypervisor.HasPort(clusterName, componentName); hasPort {
+		return existingPort, nil
+	}
 	newPort := hypervisor.portRangeLow + len(hypervisor.allocatedPorts)
 	if newPort > hypervisor.portRangeHigh {
 		return 0, errors.Errorf("no available ports on hypervisor %q", hypervisor.Name)

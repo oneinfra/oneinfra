@@ -20,7 +20,7 @@ test: lint fmt vet
 	./scripts/run.sh go test ./... -coverprofile cover.out
 
 # Build and install manager binary
-manager: fmt vet
+manager:
 	./scripts/run.sh go install ./cmd/oi-manager
 
 # Build and install oi binary

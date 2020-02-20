@@ -16,6 +16,14 @@ limitations under the License.
 
 package pod
 
+import (
+	"crypto/sha1"
+	"fmt"
+
+	"github.com/pkg/errors"
+	"sigs.k8s.io/yaml"
+)
+
 // Pod represents a pod
 type Pod struct {
 	Name       string
@@ -57,4 +65,14 @@ func NewSingleContainerPod(name, image string, command []string, args []string, 
 		},
 		Ports: ports,
 	}
+}
+
+// SHA1Sum returns the SHA-1 of the textual YAML representation of
+// this pod
+func (pod *Pod) SHA1Sum() (string, error) {
+	podManifest, err := yaml.Marshal(pod)
+	if err != nil {
+		return "", errors.Errorf("cannot marshal pod %q", pod.Name)
+	}
+	return fmt.Sprintf("%x", sha1.Sum(podManifest)), nil
 }

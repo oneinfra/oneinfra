@@ -155,7 +155,7 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) generateCertificates(etcdServerExtraSANs []string, apiServerExtraSANs []string) error {
+func (cluster *Cluster) generateCertificates(etcdServerExtraSANs, apiServerExtraSANs []string) error {
 	certificateAuthorities, err := newCertificateAuthorities()
 	if err != nil {
 		return err

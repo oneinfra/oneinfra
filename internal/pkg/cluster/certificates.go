@@ -199,10 +199,8 @@ func (ca *CertificateAuthority) CreateCertificate(commonName string, organizatio
 	if err != nil {
 		return "", "", err
 	}
-	var sansHosts []string
-	var sansIps []net.IP
-	sansHosts = []string{"localhost"}
-	sansIps = []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+	sansHosts := []string{"localhost"}
+	sansIps := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
 	for _, extraSAN := range extraSANs {
 		if ip := net.ParseIP(extraSAN); ip != nil {
 			sansIps = append(sansIps, ip)

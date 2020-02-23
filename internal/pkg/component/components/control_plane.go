@@ -122,6 +122,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--tls-private-key-file", secretsPathFile(cluster.Name, component.Name, "apiserver.key"),
 						"--client-ca-file", secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"),
 						"--service-account-key-file", secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"),
+						"--kubelet-preferred-address-types", "ExternalDNS,ExternalIP,Hostname,InternalDNS,InternalIP",
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),

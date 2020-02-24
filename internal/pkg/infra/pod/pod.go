@@ -24,43 +24,61 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Privileges represents the privileges that a pod sandbox and a
+// container has
+type Privileges int
+
+const (
+	// PrivilegesUnprivileged represents a pod sandbox or a container
+	// with no special privileges
+	PrivilegesUnprivileged Privileges = iota
+	// PrivilegesNetworkPrivileged represents a pod sandbox or a
+	// container with network privileges
+	PrivilegesNetworkPrivileged Privileges = iota
+)
+
 // Pod represents a pod
 type Pod struct {
 	Name       string
 	Containers []Container
 	Ports      map[int]int
+	Privileges Privileges
 }
 
 // Container represents a container
 type Container struct {
-	Name    string
-	Image   string
-	Command []string
-	Args    []string
-	Mounts  map[string]string
+	Name       string
+	Image      string
+	Command    []string
+	Args       []string
+	Mounts     map[string]string
+	Privileges Privileges
 }
 
-// NewPod returns a pod with name and containers
-func NewPod(name string, containers []Container, ports map[int]int) Pod {
+// NewPod returns a pod with name, containers, ports and privileges
+func NewPod(name string, containers []Container, ports map[int]int, privileges Privileges) Pod {
 	return Pod{
 		Name:       name,
 		Containers: containers,
 		Ports:      ports,
+		Privileges: privileges,
 	}
 }
 
 // NewSingleContainerPod returns a pod with name, and a single
-// container with name, image, command, args, mounts and ports
-func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string, ports map[int]int) Pod {
+// container with name, image, command, args, mounts, ports and
+// privileges
+func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string, ports map[int]int, privileges Privileges) Pod {
 	return Pod{
 		Name: name,
 		Containers: []Container{
 			{
-				Name:    name,
-				Image:   image,
-				Command: command,
-				Args:    args,
-				Mounts:  mounts,
+				Name:       name,
+				Image:      image,
+				Command:    command,
+				Args:       args,
+				Mounts:     mounts,
+				Privileges: privileges,
 			},
 		},
 		Ports: ports,

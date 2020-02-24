@@ -3,10 +3,11 @@ FROM ubuntu:18.04
 RUN echo "Installing dependencies" \
   && apt-get update -qq \
   && apt-get install --no-install-recommends -qq -y \
+       iproute2 \
        software-properties-common \
   && add-apt-repository ppa:wireguard/wireguard \
   && apt-get update -qq \
-  && apt-get install -qq -y wireguard-dkms wireguard-tools \
+  && apt-get install -qq -y wireguard-tools \
 && echo "Cleaning up image" \
   && apt-get clean -y \
   && rm -rf /var/cache/debconf/* \

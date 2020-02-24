@@ -23,6 +23,7 @@ docker pull oneinfra/containerd:latest
 CONTAINER_ID=$(docker run --privileged -d -it oneinfra/containerd:latest)
 IMAGES=(oneinfra/haproxy:latest
         oneinfra/tooling:latest
+        oneinfra/wireguard:latest
         oneinfra/etcd:3.4.3
         k8s.gcr.io/pause:3.1
         k8s.gcr.io/kube-apiserver:v${KUBERNETES_VERSION}

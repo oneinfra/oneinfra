@@ -1,7 +1,5 @@
 dist: bionic
 language: minimal
 script:
-  - make pull
-  - make kubectl
-  - make crictl
+  - make deps
   - make e2e

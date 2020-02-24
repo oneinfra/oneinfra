@@ -27,6 +27,7 @@ import (
 
 	"oneinfra.ereslibre.es/m/internal/app/oi/cluster"
 	"oneinfra.ereslibre.es/m/internal/app/oi/component"
+	"oneinfra.ereslibre.es/m/internal/app/oi/vpnpeer"
 )
 
 func main() {
@@ -46,13 +47,18 @@ func main() {
 								Required: true,
 								Usage:    "cluster name",
 							},
+							&cli.StringFlag{
+								Name:  "vpn-cidr",
+								Usage: "CIDR used for the internal VPN",
+								Value: "10.0.0.0/8",
+							},
 							&cli.StringSliceFlag{
 								Name:  "apiserver-extra-sans",
 								Usage: "API server extra SANs",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Inject(c.String("name"), c.StringSlice("apiserver-extra-sans"))
+							return cluster.Inject(c.String("name"), c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{
@@ -151,6 +157,31 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
+						},
+					},
+				},
+			},
+			{
+				Name:  "peer",
+				Usage: "VPN peer operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "inject",
+						Usage: "inject a VPN peer",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "name",
+								Required: true,
+								Usage:    "VPN peer name",
+							},
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return vpnpeer.Inject(c.String("name"), c.String("cluster"))
 						},
 					},
 				},

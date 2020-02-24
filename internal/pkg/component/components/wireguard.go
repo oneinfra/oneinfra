@@ -1,0 +1,132 @@
+/*
+Copyright 2020 Rafael Fernández López <ereslibre@ereslibre.es>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package components
+
+import (
+	"bytes"
+	"fmt"
+	"strconv"
+	"text/template"
+
+	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
+	"oneinfra.ereslibre.es/m/internal/pkg/inquirer"
+)
+
+const (
+	wireguardImage = "oneinfra/wireguard:latest"
+)
+
+const (
+	wireguardTemplate = `[Interface]
+Address = {{ .Address }}
+ListenPort = {{ .ListenPort }}
+PrivateKey = {{ .PrivateKey }}
+
+{{- range $peer := .Peers }}
+[Peer]
+PublicKey = {{ $peer.PublicKey }}
+AllowedIPs = {{ $peer.AllowedIPs }}
+{{- end }}
+`
+)
+
+func (ingress *ControlPlaneIngress) wireguardConfiguration(inquirer inquirer.ReconcilerInquirer) (string, error) {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	wireguardHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-wireguard", component.Name))
+	if err != nil {
+		return "", err
+	}
+	component.AllocatedHostPorts["wireguard"] = wireguardHostPort
+	vpnPeer, err := cluster.VPNPeer("control-plane-ingress")
+	if err != nil {
+		return "", err
+	}
+	template, err := template.New("").Parse(wireguardTemplate)
+	if err != nil {
+		return "", err
+	}
+	wireguardConfigData := struct {
+		Address    string
+		ListenPort string
+		PrivateKey string
+		Peers      []struct {
+			PublicKey  string
+			AllowedIPs string
+		}
+	}{
+		Address:    vpnPeer.Address,
+		ListenPort: strconv.Itoa(wireguardHostPort),
+		PrivateKey: vpnPeer.PrivateKey,
+		Peers: []struct {
+			PublicKey  string
+			AllowedIPs string
+		}{},
+	}
+	for _, vpnPeer := range cluster.VPNPeers {
+		if vpnPeer.Name == "control-plane-ingress" {
+			continue
+		}
+		wireguardConfigData.Peers = append(wireguardConfigData.Peers, struct {
+			PublicKey  string
+			AllowedIPs string
+		}{
+			PublicKey:  vpnPeer.PublicKey,
+			AllowedIPs: vpnPeer.Address,
+		})
+	}
+	var rendered bytes.Buffer
+	err = template.Execute(&rendered, wireguardConfigData)
+	return rendered.String(), err
+}
+
+func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	wireguardConfig, err := ingress.wireguardConfiguration(inquirer)
+	if err != nil {
+		return err
+	}
+	if err := hypervisor.UploadFile(wireguardConfig, secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))); err != nil {
+		return err
+	}
+	return hypervisor.RunAndWaitForPod(
+		cluster,
+		pod.NewPod(
+			fmt.Sprintf("wireguard-%s", cluster.Name),
+			[]pod.Container{
+				{
+					Name:    "wireguard",
+					Image:   wireguardImage,
+					Command: []string{"wg-quick"},
+					Args: []string{
+						"up",
+						secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name)),
+					},
+					Mounts: map[string]string{
+						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
+					},
+					Privileges: pod.PrivilegesNetworkPrivileged,
+				},
+			},
+			map[int]int{},
+			pod.PrivilegesNetworkPrivileged,
+		),
+	)
+}

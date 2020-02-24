@@ -18,8 +18,11 @@ package cluster
 
 import (
 	"fmt"
+	"math/big"
+	"net"
 
 	"github.com/pkg/errors"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,15 +39,24 @@ type Cluster struct {
 	APIServer              *KubeAPIServer
 	StorageClientEndpoints []string
 	StoragePeerEndpoints   []string
+	VPNCIDR                *net.IPNet
+	VPNPeers               VPNPeerList
 }
 
 // Map represents a map of clusters
 type Map map[string]*Cluster
 
 // NewCluster returns a cluster with name clusterName
-func NewCluster(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
-	res := Cluster{Name: clusterName}
+func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
+	_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
+	if err != nil {
+		return nil, err
+	}
+	res := Cluster{Name: clusterName, VPNCIDR: vpnCIDRNet}
 	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
+		return nil, err
+	}
+	if err := res.GenerateVPNPeer("control-plane-ingress"); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -77,6 +89,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		},
 		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
+		VPNCIDR:                newVPNCIDRFromv1alpha1(cluster.Spec.VPNCIDR),
+		VPNPeers:               newVPNPeersFromv1alpha1(cluster.Status.VPNPeers),
 	}
 	return &res, nil
 }
@@ -132,10 +146,12 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				TLSPrivateKey: cluster.EtcdServer.TLSPrivateKey,
 				ExtraSANs:     cluster.EtcdServer.ExtraSANs,
 			},
+			VPNCIDR: cluster.VPNCIDR.String(),
 		},
 		Status: clusterv1alpha1.ClusterStatus{
 			StorageClientEndpoints: cluster.StorageClientEndpoints,
 			StoragePeerEndpoints:   cluster.StoragePeerEndpoints,
+			VPNPeers:               cluster.VPNPeers.Export(),
 		},
 	}
 }
@@ -172,6 +188,52 @@ func (cluster *Cluster) generateCertificates(etcdServerExtraSANs, apiServerExtra
 	}
 	cluster.APIServer = kubeAPIServer
 	return nil
+}
+
+// GenerateVPNPeer generates a new VPN peer with name peerName
+func (cluster *Cluster) GenerateVPNPeer(peerName string) error {
+	controlPlaneIngressVPNIP, err := cluster.requestVPNIP()
+	if err != nil {
+		return err
+	}
+	privateKey, err := wgtypes.GeneratePrivateKey()
+	if err != nil {
+		return err
+	}
+	var ipAddressNet net.IPNet
+	ipAddress := net.ParseIP(controlPlaneIngressVPNIP)
+	if len(ipAddress) == net.IPv6len {
+		ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(128, 128)}
+	} else {
+		ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(32, 32)}
+	}
+	cluster.VPNPeers = append(cluster.VPNPeers, VPNPeer{
+		Name:       peerName,
+		Address:    ipAddressNet.String(),
+		PrivateKey: privateKey.String(),
+		PublicKey:  privateKey.PublicKey().String(),
+	})
+	return nil
+}
+
+// VPNPeer returns the VPN peer with the provided name
+func (cluster *Cluster) VPNPeer(name string) (*VPNPeer, error) {
+	for _, peer := range cluster.VPNPeers {
+		if peer.Name == name {
+			return &peer, nil
+		}
+	}
+	return nil, errors.Errorf("vpn peer %q not found", name)
+}
+
+// requestVPNIP requests a VPN from the VPN CIDR
+func (cluster *Cluster) requestVPNIP() (string, error) {
+	vpnNetwork := big.NewInt(0).SetBytes(cluster.VPNCIDR.IP.To16())
+	vpnAssignedIP := vpnNetwork.Add(vpnNetwork, big.NewInt(int64(len(cluster.VPNPeers)+1)))
+	if len(vpnAssignedIP.Bytes()) == net.IPv6len {
+		return net.IP(vpnAssignedIP.Bytes()).String(), nil
+	}
+	return net.IP(vpnAssignedIP.Bytes()[2:]).String(), nil
 }
 
 // Specs returns the versioned specs of all clusters in this map

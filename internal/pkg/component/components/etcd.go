@@ -214,6 +214,7 @@ func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) 
 			etcdClientHostPort: 2379,
 			etcdPeerHostPort:   2380,
 		},
+		pod.PrivilegesUnprivileged,
 	), nil
 }
 

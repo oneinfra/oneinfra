@@ -96,6 +96,11 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
+	apiserverHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-apiserver", component.Name))
+	if err != nil {
+		return err
+	}
+	component.AllocatedHostPorts["apiserver"] = apiserverHostPort
 	haProxyConfig, err := ingress.haProxyConfiguration(inquirer)
 	if err != nil {
 		return err
@@ -123,7 +128,11 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 			map[int]int{
 				apiserverHostPort: 6443,
 			},
+			pod.PrivilegesUnprivileged,
 		),
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	return ingress.reconcileWireguard(inquirer)
 }

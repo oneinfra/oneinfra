@@ -27,7 +27,7 @@ import (
 )
 
 // Inject injects a cluster with name componentName
-func Inject(clusterName string, apiServerExtraSANs []string) error {
+func Inject(clusterName, vpnCIDR string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func Inject(clusterName string, apiServerExtraSANs []string) error {
 		finalAPIServerExtraSANs = append(finalAPIServerExtraSANs, apiServerExtraSAN)
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName, etcdServerExtraSANs, finalAPIServerExtraSANs)
+	newCluster, err := cluster.NewCluster(clusterName, vpnCIDR, etcdServerExtraSANs, finalAPIServerExtraSANs)
 	if err != nil {
 		return err
 	}

@@ -35,7 +35,7 @@ import (
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
 	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
+	podapi "oneinfra.ereslibre.es/m/internal/pkg/infra/pod"
 )
 
 const (
@@ -141,7 +141,7 @@ func (hypervisor *Hypervisor) EnsureImages(images ...string) error {
 }
 
 // PodSandboxConfig returns a pod sandbox config for the given pod and cluster
-func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod.Pod) (criapi.PodSandboxConfig, error) {
+func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod podapi.Pod) (criapi.PodSandboxConfig, error) {
 	portMappings := []*criapi.PortMapping{}
 	for hostPort, podPort := range pod.Ports {
 		portMappings = append(portMappings, &criapi.PortMapping{
@@ -171,11 +171,21 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 	} else {
 		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", pod.Name, podSandboxConfig.Metadata.Uid)
 	}
+	if pod.Privileges == podapi.PrivilegesNetworkPrivileged {
+		podSandboxConfig.Linux = &criapi.LinuxPodSandboxConfig{
+			SecurityContext: &criapi.LinuxSandboxSecurityContext{
+				Privileged: true,
+				NamespaceOptions: &criapi.NamespaceOption{
+					Network: criapi.NamespaceMode_NODE,
+				},
+			},
+		}
+	}
 	return podSandboxConfig, nil
 }
 
 // IsPodRunning returns whether a pod is running on the current hypervisor
-func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod pod.Pod) (bool, string, error) {
+func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod podapi.Pod) (bool, string, error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return false, "", err
@@ -238,7 +248,7 @@ func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod pod.Pod
 }
 
 // RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (string, error) {
+func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
 	isPodRunning, podSandboxID, err := hypervisor.IsPodRunning(cluster, pod)
 	if err != nil {
 		return "", err
@@ -275,24 +285,35 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod pod.Pod) (str
 				ContainerPath: containerPath,
 			})
 		}
+		createContainerRequest := criapi.CreateContainerRequest{
+			PodSandboxId: podSandboxID,
+			Config: &criapi.ContainerConfig{
+				Metadata: &criapi.ContainerMetadata{
+					Name: container.Name,
+				},
+				Image: &criapi.ImageSpec{
+					Image: container.Image,
+				},
+				Command: container.Command,
+				Args:    container.Args,
+				Mounts:  containerMounts,
+				LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxID, container.Name),
+			},
+			SandboxConfig: &podSandboxConfig,
+		}
+		if container.Privileges == podapi.PrivilegesNetworkPrivileged {
+			createContainerRequest.Config.Linux = &criapi.LinuxContainerConfig{
+				SecurityContext: &criapi.LinuxContainerSecurityContext{
+					Privileged: true,
+					NamespaceOptions: &criapi.NamespaceOption{
+						Network: criapi.NamespaceMode_NODE,
+					},
+				},
+			}
+		}
 		containerResponse, err := criRuntime.CreateContainer(
 			context.Background(),
-			&criapi.CreateContainerRequest{
-				PodSandboxId: podSandboxID,
-				Config: &criapi.ContainerConfig{
-					Metadata: &criapi.ContainerMetadata{
-						Name: container.Name,
-					},
-					Image: &criapi.ImageSpec{
-						Image: container.Image,
-					},
-					Command: container.Command,
-					Args:    container.Args,
-					Mounts:  containerMounts,
-					LogPath: fmt.Sprintf("%s-%s-%s.log", pod.Name, podSandboxID, container.Name),
-				},
-				SandboxConfig: &podSandboxConfig,
-			},
+			&createContainerRequest,
 		)
 		if err != nil {
 			return "", err
@@ -372,7 +393,7 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 }
 
 // RunAndWaitForPod runs and waits for all containers within a pod to be finished
-func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod pod.Pod) error {
+func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod podapi.Pod) error {
 	podSandboxID, err := hypervisor.RunPod(cluster, pod)
 	if err != nil {
 		return err
@@ -402,7 +423,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 		return err
 	}
 	hostPathDir := filepath.Dir(hostPath)
-	uploadFilePod := pod.NewSingleContainerPod(
+	uploadFilePod := podapi.NewSingleContainerPod(
 		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
 		toolingImage,
 		[]string{"write-base64-file.sh"},
@@ -412,6 +433,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 		},
 		map[string]string{hostPathDir: hostPathDir},
 		map[int]int{},
+		podapi.PrivilegesUnprivileged,
 	)
 	podSandboxID, err := hypervisor.RunPod(nil, uploadFilePod)
 	if err != nil {

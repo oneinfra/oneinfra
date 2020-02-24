@@ -20,7 +20,5 @@ jobs:
   pool:
     vmImage: 'ubuntu-18.04'
   steps:
-  - bash: make pull
-  - bash: make kubectl
-  - bash: make crictl
+  - bash: make deps
   - bash: make e2e

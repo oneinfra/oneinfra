@@ -68,6 +68,8 @@ vet:
 generate:
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+deps: pull kubectl crictl wg
+
 pull: pull-builder
 	@docker pull oneinfra/hypervisor:latest
 
@@ -85,6 +87,10 @@ crictl:
 	sudo tar -C /usr/local/bin -xf cri-tools.tar.gz
 	rm cri-tools.tar.gz
 
+# Installs wireguard
+wg:
+	./scripts/install-wireguard.sh
+
 # Build a containerd image with many images already present (for faster local testing cycles)
 e2e-build-all-deps-containerd-image:
 	./scripts/build-all-deps-containerd-image.sh
@@ -93,5 +99,6 @@ e2e-build-all-deps-containerd-image:
 e2e: oi oi-local-cluster
 	./scripts/e2e.sh
 
+# Creates a fake worker
 create-fake-worker:
 	./scripts/create-fake-worker.sh

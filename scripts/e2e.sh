@@ -47,6 +47,8 @@ cat ${CLUSTER_CONF} | \
     oi component inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi component inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role controlplane | \
     oi component inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
+    oi peer inject --name some-peer --cluster "${CLUSTER_NAME}" | \
+    oi peer inject --name another-peer --cluster "${CLUSTER_NAME}" | \
     oi reconcile -v 2 > ${RECONCILED_CLUSTER_CONF}
 
 mv ${RECONCILED_CLUSTER_CONF} ${CLUSTER_CONF}

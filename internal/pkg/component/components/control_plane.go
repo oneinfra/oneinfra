@@ -48,7 +48,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}
-	etcdClientCertificate, etcdClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
+	etcdAPIServerClientCertificate, etcdAPIServerClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
 		fmt.Sprintf("apiserver-etcd-client-%s", component.Name),
 		[]string{cluster.Name},
 		[]string{},
@@ -68,8 +68,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		map[string]string{
 			// etcd secrets
 			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdClientCertificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdClientPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientPrivateKey,
 			// API server secrets
 			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
@@ -85,12 +85,13 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	if err := controlPlane.runEtcd(inquirer); err != nil {
+	apiserverHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-apiserver", component.Name))
+	if err != nil {
 		return err
 	}
-	apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
-	if !ok {
-		return errors.New("apiserver host port not found")
+	component.AllocatedHostPorts["apiserver"] = apiserverHostPort
+	if err := controlPlane.runEtcd(inquirer); err != nil {
+		return err
 	}
 	etcdClientHostPort, ok := component.AllocatedHostPorts["etcd-client"]
 	if !ok {
@@ -122,7 +123,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--tls-private-key-file", secretsPathFile(cluster.Name, component.Name, "apiserver.key"),
 						"--client-ca-file", secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"),
 						"--service-account-key-file", secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"),
-						"--kubelet-preferred-address-types", "ExternalDNS,ExternalIP,Hostname,InternalDNS,InternalIP",
+						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,Hostname,InternalDNS,InternalIP",
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
@@ -155,6 +156,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			map[int]int{
 				apiserverHostPort: 6443,
 			},
+			pod.PrivilegesUnprivileged,
 		),
 	)
 	return err

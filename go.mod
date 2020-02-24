@@ -4,10 +4,10 @@ go 1.13
 
 require (
 	github.com/go-logr/logr v0.1.0
-	github.com/google/uuid v1.1.1
 	github.com/pkg/errors v0.8.1
 	github.com/urfave/cli/v2 v2.1.1
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20191023171146-3cf2f69b5738
+	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20200205215550-e35592f146e4
 	google.golang.org/grpc v1.23.1
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
 	k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90

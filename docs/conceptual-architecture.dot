@@ -1,0 +1,96 @@
+digraph D {
+        node[shape=record];
+        subgraph cluster_OneInfra {
+                 node[shape=note];
+                 label = "oneinfra";
+                 subgraph cluster_Components_Def {
+                          label = "Components";
+                          ClusterN_ControlPlaneIngress[label="Control Plane Ingress"];
+                          Cluster2_ControlPlaneIngress[label="Control Plane Ingress",fillcolor=darkorange,style=filled];
+                          Cluster1_ControlPlaneIngress[label="Control Plane Ingress",fillcolor=aquamarine,style=filled];
+                          Cluster1_ControlPlaneIngress -> Cluster2_ControlPlaneIngress -> ClusterN_ControlPlaneIngress[style=invis];
+                          Cluster1_ControlPlane1[label="Control Plane 1",fillcolor=aquamarine,style=filled];
+                          Cluster1_ControlPlane2[label="Control Plane 2",fillcolor=aquamarine,style=filled];
+                          Cluster1_ControlPlane3[label="Control Plane 3",fillcolor=aquamarine,style=filled];
+                          Cluster1_ControlPlaneN[label="Control Plane Q",fillcolor=aquamarine,style=filled];
+                          Cluster2_ControlPlane1[label="Control Plane 1",fillcolor=darkorange,style=filled];
+                          Cluster2_ControlPlane2[label="Control Plane 2",fillcolor=darkorange,style=filled];
+                          Cluster2_ControlPlane3[label="Control Plane 3",fillcolor=darkorange,style=filled];
+                          Cluster2_ControlPlaneN[label="Control Plane P",fillcolor=darkorange,style=filled];
+                          Cluster1_ControlPlane1 -> Cluster1_ControlPlane2 -> Cluster1_ControlPlane3[style=invis];
+                          Cluster1_ControlPlane1 -> Cluster1_ControlPlane2 -> Cluster1_ControlPlane3 -> Cluster1_ControlPlaneN[style=dotted,arrowhead=none];
+                          Cluster2_ControlPlane1 -> Cluster2_ControlPlane2 -> Cluster2_ControlPlane3[style=invis];
+                          Cluster2_ControlPlane1 -> Cluster2_ControlPlane2 -> Cluster2_ControlPlane3 -> Cluster2_ControlPlaneN[style=dotted,arrowhead=none];
+                 }
+                 subgraph cluster_Clusters_Def {
+                          label = "Clusters";
+                          Cluster1_Def[label="Cluster 1",fillcolor=aquamarine,style=filled];
+                          Cluster2_Def[label="Cluster 2",fillcolor=darkorange,style=filled];
+                          ClusterN_Def[label="Cluster C"];
+                          Cluster1_Def -> Cluster2_Def -> ClusterN_Def[style=dotted,arrowhead=none];
+                 }
+                 subgraph cluster_Hypervisors_Def {
+                          label = "Hypervisors";
+                          PublicHV1_Def[label="Public Hypervisor 1",fillcolor=gold,style=filled];
+                          PublicHVN_Def[label="Public Hypervisor N"];
+                          PrivateHV1_Def[label="Private Hypervisor 1",fillcolor=azure,style=filled];
+                          PrivateHV2_Def[label="Private Hypervisor 2",fillcolor=beige,style=filled];
+                          PrivateHVN_Def[label="Private Hypervisor M"];
+                          PublicHV1_Def -> PublicHVN_Def -> PrivateHV1_Def -> PrivateHV2_Def -> PrivateHVN_Def[style=dotted,arrowhead=none];
+                 }
+                 Reconciler[shape=component];
+        }
+        subgraph cluster_PublicHV1 {
+                 label = "Public Hypervisor 1";
+                 fillcolor=gold;
+                 style=filled;
+                 node[shape=component];
+                 PublicHV1_CRI[label="CRI"];
+                 subgraph cluster_PublicHV1_Pods {
+                          label = "Pods";
+                          Cluster1_Ingress[label="Cluster 1 Ingress",fillcolor=aquamarine,style=filled];
+                          Cluster2_Ingress[label="Cluster 2 Ingress",fillcolor=darkorange,style=filled];
+                          Cluster1_Ingress -> Cluster2_Ingress[style=invis];
+                 }
+                 Reconciler -> PublicHV1_CRI[color=red,penwidth=2];
+        }
+        subgraph cluster_PrivateHV1 {
+                 label = "Private Hypervisor 1";
+                 fillcolor=azure;
+                 style=filled;
+                 node[shape=component];
+                 PrivateHV1_CRI[label="CRI"];
+                 subgraph cluster_PrivateHV1_Pods {
+                          label = "Pods";
+                          Cluster1_CP1[label="Control Plane 1",fillcolor=aquamarine,style=filled];
+                          Cluster1_CP2[label="Control Plane 2",fillcolor=aquamarine,style=filled];
+                          Cluster2_CP1[label="Control Plane 1",fillcolor=darkorange,style=filled];
+                          Cluster1_CP1 -> Cluster1_CP2 -> Cluster2_CP1[style=invis];
+                 }
+                 Reconciler -> PrivateHV1_CRI[color=red,penwidth=2];
+        }
+        subgraph cluster_PrivateHV2 {
+                 label = "Private Hypervisor 2";
+                 fillcolor=beige;
+                 style=filled;
+                 node[shape=component];
+                 PrivateHV2_CRI[label="CRI"];
+                 subgraph cluster_PrivateHV2_Pods {
+                          label = "Pods";
+                          Cluster1_CP3[label="Control Plane 3",fillcolor=aquamarine,style=filled];
+                          Cluster2_CP2[label="Control Plane 2",fillcolor=darkorange,style=filled];
+                          Cluster2_CP3[label="Control Plane 3",fillcolor=darkorange,style=filled];
+                          Cluster1_CP3 -> Cluster2_CP2 -> Cluster2_CP3[style=invis];
+                 }
+                 Reconciler -> PrivateHV2_CRI[color=red,penwidth=2];
+        }
+        Cluster1_Ingress -> Cluster1_CP1[color=red,penwidth=2];
+        Cluster1_Ingress -> Cluster1_CP2[color=red,penwidth=2];
+        Cluster1_Ingress -> Cluster1_CP3[color=red,penwidth=2];
+        Cluster2_Ingress -> Cluster2_CP1[color=red,penwidth=2];
+        Cluster2_Ingress -> Cluster2_CP2[color=red,penwidth=2];
+        Cluster2_Ingress -> Cluster2_CP3[color=red,penwidth=2];
+        User[shape=oval];
+        User -> Cluster1_Ingress[color=blue,penwidth=2];
+        User -> Cluster2_Ingress[color=blue,penwidth=2];
+}

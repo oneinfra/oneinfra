@@ -88,3 +88,7 @@ instances without having to create more `Controller Manager` or
 * Perform any kind of worker node management
   * The only exception is the joining process for setting up the VPN
     client
+
+# Conceptual architecture diagram
+
+![Conceptual architecture diagram](conceptual-architecture.svg)

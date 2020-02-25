@@ -27,7 +27,7 @@ import (
 )
 
 // Inject injects a cluster with name componentName
-func Inject(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string) error {
+func Inject(clusterName string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -49,17 +49,7 @@ func Inject(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string
 		res += clustersSpecs
 	}
 
-	etcdServerExtraSANsMap := map[string]struct{}{}
-	for _, etcdServerExtraSAN := range etcdServerExtraSANs {
-		etcdServerExtraSANsMap[etcdServerExtraSAN] = struct{}{}
-	}
-	for _, ipAddress := range hypervisors.List().IPAddresses() {
-		etcdServerExtraSANsMap[ipAddress] = struct{}{}
-	}
-	finalEtcdServerExtraSANs := []string{}
-	for etcdServerExtraSAN := range etcdServerExtraSANsMap {
-		finalEtcdServerExtraSANs = append(finalEtcdServerExtraSANs, etcdServerExtraSAN)
-	}
+	etcdServerExtraSANs := hypervisors.List().IPAddresses()
 
 	apiServerExtraSANsMap := map[string]struct{}{}
 	for _, apiServerExtraSAN := range apiServerExtraSANs {
@@ -73,7 +63,7 @@ func Inject(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string
 		finalAPIServerExtraSANs = append(finalAPIServerExtraSANs, apiServerExtraSAN)
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName, finalEtcdServerExtraSANs, finalAPIServerExtraSANs)
+	newCluster, err := cluster.NewCluster(clusterName, etcdServerExtraSANs, finalAPIServerExtraSANs)
 	if err != nil {
 		return err
 	}

@@ -28,16 +28,18 @@ if [ -z "${CLUSTER_NAME}" ]; then
     exit 1
 fi
 
-# This is a bit hacky for this specific Docker based environment. On
-# the real world, worker nodes will connect to the public facing
+# This is a bit hacky for this specific Docker based environment.
+#
+# In the real world, worker nodes will connect to the public facing
 # interface of the public hypervisors, but since we are mimicking this
-# in Docker as forwarding the ports to localhost, containers in their
-# own networking namespaces (as fake workers) won't be able to access
-# to forwarded ports. Thus, we will connect them to the Docker IP
-# address of the public hypervisors, that in this model resembles the
-# private interface that we would have in reality, so we are not
-# having a perfect match with the intended real world production
-# design.
+# in Docker as forwarding the ports to localhost in the host,
+# containers in their own networking namespaces (as fake workers)
+# won't be able to access them.
+#
+# Thus, we will connect them to the Docker IP address of the public
+# hypervisors, that in this model resembles the private interface that
+# we would have in reality, so we are not having a perfect match with
+# the intended real world production design.
 
 INGRESS_CONTAINER_NAME=$(cat "${CLUSTER_CONF}" | oi cluster ingress-component-name --cluster "${CLUSTER_NAME}")
 INGRESS_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' "${INGRESS_CONTAINER_NAME}")

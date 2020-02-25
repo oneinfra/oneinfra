@@ -53,8 +53,8 @@ func Inject(clusterName string, etcdServerExtraSANs, apiServerExtraSANs []string
 	for _, etcdServerExtraSAN := range etcdServerExtraSANs {
 		etcdServerExtraSANsMap[etcdServerExtraSAN] = struct{}{}
 	}
-	for _, publicIPAddress := range hypervisors.PublicList().IPAddresses() {
-		etcdServerExtraSANsMap[publicIPAddress] = struct{}{}
+	for _, ipAddress := range hypervisors.List().IPAddresses() {
+		etcdServerExtraSANsMap[ipAddress] = struct{}{}
 	}
 	finalEtcdServerExtraSANs := []string{}
 	for etcdServerExtraSAN := range etcdServerExtraSANsMap {

@@ -49,7 +49,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return err
 	}
 	etcdClientCertificate, etcdClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
-		fmt.Sprintf("apiserver-%s", component.Name),
+		fmt.Sprintf("apiserver-etcd-client-%s", component.Name),
 		[]string{cluster.Name},
 		[]string{},
 	)
@@ -67,9 +67,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	err = hypervisor.UploadFiles(
 		map[string]string{
 			// etcd secrets
-			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):     cluster.EtcdServer.CA.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-client.crt"): etcdClientCertificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-client.key"): etcdClientPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdClientCertificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdClientPrivateKey,
 			// API server secrets
 			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
@@ -113,8 +113,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						// available etcd instances
 						"--etcd-servers", etcdServers.String(),
 						"--etcd-cafile", secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"),
-						"--etcd-certfile", secretsPathFile(cluster.Name, component.Name, "etcd-client.crt"),
-						"--etcd-keyfile", secretsPathFile(cluster.Name, component.Name, "etcd-client.key"),
+						"--etcd-certfile", secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"),
+						"--etcd-keyfile", secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--allow-privileged", "true",

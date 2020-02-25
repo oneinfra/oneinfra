@@ -500,6 +500,15 @@ func (hypervisorMap HypervisorMap) Specs() (string, error) {
 	return res, nil
 }
 
+// List converts the hypervisor map to an hypervisor list
+func (hypervisorMap HypervisorMap) List() HypervisorList {
+	hypervisorList := HypervisorList{}
+	for _, hypervisor := range hypervisorMap {
+		hypervisorList = append(hypervisorList, hypervisor)
+	}
+	return hypervisorList
+}
+
 // PublicList returns a list of public hypervisors from this map
 func (hypervisorMap HypervisorMap) PublicList() HypervisorList {
 	hypervisorList := HypervisorList{}

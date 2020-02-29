@@ -91,9 +91,9 @@ crictl:
 wg:
 	./scripts/install-wireguard.sh
 
-# Build a containerd image with many images already present (for faster local testing cycles)
-e2e-build-all-deps-containerd-image:
-	./scripts/build-all-deps-containerd-image.sh
+# Build an hypervisor image with many images already present (for faster local testing cycles)
+e2e-build-hypervisor-image:
+	./scripts/build-hypervisor-image.sh
 
 # Run e2e (to be moved to a proper e2e framework)
 e2e: oi oi-local-cluster

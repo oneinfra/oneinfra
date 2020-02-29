@@ -1,9 +1,9 @@
 # Goal
 
-`oneinfra`'s goal is to provide a Kubernetes Master as a Service
-platform. It allows you to manage a number of Kubernetes Control
-Planes in a set of hypervisors sitting in your infrastructure, on
-premises or in the public cloud.
+`oneinfra`'s goal is to provide a Kubernetes as a Service platform. It
+allows you to manage a number of Kubernetes Control Planes in a set of
+hypervisors sitting in your infrastructure, on premises or in the
+public cloud.
 
 * Easily create isolated Kubernetes control planes
 * Manage control planes with a well defined API

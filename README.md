@@ -8,7 +8,7 @@
 
 ![oneinfra logo](logos/oneinfra.png)
 
-`oneinfra` is a Kubernetes Masters as a Service platform, or KMaaS.
+`oneinfra` is a Kubernetes as a Service platform, or KaaS.
 
 It features a declarative infrastructure definition.
 

@@ -231,11 +231,9 @@ func (cluster *Cluster) requestVPNIP() (string, error) {
 	assignedIP := big.NewInt(int64(len(cluster.VPNPeers) + 1))
 	vpnNetwork := big.NewInt(0).SetBytes(cluster.VPNCIDR.IP.To16())
 	vpnAssignedIP := vpnNetwork.Add(vpnNetwork, assignedIP)
-	var vpnAssignedIPSlice []byte
+	vpnAssignedIPSlice := vpnAssignedIP.Bytes()[2:]
 	if len(vpnAssignedIP.Bytes()) == net.IPv6len {
 		vpnAssignedIPSlice = vpnAssignedIP.Bytes()
-	} else {
-		vpnAssignedIPSlice = vpnAssignedIP.Bytes()[2:]
 	}
 	if !cluster.VPNCIDR.Contains(net.IP(vpnAssignedIPSlice)) {
 		return "", errors.Errorf("not enough IP addresses to assign in the %q CIDR", cluster.VPNCIDR)

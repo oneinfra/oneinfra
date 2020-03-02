@@ -228,12 +228,19 @@ func (cluster *Cluster) VPNPeer(name string) (*VPNPeer, error) {
 
 // requestVPNIP requests a VPN from the VPN CIDR
 func (cluster *Cluster) requestVPNIP() (string, error) {
+	assignedIP := big.NewInt(int64(len(cluster.VPNPeers) + 1))
 	vpnNetwork := big.NewInt(0).SetBytes(cluster.VPNCIDR.IP.To16())
-	vpnAssignedIP := vpnNetwork.Add(vpnNetwork, big.NewInt(int64(len(cluster.VPNPeers)+1)))
+	vpnAssignedIP := vpnNetwork.Add(vpnNetwork, assignedIP)
+	var vpnAssignedIPSlice []byte
 	if len(vpnAssignedIP.Bytes()) == net.IPv6len {
-		return net.IP(vpnAssignedIP.Bytes()).String(), nil
+		vpnAssignedIPSlice = vpnAssignedIP.Bytes()
+	} else {
+		vpnAssignedIPSlice = vpnAssignedIP.Bytes()[2:]
 	}
-	return net.IP(vpnAssignedIP.Bytes()[2:]).String(), nil
+	if !cluster.VPNCIDR.Contains(net.IP(vpnAssignedIPSlice)) {
+		return "", errors.Errorf("not enough IP addresses to assign in the %q CIDR", cluster.VPNCIDR)
+	}
+	return net.IP(vpnAssignedIPSlice).String(), nil
 }
 
 // Specs returns the versioned specs of all clusters in this map

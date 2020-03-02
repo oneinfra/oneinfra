@@ -42,6 +42,16 @@ func TestRequestVPNIP(t *testing.T) {
 			expectedErr: false,
 		},
 		{
+			cidr:        "10.0.0.0/31",
+			peers:       vpnPeers(1),
+			expectedErr: true,
+		},
+		{
+			cidr:        "10.0.0.0/24",
+			peers:       vpnPeers(255),
+			expectedErr: true,
+		},
+		{
 			cidr:        "fd00::/8",
 			peers:       vpnPeers(0),
 			expectedIP:  "fd00::1",
@@ -53,9 +63,14 @@ func TestRequestVPNIP(t *testing.T) {
 			expectedIP:  "fd00::2",
 			expectedErr: false,
 		},
+		{
+			cidr:        "fd00::/127",
+			peers:       vpnPeers(1),
+			expectedErr: true,
+		},
 	}
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s (%v)", tt.cidr, tt.peers), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s (peers: %d)", tt.cidr, len(tt.peers)), func(t *testing.T) {
 			_, cidrNetwork, err := net.ParseCIDR(tt.cidr)
 			if err != nil {
 				t.Fatalf("could not parse CIDR %q", tt.cidr)

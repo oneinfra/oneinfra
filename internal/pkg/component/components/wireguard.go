@@ -48,11 +48,10 @@ func (ingress *ControlPlaneIngress) wireguardConfiguration(inquirer inquirer.Rec
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	wireguardHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-wireguard", component.Name))
+	wireguardHostPort, err := component.RequestPort(hypervisor, "wireguard")
 	if err != nil {
 		return "", err
 	}
-	component.AllocatedHostPorts["wireguard"] = wireguardHostPort
 	vpnPeer, err := cluster.VPNPeer("control-plane-ingress")
 	if err != nil {
 		return "", err

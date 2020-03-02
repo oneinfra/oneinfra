@@ -17,6 +17,8 @@ limitations under the License.
 package component
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -79,6 +81,19 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 		res.AllocatedHostPorts[hostPort.Name] = hostPort.Port
 	}
 	return &res, nil
+}
+
+// RequestPort requests a port on the given hypervisor
+func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name string) (int, error) {
+	if allocatedPort, ok := component.AllocatedHostPorts[name]; ok {
+		return allocatedPort, nil
+	}
+	allocatedPort, err := hypervisor.RequestPort(component.ClusterName, fmt.Sprintf("%s-%s", component.Name, name))
+	if err != nil {
+		return 0, err
+	}
+	component.AllocatedHostPorts[name] = allocatedPort
+	return allocatedPort, nil
 }
 
 // Export exports the component to a versioned component

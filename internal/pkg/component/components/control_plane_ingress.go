@@ -96,21 +96,16 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
-	apiserverHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-apiserver", component.Name))
+	apiserverHostPort, err := component.RequestPort(hypervisor, "apiserver")
 	if err != nil {
 		return err
 	}
-	component.AllocatedHostPorts["apiserver"] = apiserverHostPort
 	haProxyConfig, err := ingress.haProxyConfiguration(inquirer)
 	if err != nil {
 		return err
 	}
 	if err := hypervisor.UploadFile(haProxyConfig, secretsPathFile(cluster.Name, component.Name, "haproxy.cfg")); err != nil {
 		return err
-	}
-	apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
-	if !ok {
-		return errors.New("apiserver host port not found")
 	}
 	_, err = hypervisor.RunPod(
 		cluster,

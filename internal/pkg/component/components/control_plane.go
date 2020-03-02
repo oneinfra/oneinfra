@@ -85,11 +85,10 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	apiserverHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-apiserver", component.Name))
+	apiserverHostPort, err := component.RequestPort(hypervisor, "apiserver")
 	if err != nil {
 		return err
 	}
-	component.AllocatedHostPorts["apiserver"] = apiserverHostPort
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}

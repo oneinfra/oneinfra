@@ -191,16 +191,14 @@ func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) 
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))
+	etcdPeerHostPort, err := component.RequestPort(hypervisor, "etcd-peer")
 	if err != nil {
 		return pod.Pod{}, err
 	}
-	component.AllocatedHostPorts["etcd-peer"] = etcdPeerHostPort
-	etcdClientHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-client", component.Name))
+	etcdClientHostPort, err := component.RequestPort(hypervisor, "etcd-client")
 	if err != nil {
 		return pod.Pod{}, err
 	}
-	component.AllocatedHostPorts["etcd-client"] = etcdClientHostPort
 	etcdContainer, err := controlPlane.etcdContainer(inquirer, etcdClientHostPort, etcdPeerHostPort)
 	if err != nil {
 		return pod.Pod{}, err

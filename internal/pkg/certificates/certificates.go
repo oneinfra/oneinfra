@@ -30,7 +30,7 @@ import (
 
 	"k8s.io/klog"
 
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 )
 
 // Certificate represents a certificate

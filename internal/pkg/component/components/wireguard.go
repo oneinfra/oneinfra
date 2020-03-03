@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra/pod"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
+	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
 const (

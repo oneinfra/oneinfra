@@ -25,10 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/certificates"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
 // Role defines the role of this component

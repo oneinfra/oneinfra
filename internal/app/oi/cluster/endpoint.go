@@ -23,8 +23,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster/endpoint"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster/endpoint"
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Endpoint prints the endpoint of the clusterName, optionally

@@ -22,8 +22,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Inject injects a cluster with name componentName

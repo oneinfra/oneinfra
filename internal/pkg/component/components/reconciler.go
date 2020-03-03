@@ -17,7 +17,7 @@ limitations under the License.
 package components
 
 import (
-	"github.com/oneinfra/oneinfra/m/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
 // Component is an interface that allows a component implementing this

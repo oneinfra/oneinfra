@@ -17,7 +17,7 @@ limitations under the License.
 package cluster
 
 import (
-	"github.com/oneinfra/oneinfra/m/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
 // EtcdServer represents the etcd component

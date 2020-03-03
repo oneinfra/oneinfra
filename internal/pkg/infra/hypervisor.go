@@ -33,9 +33,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/klog"
 
-	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	podapi "github.com/oneinfra/oneinfra/m/internal/pkg/infra/pod"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 

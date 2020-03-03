@@ -26,9 +26,9 @@ import (
 
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra/pod"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
+	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
 const (

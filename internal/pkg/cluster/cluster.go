@@ -28,8 +28,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/certificates"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
 // Cluster represents a cluster

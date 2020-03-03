@@ -19,10 +19,10 @@ package reconciler
 import (
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
-	componentreconciler "github.com/oneinfra/oneinfra/m/internal/pkg/component/reconciler"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
 // ClusterReconciler represents a cluster reconciler

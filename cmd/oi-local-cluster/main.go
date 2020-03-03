@@ -22,7 +22,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/oneinfra/oneinfra/m/internal/app/oi-local-cluster/cluster"
+	"github.com/oneinfra/oneinfra/internal/app/oi-local-cluster/cluster"
 )
 
 func main() {

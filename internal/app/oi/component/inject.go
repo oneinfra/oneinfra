@@ -23,9 +23,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Inject injects a component with name componentName that belongs to cluster

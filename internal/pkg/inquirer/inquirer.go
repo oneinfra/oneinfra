@@ -17,9 +17,9 @@ limitations under the License.
 package inquirer
 
 import (
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
 // ReconcilerInquirer represents an interface that allows a

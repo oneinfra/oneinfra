@@ -23,8 +23,8 @@ import (
 
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster/reconciler"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Reconcile reconciles all clusters

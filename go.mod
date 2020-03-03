@@ -1,4 +1,4 @@
-module github.com/oneinfra/oneinfra/m
+module github.com/oneinfra/oneinfra
 
 go 1.13
 

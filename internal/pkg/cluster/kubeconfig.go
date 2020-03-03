@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	v1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
 // KubeConfig returns a kubeconfig for the current cluster

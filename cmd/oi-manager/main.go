@@ -26,10 +26,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
-	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
-	clustercontroller "github.com/oneinfra/oneinfra/m/controllers/cluster"
-	infracontroller "github.com/oneinfra/oneinfra/m/controllers/infra"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
+	clustercontroller "github.com/oneinfra/oneinfra/controllers/cluster"
+	infracontroller "github.com/oneinfra/oneinfra/controllers/infra"
 	// +kubebuilder:scaffold:imports
 )
 

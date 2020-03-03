@@ -17,7 +17,7 @@ limitations under the License.
 package cluster
 
 import (
-	localcluster "github.com/oneinfra/oneinfra/m/internal/pkg/local-cluster"
+	localcluster "github.com/oneinfra/oneinfra/internal/pkg/local-cluster"
 )
 
 // Destroy destroys a cluster with name clusterName

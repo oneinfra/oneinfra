@@ -23,9 +23,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
-	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
 // IngressComponent returns the ingress component for the given cluster

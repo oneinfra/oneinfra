@@ -25,9 +25,9 @@ import (
 	"github.com/urfave/cli/v2"
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/m/internal/app/oi/cluster"
-	"github.com/oneinfra/oneinfra/m/internal/app/oi/component"
-	"github.com/oneinfra/oneinfra/m/internal/app/oi/vpnpeer"
+	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
+	"github.com/oneinfra/oneinfra/internal/app/oi/component"
+	"github.com/oneinfra/oneinfra/internal/app/oi/vpnpeer"
 )
 
 func main() {

@@ -98,6 +98,9 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	if err := hypervisor.EnsureImage(wireguardImage); err != nil {
+		return err
+	}
 	wireguardConfig, err := ingress.wireguardConfiguration(inquirer)
 	if err != nil {
 		return err

@@ -17,9 +17,9 @@ limitations under the License.
 package reconciler
 
 import (
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/component"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
 )
 
 // ClusterReconcilerInquirer represents the cluster reconciler that

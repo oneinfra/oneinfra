@@ -22,8 +22,9 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster/endpoint"
-	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+
+	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster/endpoint"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
 )
 
 // IngressComponentName prints the ingress component name for this cluster

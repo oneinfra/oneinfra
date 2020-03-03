@@ -27,8 +27,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 
-	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
 )
 
 // Hypervisor represents a local hypervisor

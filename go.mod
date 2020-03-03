@@ -1,4 +1,4 @@
-module oneinfra.ereslibre.es/m
+module github.com/oneinfra/oneinfra/m
 
 go 1.13
 

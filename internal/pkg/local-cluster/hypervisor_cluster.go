@@ -26,7 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
-	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
 )
 
 // HypervisorCluster represents a cluster of local hypervisors

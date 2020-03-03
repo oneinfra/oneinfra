@@ -22,8 +22,9 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster/endpoint"
-	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+
+	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster/endpoint"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
 )
 
 // KubeConfig generates a kubeconfig for cluster clusterName

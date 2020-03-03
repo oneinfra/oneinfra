@@ -19,7 +19,7 @@ package cluster
 import (
 	"fmt"
 
-	localcluster "oneinfra.ereslibre.es/m/internal/pkg/local-cluster"
+	localcluster "github.com/oneinfra/oneinfra/m/internal/pkg/local-cluster"
 )
 
 // Create creates a cluster with name clusterName, with private size

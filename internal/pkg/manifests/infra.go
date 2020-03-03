@@ -21,12 +21,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/klog"
 
-	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
-	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
-	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
-	"oneinfra.ereslibre.es/m/internal/pkg/component"
-	"oneinfra.ereslibre.es/m/internal/pkg/infra"
-	yamlutils "oneinfra.ereslibre.es/m/internal/pkg/yaml"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/infra"
+	yamlutils "github.com/oneinfra/oneinfra/m/internal/pkg/yaml"
 )
 
 // RetrieveHypervisors returns an hypervisor map from the given manifests

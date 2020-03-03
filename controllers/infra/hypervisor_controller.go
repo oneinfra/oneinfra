@@ -24,7 +24,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
 )
 
 // HypervisorReconciler reconciles a Hypervisor object

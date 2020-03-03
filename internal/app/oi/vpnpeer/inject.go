@@ -23,7 +23,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"oneinfra.ereslibre.es/m/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/m/internal/pkg/manifests"
 )
 
 // Inject injects a VPN peer with name peerName

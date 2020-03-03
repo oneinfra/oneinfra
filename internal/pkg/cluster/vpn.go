@@ -19,7 +19,7 @@ package cluster
 import (
 	"net"
 
-	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/m/apis/cluster/v1alpha1"
 )
 
 // VPNPeer represents a VPN peer

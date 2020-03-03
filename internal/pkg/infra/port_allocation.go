@@ -17,7 +17,7 @@ limitations under the License.
 package infra
 
 import (
-	infrav1alpha1 "oneinfra.ereslibre.es/m/apis/infra/v1alpha1"
+	infrav1alpha1 "github.com/oneinfra/oneinfra/m/apis/infra/v1alpha1"
 )
 
 // HypervisorPortAllocation represents a port allocation in an hypervisor

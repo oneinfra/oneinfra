@@ -257,7 +257,9 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	if isEtcdRunning {
 		return nil
 	}
-	etcdPeerCertificate, etcdPeerPrivateKey, err := cluster.CertificateAuthorities.EtcdPeer.CreateCertificate(
+	etcdPeerCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.EtcdPeer,
+		"etcd-peer",
 		fmt.Sprintf("%s.etcd.cluster", cluster.Name),
 		[]string{cluster.Name},
 		cluster.EtcdServer.ExtraSANs,
@@ -271,8 +273,8 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           cluster.EtcdServer.TLSPrivateKey,
 			secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"): cluster.CertificateAuthorities.EtcdClient.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"):   cluster.CertificateAuthorities.EtcdPeer.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"):      etcdPeerPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"):      etcdPeerCertificate.PrivateKey,
 		},
 	)
 	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))

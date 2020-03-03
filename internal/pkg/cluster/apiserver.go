@@ -16,9 +16,13 @@ limitations under the License.
 
 package cluster
 
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/certificates"
+)
+
 // KubeAPIServer represents the kube-apiserver component
 type KubeAPIServer struct {
-	CA                       *CertificateAuthority
+	CA                       *certificates.Certificate
 	TLSCert                  string
 	TLSPrivateKey            string
 	ServiceAccountPublicKey  string
@@ -28,7 +32,7 @@ type KubeAPIServer struct {
 
 func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	// TODO: allow no CA generation, provided cert and key
-	certificateAuthority, err := newCertificateAuthority("apiserver-authority")
+	certificateAuthority, err := certificates.NewCertificateAuthority("apiserver-authority")
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +50,7 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	}
 	kubeAPIServer.TLSCert = tlsCert
 	kubeAPIServer.TLSPrivateKey = tlsKey
-	serviceAccountKey, err := newPrivateKey()
+	serviceAccountKey, err := certificates.NewPrivateKey()
 	if err != nil {
 		return nil, err
 	}

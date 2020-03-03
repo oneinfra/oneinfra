@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/certificates"
 )
 
 // Cluster represents a cluster
@@ -67,14 +68,14 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 	res := Cluster{
 		Name: cluster.ObjectMeta.Name,
 		CertificateAuthorities: &CertificateAuthorities{
-			APIServerClient:   newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
-			CertificateSigner: newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
-			Kubelet:           newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
-			EtcdClient:        newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdClient),
-			EtcdPeer:          newCertificateAuthorityFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdPeer),
+			APIServerClient:   certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
+			CertificateSigner: certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
+			Kubelet:           certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
+			EtcdClient:        certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdClient),
+			EtcdPeer:          certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdPeer),
 		},
 		APIServer: &KubeAPIServer{
-			CA:                       newCertificateAuthorityFromv1alpha1(cluster.Spec.APIServer.CA),
+			CA:                       certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
 			TLSCert:                  cluster.Spec.APIServer.TLSCert,
 			TLSPrivateKey:            cluster.Spec.APIServer.TLSPrivateKey,
 			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
@@ -82,7 +83,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
 		},
 		EtcdServer: &EtcdServer{
-			CA:            newCertificateAuthorityFromv1alpha1(cluster.Spec.EtcdServer.CA),
+			CA:            certificates.NewCertificateFromv1alpha1(cluster.Spec.EtcdServer.CA),
 			TLSCert:       cluster.Spec.EtcdServer.TLSCert,
 			TLSPrivateKey: cluster.Spec.EtcdServer.TLSPrivateKey,
 			ExtraSANs:     cluster.Spec.EtcdServer.ExtraSANs,
@@ -103,29 +104,29 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
-				APIServerClient: clusterv1alpha1.CertificateAuthority{
+				APIServerClient: clusterv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.APIServerClient.PrivateKey,
 				},
-				CertificateSigner: clusterv1alpha1.CertificateAuthority{
+				CertificateSigner: clusterv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.CertificateSigner.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 				},
-				Kubelet: clusterv1alpha1.CertificateAuthority{
+				Kubelet: clusterv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
 				},
-				EtcdClient: clusterv1alpha1.CertificateAuthority{
+				EtcdClient: clusterv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdClient.PrivateKey,
 				},
-				EtcdPeer: clusterv1alpha1.CertificateAuthority{
+				EtcdPeer: clusterv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdPeer.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdPeer.PrivateKey,
 				},
 			},
 			APIServer: clusterv1alpha1.KubeAPIServer{
-				CA: &clusterv1alpha1.CertificateAuthority{
+				CA: &clusterv1alpha1.Certificate{
 					Certificate: cluster.APIServer.CA.Certificate,
 					PrivateKey:  cluster.APIServer.CA.PrivateKey,
 				},
@@ -138,7 +139,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				ExtraSANs: cluster.APIServer.ExtraSANs,
 			},
 			EtcdServer: clusterv1alpha1.EtcdServer{
-				CA: &clusterv1alpha1.CertificateAuthority{
+				CA: &clusterv1alpha1.Certificate{
 					Certificate: cluster.EtcdServer.CA.Certificate,
 					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,
 				},

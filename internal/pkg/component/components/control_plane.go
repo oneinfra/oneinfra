@@ -48,7 +48,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
 		return err
 	}
-	etcdAPIServerClientCertificate, etcdAPIServerClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
+	etcdAPIServerClientCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.EtcdClient,
+		"apiserver-etcd-client",
 		fmt.Sprintf("apiserver-etcd-client-%s", component.Name),
 		[]string{cluster.Name},
 		[]string{},
@@ -56,11 +58,11 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	controllerManagerKubeConfig, err := cluster.KubeConfig("https://127.0.0.1:6443")
+	controllerManagerKubeConfig, err := component.KubeConfig(cluster, "https://127.0.0.1:6443", "controller-manager")
 	if err != nil {
 		return err
 	}
-	schedulerKubeConfig, err := cluster.KubeConfig("https://127.0.0.1:6443")
+	schedulerKubeConfig, err := component.KubeConfig(cluster, "https://127.0.0.1:6443", "scheduler")
 	if err != nil {
 		return err
 	}
@@ -68,8 +70,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		map[string]string{
 			// etcd secrets
 			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
 			// API server secrets
 			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,

@@ -18,6 +18,7 @@ package cluster
 
 import (
 	"github.com/pkg/errors"
+	"oneinfra.ereslibre.es/m/internal/pkg/certificates"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -26,28 +27,42 @@ import (
 
 // KubeConfig returns a kubeconfig for the current cluster
 func (cluster *Cluster) KubeConfig(endpoint string) (string, error) {
-	config, err := cluster.kubeConfigClient(endpoint)
+	kubeConfig, err := cluster.kubeConfigObject(endpoint)
 	if err != nil {
 		return "", err
 	}
+	return cluster.marshalKubeConfig(kubeConfig)
+}
+
+// KubeConfigWithClientCertificate returns a kubeconfig for the current cluster using the provided client certificate
+func (cluster *Cluster) KubeConfigWithClientCertificate(endpoint string, clientCertificate *certificates.Certificate) (string, error) {
+	kubeConfig := cluster.kubeConfigObjectWithCertificate(endpoint, clientCertificate.Certificate, clientCertificate.PrivateKey)
+	return cluster.marshalKubeConfig(kubeConfig)
+}
+
+func (cluster *Cluster) kubeConfigObject(endpoint string) (*v1.Config, error) {
+	clientCertificate, clientCertificatePrivateKey, err := cluster.CertificateAuthorities.APIServerClient.CreateCertificate("kubernetes-admin", []string{"system:masters"}, []string{})
+	if err != nil {
+		return nil, err
+	}
+	return cluster.kubeConfigObjectWithCertificate(endpoint, clientCertificate, clientCertificatePrivateKey), nil
+}
+
+func (cluster *Cluster) marshalKubeConfig(kubeConfig *v1.Config) (string, error) {
 	scheme := runtime.NewScheme()
 	if err := v1.AddToScheme(scheme); err != nil {
 		return "", err
 	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, v1.SchemeGroupVersion)
-	if encodedKubeConfig, err := runtime.Encode(encoder, config); err == nil {
+	if encodedKubeConfig, err := runtime.Encode(encoder, kubeConfig); err == nil {
 		return string(encodedKubeConfig), nil
 	}
 	return "", errors.Errorf("could not create a kubeconfig for cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) kubeConfigClient(endpoint string) (*v1.Config, error) {
-	clientCertificate, clientCertificatePrivateKey, err := cluster.CertificateAuthorities.APIServerClient.CreateCertificate("kubernetes-admin", []string{"system:masters"}, []string{})
-	if err != nil {
-		return nil, err
-	}
-	config := v1.Config{
+func (cluster *Cluster) kubeConfigObjectWithCertificate(endpoint, clientCertificate, clientCertificatePrivateKey string) *v1.Config {
+	return &v1.Config{
 		Clusters: []v1.NamedCluster{
 			{
 				Name: cluster.Name,
@@ -77,5 +92,4 @@ func (cluster *Cluster) kubeConfigClient(endpoint string) (*v1.Config, error) {
 			},
 		},
 	}
-	return &config, nil
 }

@@ -40,6 +40,7 @@ type ComponentSpec struct {
 // ComponentStatus defines the observed state of Component
 type ComponentStatus struct {
 	AllocatedHostPorts []ComponentHostPortAllocation `json:"allocatedHostPorts,omitempty"`
+	ClientCertificates map[string]Certificate        `json:"clientCertificates,omitempty"`
 }
 
 // ComponentHostPortAllocation represents a port allocation in a component

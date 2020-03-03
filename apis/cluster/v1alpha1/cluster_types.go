@@ -45,17 +45,11 @@ type VPNPeer struct {
 
 // CertificateAuthorities represents a set of Certificate Authorities
 type CertificateAuthorities struct {
-	APIServerClient   CertificateAuthority `json:"apiServerClient,omitempty"`
-	CertificateSigner CertificateAuthority `json:"certificateSigner,omitempty"`
-	Kubelet           CertificateAuthority `json:"kubelet,omitempty"`
-	EtcdClient        CertificateAuthority `json:"etcdClient,omitempty"`
-	EtcdPeer          CertificateAuthority `json:"etcdPeer,omitempty"`
-}
-
-// CertificateAuthority represents a Certificate Authority
-type CertificateAuthority struct {
-	Certificate string `json:"certificate,omitempty"`
-	PrivateKey  string `json:"privateKey,omitempty"`
+	APIServerClient   Certificate `json:"apiServerClient,omitempty"`
+	CertificateSigner Certificate `json:"certificateSigner,omitempty"`
+	Kubelet           Certificate `json:"kubelet,omitempty"`
+	EtcdClient        Certificate `json:"etcdClient,omitempty"`
+	EtcdPeer          Certificate `json:"etcdPeer,omitempty"`
 }
 
 // KeyPair represents a public/private key pair
@@ -66,19 +60,19 @@ type KeyPair struct {
 
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
-	CA             *CertificateAuthority `json:"ca,omitempty"`
-	TLSCert        string                `json:"tlsCert,omitempty"`
-	TLSPrivateKey  string                `json:"tlsPrivateKey,omitempty"`
-	ServiceAccount KeyPair               `json:"serviceAccount,omitempty"`
-	ExtraSANs      []string              `json:"extraSANs,omitempty"`
+	CA             *Certificate `json:"ca,omitempty"`
+	TLSCert        string       `json:"tlsCert,omitempty"`
+	TLSPrivateKey  string       `json:"tlsPrivateKey,omitempty"`
+	ServiceAccount KeyPair      `json:"serviceAccount,omitempty"`
+	ExtraSANs      []string     `json:"extraSANs,omitempty"`
 }
 
 // EtcdServer represents an etcd server
 type EtcdServer struct {
-	CA            *CertificateAuthority `json:"ca,omitempty"`
-	TLSCert       string                `json:"tlsCert,omitempty"`
-	TLSPrivateKey string                `json:"tlsPrivateKey,omitempty"`
-	ExtraSANs     []string              `json:"extraSANs,omitempty"`
+	CA            *Certificate `json:"ca,omitempty"`
+	TLSCert       string       `json:"tlsCert,omitempty"`
+	TLSPrivateKey string       `json:"tlsPrivateKey,omitempty"`
+	ExtraSANs     []string     `json:"extraSANs,omitempty"`
 }
 
 // +kubebuilder:object:root=true

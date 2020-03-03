@@ -26,6 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "oneinfra.ereslibre.es/m/apis/cluster/v1alpha1"
+	"oneinfra.ereslibre.es/m/internal/pkg/certificates"
+	"oneinfra.ereslibre.es/m/internal/pkg/cluster"
 	"oneinfra.ereslibre.es/m/internal/pkg/infra"
 )
 
@@ -46,6 +48,7 @@ type Component struct {
 	HypervisorName     string
 	ClusterName        string
 	AllocatedHostPorts map[string]int
+	ClientCertificates map[string]*certificates.Certificate
 }
 
 // NewComponentWithRandomHypervisor creates a component with a random hypervisor from the provided hypervisorList
@@ -60,6 +63,7 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 		ClusterName:        clusterName,
 		Role:               role,
 		AllocatedHostPorts: map[string]int{},
+		ClientCertificates: map[string]*certificates.Certificate{},
 	}, nil
 }
 
@@ -80,6 +84,10 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 	for _, hostPort := range component.Status.AllocatedHostPorts {
 		res.AllocatedHostPorts[hostPort.Name] = hostPort.Port
 	}
+	res.ClientCertificates = map[string]*certificates.Certificate{}
+	for clientCertificateName, clientCertificate := range component.Status.ClientCertificates {
+		res.ClientCertificates[clientCertificateName] = certificates.NewCertificateFromv1alpha1(&clientCertificate)
+	}
 	return &res, nil
 }
 
@@ -94,6 +102,42 @@ func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name strin
 	}
 	component.AllocatedHostPorts[name] = allocatedPort
 	return allocatedPort, nil
+}
+
+// ClientCertificate returns a client certificate with the given name
+func (component *Component) ClientCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
+	if clientCertificate, ok := component.ClientCertificates[name]; ok {
+		return clientCertificate, nil
+	}
+	certificate, privateKey, err := ca.CreateCertificate(commonName, organization, extraSANs)
+	if err != nil {
+		return nil, err
+	}
+	clientCertificate := &certificates.Certificate{
+		Certificate: certificate,
+		PrivateKey:  privateKey,
+	}
+	component.ClientCertificates[name] = clientCertificate
+	return clientCertificate, nil
+}
+
+// KubeConfig returns or generates a new KubeConfig file for the given cluster
+func (component *Component) KubeConfig(cluster *cluster.Cluster, endpoint, name string) (string, error) {
+	clientCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.APIServerClient,
+		name,
+		"kubernetes-admin",
+		[]string{"system:masters"},
+		[]string{},
+	)
+	if err != nil {
+		return "", err
+	}
+	kubeConfig, err := cluster.KubeConfigWithClientCertificate(endpoint, clientCertificate)
+	if err != nil {
+		return "", err
+	}
+	return kubeConfig, nil
 }
 
 // Export exports the component to a versioned component
@@ -122,6 +166,10 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 				Port: hostPort,
 			},
 		)
+	}
+	res.Status.ClientCertificates = map[string]clusterv1alpha1.Certificate{}
+	for clientCertificateName, clientCertificate := range component.ClientCertificates {
+		res.Status.ClientCertificates[clientCertificateName] = *clientCertificate.Export()
 	}
 	return res
 }

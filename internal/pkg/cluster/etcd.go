@@ -16,17 +16,20 @@ limitations under the License.
 
 package cluster
 
+import (
+	"oneinfra.ereslibre.es/m/internal/pkg/certificates"
+)
+
 // EtcdServer represents the etcd component
 type EtcdServer struct {
-	CA            *CertificateAuthority
+	CA            *certificates.Certificate
 	TLSCert       string
 	TLSPrivateKey string
 	ExtraSANs     []string
 }
 
 func newEtcdServer(etcdServerExtraSANs []string) (*EtcdServer, error) {
-	// TODO: allow no CA generation, provided cert and key
-	certificateAuthority, err := newCertificateAuthority("etcd-authority")
+	certificateAuthority, err := certificates.NewCertificateAuthority("etcd-authority")
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ package infra
 import (
 	"context"
 	"crypto/md5"
+	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
 	"math/rand"
@@ -51,6 +52,7 @@ type Hypervisor struct {
 	IPAddress          string
 	CRIRuntimeEndpoint string
 	CRIImageEndpoint   string
+	Files              map[string]string
 	criRuntime         criapi.RuntimeServiceClient
 	criImage           criapi.ImageServiceClient
 	portRangeLow       int
@@ -66,12 +68,17 @@ type HypervisorList []*Hypervisor
 
 // NewHypervisorFromv1alpha1 returns an hypervisor based on a versioned hypervisor
 func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
+	hypervisorFiles := hypervisor.Status.Files
+	if hypervisorFiles == nil {
+		hypervisorFiles = map[string]string{}
+	}
 	return &Hypervisor{
 		Name:               hypervisor.ObjectMeta.Name,
 		Public:             hypervisor.Spec.Public,
 		IPAddress:          hypervisor.Spec.IPAddress,
 		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
 		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
+		Files:              hypervisorFiles,
 		portRangeLow:       hypervisor.Spec.PortRange.Low,
 		portRangeHigh:      hypervisor.Spec.PortRange.High,
 		allocatedPorts:     NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
@@ -418,6 +425,13 @@ func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
+	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
+	if currentFileContentsSHA1, ok := hypervisor.Files[hostPath]; ok {
+		if currentFileContentsSHA1 == fileContentsSHA1 {
+			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, since hash matches", hypervisor.Name, hostPath)
+			return nil
+		}
+	}
 	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
 	if err := hypervisor.EnsureImage(toolingImage); err != nil {
 		return err
@@ -442,6 +456,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
 		return err
 	}
+	hypervisor.Files[hostPath] = fileContentsSHA1
 	return hypervisor.DeletePod(podSandboxID)
 }
 
@@ -490,6 +505,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		},
 		Status: infrav1alpha1.HypervisorStatus{
 			AllocatedPorts: hypervisor.allocatedPorts.Export(),
+			Files:          hypervisor.Files,
 		},
 	}
 }

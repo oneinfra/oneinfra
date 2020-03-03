@@ -31,6 +31,7 @@ type HypervisorSpec struct {
 // HypervisorStatus defines the observed state of Hypervisor
 type HypervisorStatus struct {
 	AllocatedPorts []HypervisorPortAllocation `json:"allocatedPorts,omitempty"`
+	Files          map[string]string          `json:"files,omitempty"`
 }
 
 // HypervisorPortRange represents a port range

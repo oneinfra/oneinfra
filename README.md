@@ -14,6 +14,22 @@ It features a declarative infrastructure definition.
 
 You can read more about its [design here](docs/DESIGN.md).
 
+## Install
+
+```
+$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
+```
+
+This should have installed the following binaries:
+
+* `oi-local-cluster`: allows you to test `oneinfra` locally in your
+  machine, with docker containers as hypervisors.
+
+* `oi`: CLI tool that allows you to discover `oneinfra`.
+
+* `oi-manager`: Kubernetes set of controllers that reconcile your
+  `oneinfra` defined clusters.
+
 ## Quick start with docker
 
 You can create hypervisors in your machine with docker. Each docker

@@ -99,6 +99,9 @@ e2e-build-hypervisor-image:
 e2e: oi oi-local-cluster
 	./scripts/e2e.sh
 
+e2e-remote: oi oi-local-cluster
+	./scripts/e2e.sh --remote
+
 # Creates a fake worker
 create-fake-worker:
 	./scripts/create-fake-worker.sh

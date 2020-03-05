@@ -24,13 +24,18 @@ import (
 
 // Create creates a cluster with name clusterName, with private size
 // privateClusterSize and public size publicClusterSize
-func Create(clusterName, nodeImage string, privateClusterSize, publicClusterSize int) error {
-	cluster := localcluster.NewHypervisorCluster(clusterName, nodeImage, publicClusterSize, privateClusterSize)
+func Create(clusterName, nodeImage string, privateClusterSize, publicClusterSize int, remote bool) error {
+	cluster := localcluster.NewHypervisorCluster(clusterName, nodeImage, publicClusterSize, privateClusterSize, remote)
 	if err := cluster.Create(); err != nil {
 		return err
 	}
 	if err := cluster.Wait(); err != nil {
 		return err
+	}
+	if remote {
+		if err := cluster.StartRemoteCRIEndpoints(); err != nil {
+			return err
+		}
 	}
 	fmt.Print(cluster.Specs())
 	return nil

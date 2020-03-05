@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -167,7 +168,7 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 			},
 		)
 	}
-	res.Status.ClientCertificates = map[string]clusterv1alpha1.Certificate{}
+	res.Status.ClientCertificates = map[string]commonv1alpha1.Certificate{}
 	for clientCertificateName, clientCertificate := range component.ClientCertificates {
 		res.Status.ClientCertificates[clientCertificateName] = *clientCertificate.Export()
 	}

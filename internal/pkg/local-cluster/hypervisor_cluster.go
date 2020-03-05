@@ -33,14 +33,16 @@ import (
 type HypervisorCluster struct {
 	Name        string
 	NodeImage   string
+	Remote      bool
 	Hypervisors []*Hypervisor
 }
 
-// NewHypervisorCluster creates a new cluster of local hypervisors
-func NewHypervisorCluster(name, nodeImage string, privateClusterSize, publicClusterSize int) *HypervisorCluster {
+// NewHypervisorCluster creates a new cluster of hypervisors
+func NewHypervisorCluster(name, nodeImage string, privateClusterSize, publicClusterSize int, remote bool) *HypervisorCluster {
 	cluster := HypervisorCluster{
 		Name:        name,
 		NodeImage:   nodeImage,
+		Remote:      remote,
 		Hypervisors: []*Hypervisor{},
 	}
 	for i := 0; i < privateClusterSize; i++ {
@@ -81,7 +83,7 @@ func LoadCluster(name string) (*HypervisorCluster, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewHypervisorCluster(name, "", len(privateHypervisors), len(publicHypervisors)), nil
+	return NewHypervisorCluster(name, "", len(privateHypervisors), len(publicHypervisors), false), nil
 }
 
 func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor) {
@@ -112,6 +114,16 @@ func (hypervisorCluster *HypervisorCluster) Wait() error {
 		}(hypervisor)
 	}
 	wg.Wait()
+	return nil
+}
+
+// StartRemoteCRIEndpoints initializes the CRI endpoint on all hypervisors
+func (hypervisorCluster *HypervisorCluster) StartRemoteCRIEndpoints() error {
+	for _, hypervisor := range hypervisorCluster.Hypervisors {
+		if err := hypervisor.StartRemoteCRIEndpoint(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

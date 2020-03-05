@@ -30,7 +30,7 @@ import (
 
 	"k8s.io/klog"
 
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 )
 
 // Certificate represents a certificate
@@ -121,7 +121,7 @@ func NewCertificateAuthority(authorityName string) (*Certificate, error) {
 }
 
 // NewCertificateFromv1alpha1 returns a certificate from a versioned certificate
-func NewCertificateFromv1alpha1(certificate *clusterv1alpha1.Certificate) *Certificate {
+func NewCertificateFromv1alpha1(certificate *commonv1alpha1.Certificate) *Certificate {
 	res := &Certificate{
 		Certificate: certificate.Certificate,
 		PrivateKey:  certificate.PrivateKey,
@@ -133,8 +133,8 @@ func NewCertificateFromv1alpha1(certificate *clusterv1alpha1.Certificate) *Certi
 }
 
 // Export exports the certificate to a versioned certificate
-func (certificate *Certificate) Export() *clusterv1alpha1.Certificate {
-	return &clusterv1alpha1.Certificate{
+func (certificate *Certificate) Export() *commonv1alpha1.Certificate {
+	return &commonv1alpha1.Certificate{
 		Certificate: certificate.Certificate,
 		PrivateKey:  certificate.PrivateKey,
 	}
@@ -153,15 +153,17 @@ func (certificate *Certificate) init() error {
 		return err
 	}
 	certificate.certificate = parsedCertificate
-	block, _ = pem.Decode([]byte(certificate.PrivateKey))
-	if block == nil {
-		return errors.New("could not decode PEM private key")
+	if len(certificate.PrivateKey) > 0 {
+		block, _ = pem.Decode([]byte(certificate.PrivateKey))
+		if block == nil {
+			return errors.New("could not decode PEM private key")
+		}
+		privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return err
+		}
+		certificate.privateKey = privateKey
 	}
-	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return err
-	}
-	certificate.privateKey = privateKey
 	return nil
 }
 

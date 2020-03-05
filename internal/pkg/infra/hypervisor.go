@@ -27,7 +27,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -47,17 +46,16 @@ const (
 
 // Hypervisor represents an hypervisor
 type Hypervisor struct {
-	Name               string
-	Public             bool
-	IPAddress          string
-	CRIRuntimeEndpoint string
-	CRIImageEndpoint   string
-	Files              map[string]string
-	criRuntime         criapi.RuntimeServiceClient
-	criImage           criapi.ImageServiceClient
-	portRangeLow       int
-	portRangeHigh      int
-	allocatedPorts     HypervisorPortAllocationList
+	Name           string
+	Public         bool
+	IPAddress      string
+	Files          map[string]string
+	Endpoint       hypervisorEndpoint
+	criRuntime     criapi.RuntimeServiceClient
+	criImage       criapi.ImageServiceClient
+	portRangeLow   int
+	portRangeHigh  int
+	allocatedPorts HypervisorPortAllocationList
 }
 
 // HypervisorMap represents a map of hypervisors
@@ -72,17 +70,29 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 	if hypervisorFiles == nil {
 		hypervisorFiles = map[string]string{}
 	}
+	res := Hypervisor{
+		Name:           hypervisor.ObjectMeta.Name,
+		Public:         hypervisor.Spec.Public,
+		IPAddress:      hypervisor.Spec.IPAddress,
+		Files:          hypervisorFiles,
+		portRangeLow:   hypervisor.Spec.PortRange.Low,
+		portRangeHigh:  hypervisor.Spec.PortRange.High,
+		allocatedPorts: NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
+	}
+	if err := setHypervisorEndpointFromv1alpha1(hypervisor, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// NewLocalHypervisor creates a local hypervisor
+func NewLocalHypervisor(name, criEndpoint string) *Hypervisor {
 	return &Hypervisor{
-		Name:               hypervisor.ObjectMeta.Name,
-		Public:             hypervisor.Spec.Public,
-		IPAddress:          hypervisor.Spec.IPAddress,
-		CRIRuntimeEndpoint: hypervisor.Spec.CRIRuntimeEndpoint,
-		CRIImageEndpoint:   hypervisor.Spec.CRIRuntimeEndpoint,
-		Files:              hypervisorFiles,
-		portRangeLow:       hypervisor.Spec.PortRange.Low,
-		portRangeHigh:      hypervisor.Spec.PortRange.High,
-		allocatedPorts:     NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
-	}, nil
+		Name: name,
+		Endpoint: &localHypervisorEndpoint{
+			CRIEndpoint: criEndpoint,
+		},
+	}
 }
 
 // CRIRuntime returns the runtime service client for the current hypervisor
@@ -90,7 +100,7 @@ func (hypervisor *Hypervisor) CRIRuntime() (criapi.RuntimeServiceClient, error) 
 	if hypervisor.criRuntime != nil {
 		return hypervisor.criRuntime, nil
 	}
-	conn, err := grpc.Dial(hypervisor.CRIRuntimeEndpoint, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := hypervisor.Endpoint.Connection()
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +113,7 @@ func (hypervisor *Hypervisor) CRIImage() (criapi.ImageServiceClient, error) {
 	if hypervisor.criImage != nil {
 		return hypervisor.criImage, nil
 	}
-	conn, err := grpc.Dial(hypervisor.CRIImageEndpoint, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := hypervisor.Endpoint.Connection()
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +202,7 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 }
 
 // IsPodRunning returns whether a pod is running on the current hypervisor
-func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod podapi.Pod) (bool, string, error) {
+func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (bool, string, error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return false, "", err
@@ -256,7 +266,7 @@ func (hypervisor *Hypervisor) IsPodRunning(cluster *cluster.Cluster, pod podapi.
 
 // RunPod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
-	isPodRunning, podSandboxID, err := hypervisor.IsPodRunning(cluster, pod)
+	isPodRunning, podSandboxID, err := hypervisor.IsPodRunning(pod)
 	if err != nil {
 		return "", err
 	}
@@ -456,7 +466,9 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
 		return err
 	}
-	hypervisor.Files[hostPath] = fileContentsSHA1
+	if hypervisor.Files != nil {
+		hypervisor.Files[hostPath] = fileContentsSHA1
+	}
 	return hypervisor.DeletePod(podSandboxID)
 }
 
@@ -490,14 +502,13 @@ func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (in
 
 // Export exports the hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
-	return &infrav1alpha1.Hypervisor{
+	resHypervisor := infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: hypervisor.Name,
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
-			Public:             hypervisor.Public,
-			IPAddress:          hypervisor.IPAddress,
-			CRIRuntimeEndpoint: hypervisor.CRIImageEndpoint,
+			Public:    hypervisor.Public,
+			IPAddress: hypervisor.IPAddress,
 			PortRange: infrav1alpha1.HypervisorPortRange{
 				Low:  hypervisor.portRangeLow,
 				High: hypervisor.portRangeHigh,
@@ -508,6 +519,8 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 			Files:          hypervisor.Files,
 		},
 	}
+	resHypervisor.Spec.LocalCRIEndpoint, resHypervisor.Spec.RemoteCRIEndpoint = hypervisor.Endpoint.Export()
+	return &resHypervisor
 }
 
 // Specs returns the versioned specs of this hypervisor

@@ -12,16 +12,23 @@ jobs:
       - checkout
       - run: make pull-builder
       - run: make test
-  e2e tests:
+  e2e tests (local cri endpoints):
     machine: true
     steps:
       - checkout
       - run: make deps
       - run: make e2e
+  e2e tests (remote cri endpoints):
+    machine: true
+    steps:
+      - checkout
+      - run: make deps
+      - run: make e2e-remote
 workflows:
   version: 2
   test:
     jobs:
       - build
       - unit and integration tests
-      - e2e tests
+      - e2e tests (local cri endpoints)
+      - e2e tests (remote cri endpoints)

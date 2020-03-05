@@ -57,9 +57,14 @@ func main() {
 								Value: 2,
 								Usage: "public hypervisor test cluster size",
 							},
+							&cli.BoolFlag{
+								Name:  "remote",
+								Value: false,
+								Usage: "whether remote hypervisors (CRI exposed through TCP) will be used. If not, local hypervisors (CRI exposed through a UNIX socket) will be used",
+							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Create(c.String("name"), c.String("node-image"), c.Int("size-private"), c.Int("size-public"))
+							return cluster.Create(c.String("name"), c.String("node-image"), c.Int("size-private"), c.Int("size-public"), c.Bool("remote"))
 						},
 					},
 					{

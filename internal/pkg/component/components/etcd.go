@@ -250,7 +250,7 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	if err != nil {
 		return err
 	}
-	isEtcdRunning, _, err := hypervisor.IsPodRunning(cluster, etcdPod)
+	isEtcdRunning, _, err := hypervisor.IsPodRunning(etcdPod)
 	if err != nil {
 		return err
 	}

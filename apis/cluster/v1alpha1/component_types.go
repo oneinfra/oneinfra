@@ -18,6 +18,8 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 )
 
 // Role defines the role of this component
@@ -39,8 +41,8 @@ type ComponentSpec struct {
 
 // ComponentStatus defines the observed state of Component
 type ComponentStatus struct {
-	AllocatedHostPorts []ComponentHostPortAllocation `json:"allocatedHostPorts,omitempty"`
-	ClientCertificates map[string]Certificate        `json:"clientCertificates,omitempty"`
+	AllocatedHostPorts []ComponentHostPortAllocation         `json:"allocatedHostPorts,omitempty"`
+	ClientCertificates map[string]commonv1alpha1.Certificate `json:"clientCertificates,omitempty"`
 }
 
 // ComponentHostPortAllocation represents a port allocation in a component

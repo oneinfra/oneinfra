@@ -18,6 +18,8 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 )
 
 // ClusterSpec defines the desired state of Cluster
@@ -45,11 +47,11 @@ type VPNPeer struct {
 
 // CertificateAuthorities represents a set of Certificate Authorities
 type CertificateAuthorities struct {
-	APIServerClient   Certificate `json:"apiServerClient,omitempty"`
-	CertificateSigner Certificate `json:"certificateSigner,omitempty"`
-	Kubelet           Certificate `json:"kubelet,omitempty"`
-	EtcdClient        Certificate `json:"etcdClient,omitempty"`
-	EtcdPeer          Certificate `json:"etcdPeer,omitempty"`
+	APIServerClient   commonv1alpha1.Certificate `json:"apiServerClient,omitempty"`
+	CertificateSigner commonv1alpha1.Certificate `json:"certificateSigner,omitempty"`
+	Kubelet           commonv1alpha1.Certificate `json:"kubelet,omitempty"`
+	EtcdClient        commonv1alpha1.Certificate `json:"etcdClient,omitempty"`
+	EtcdPeer          commonv1alpha1.Certificate `json:"etcdPeer,omitempty"`
 }
 
 // KeyPair represents a public/private key pair
@@ -60,19 +62,19 @@ type KeyPair struct {
 
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
-	CA             *Certificate `json:"ca,omitempty"`
-	TLSCert        string       `json:"tlsCert,omitempty"`
-	TLSPrivateKey  string       `json:"tlsPrivateKey,omitempty"`
-	ServiceAccount KeyPair      `json:"serviceAccount,omitempty"`
-	ExtraSANs      []string     `json:"extraSANs,omitempty"`
+	CA             *commonv1alpha1.Certificate `json:"ca,omitempty"`
+	TLSCert        string                      `json:"tlsCert,omitempty"`
+	TLSPrivateKey  string                      `json:"tlsPrivateKey,omitempty"`
+	ServiceAccount KeyPair                     `json:"serviceAccount,omitempty"`
+	ExtraSANs      []string                    `json:"extraSANs,omitempty"`
 }
 
 // EtcdServer represents an etcd server
 type EtcdServer struct {
-	CA            *Certificate `json:"ca,omitempty"`
-	TLSCert       string       `json:"tlsCert,omitempty"`
-	TLSPrivateKey string       `json:"tlsPrivateKey,omitempty"`
-	ExtraSANs     []string     `json:"extraSANs,omitempty"`
+	CA            *commonv1alpha1.Certificate `json:"ca,omitempty"`
+	TLSCert       string                      `json:"tlsCert,omitempty"`
+	TLSPrivateKey string                      `json:"tlsPrivateKey,omitempty"`
+	ExtraSANs     []string                    `json:"extraSANs,omitempty"`
 }
 
 // +kubebuilder:object:root=true

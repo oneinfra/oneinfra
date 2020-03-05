@@ -1,5 +1,24 @@
-dist: bionic
-language: minimal
-script:
-  - make deps
-  - make e2e
+jobs:
+  include:
+    - stage: build
+      dist: bionic
+      language: minimal
+      script:
+        - make pull-builder
+        - make
+    - stage: test
+      dist: bionic
+      language: minimal
+      script:
+        - make pull-builder
+        - make test
+    - dist: bionic
+      language: minimal
+      script:
+        - make deps
+        - make e2e
+    - dist: bionic
+      language: minimal
+      script:
+        - make deps
+        - make e2e-remote

@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
@@ -104,29 +105,29 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
-				APIServerClient: clusterv1alpha1.Certificate{
+				APIServerClient: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.APIServerClient.PrivateKey,
 				},
-				CertificateSigner: clusterv1alpha1.Certificate{
+				CertificateSigner: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.CertificateSigner.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 				},
-				Kubelet: clusterv1alpha1.Certificate{
+				Kubelet: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
 				},
-				EtcdClient: clusterv1alpha1.Certificate{
+				EtcdClient: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdClient.PrivateKey,
 				},
-				EtcdPeer: clusterv1alpha1.Certificate{
+				EtcdPeer: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdPeer.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdPeer.PrivateKey,
 				},
 			},
 			APIServer: clusterv1alpha1.KubeAPIServer{
-				CA: &clusterv1alpha1.Certificate{
+				CA: &commonv1alpha1.Certificate{
 					Certificate: cluster.APIServer.CA.Certificate,
 					PrivateKey:  cluster.APIServer.CA.PrivateKey,
 				},
@@ -139,7 +140,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				ExtraSANs: cluster.APIServer.ExtraSANs,
 			},
 			EtcdServer: clusterv1alpha1.EtcdServer{
-				CA: &clusterv1alpha1.Certificate{
+				CA: &commonv1alpha1.Certificate{
 					Certificate: cluster.EtcdServer.CA.Certificate,
 					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,
 				},

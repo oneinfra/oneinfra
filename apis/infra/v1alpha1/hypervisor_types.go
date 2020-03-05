@@ -18,14 +18,29 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 )
 
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
-	CRIRuntimeEndpoint string              `json:"criRuntimeEndpoint,omitempty"`
-	Public             bool                `json:"public"`
-	IPAddress          string              `json:"ipAddress,omitempty"`
-	PortRange          HypervisorPortRange `json:"portRange,omitempty"`
+	LocalCRIEndpoint  *LocalHypervisorCRIEndpoint  `json:"localCRIEndpoint,omitempty"`
+	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
+	Public            bool                         `json:"public"`
+	IPAddress         string                       `json:"ipAddress,omitempty"`
+	PortRange         HypervisorPortRange          `json:"portRange,omitempty"`
+}
+
+// LocalHypervisorCRIEndpoint represents a local hypervisor CRI endpoint (unix socket)
+type LocalHypervisorCRIEndpoint struct {
+	CRIEndpoint string `json:"criEndpointPath,omitempty"`
+}
+
+// RemoteHypervisorCRIEndpoint represents a remote hypervisor CRI endpoint (tcp with client certificate authentication)
+type RemoteHypervisorCRIEndpoint struct {
+	CRIEndpoint       string                      `json:"criEndpointURI,omitempty"`
+	CACertificate     string                      `json:"caCertificate,omitempty"`
+	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`
 }
 
 // HypervisorStatus defines the observed state of Hypervisor

@@ -1,23 +1,27 @@
 jobs:
   include:
     - stage: build
+      name: build
       dist: bionic
       language: minimal
       script:
         - make pull-builder
         - make
     - stage: test
+      name: unit and integration tests
       dist: bionic
       language: minimal
       script:
         - make pull-builder
         - make test
-    - dist: bionic
+    - name: e2e tests with local CRI endpoints
+      dist: bionic
       language: minimal
       script:
         - make deps
         - make e2e
-    - dist: bionic
+    - name: e2e tests with remote CRI endpoints
+      dist: bionic
       language: minimal
       script:
         - make deps

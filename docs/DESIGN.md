@@ -74,7 +74,7 @@ Two types of components exist at the moment:
 * Control Plane Ingress, formed by:
   * An `haproxy` instance, pointing to all control plane instances
     that are part of the same cluster.
-  * (Soon) by a VPN server.
+  * A VPN endpoint.
 
 In the future, it will be possible to scale Control Plane components
 in a fine grained way; you will be able to create more `API server`

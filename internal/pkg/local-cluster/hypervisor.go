@@ -19,7 +19,6 @@ package localcluster
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"net"
 	"os"
 	"os/exec"
@@ -27,6 +26,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"

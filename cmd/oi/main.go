@@ -27,7 +27,6 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
 	"github.com/oneinfra/oneinfra/internal/app/oi/component"
-	"github.com/oneinfra/oneinfra/internal/app/oi/vpnpeer"
 )
 
 func main() {
@@ -157,31 +156,6 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
-						},
-					},
-				},
-			},
-			{
-				Name:  "peer",
-				Usage: "VPN peer operations",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "inject",
-						Usage: "inject a VPN peer",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "name",
-								Required: true,
-								Usage:    "VPN peer name",
-							},
-							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
-							},
-						},
-						Action: func(c *cli.Context) error {
-							return vpnpeer.Inject(c.String("name"), c.String("cluster"))
 						},
 					},
 				},

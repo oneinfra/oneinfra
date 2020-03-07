@@ -119,6 +119,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--etcd-keyfile", secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
+						"--enable-bootstrap-token-auth",
 						"--allow-privileged", "true",
 						"--tls-cert-file", secretsPathFile(cluster.Name, component.Name, "apiserver.crt"),
 						"--tls-private-key-file", secretsPathFile(cluster.Name, component.Name, "apiserver.key"),
@@ -136,6 +137,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
 						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"),
+						"--controllers=*,tokencleaner",
 						"--service-account-private-key-file", secretsPathFile(cluster.Name, component.Name, "service-account.key"),
 					},
 					Mounts: map[string]string{

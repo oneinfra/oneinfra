@@ -123,7 +123,7 @@ func (component *Component) ClientCertificate(ca *certificates.Certificate, name
 }
 
 // KubeConfig returns or generates a new KubeConfig file for the given cluster
-func (component *Component) KubeConfig(cluster *cluster.Cluster, endpoint, name string) (string, error) {
+func (component *Component) KubeConfig(cluster *cluster.Cluster, apiServerEndpoint, name string) (string, error) {
 	clientCertificate, err := component.ClientCertificate(
 		cluster.CertificateAuthorities.APIServerClient,
 		name,
@@ -134,7 +134,7 @@ func (component *Component) KubeConfig(cluster *cluster.Cluster, endpoint, name 
 	if err != nil {
 		return "", err
 	}
-	kubeConfig, err := cluster.KubeConfigWithClientCertificate(endpoint, clientCertificate)
+	kubeConfig, err := cluster.KubeConfigWithClientCertificate(apiServerEndpoint, clientCertificate)
 	if err != nil {
 		return "", err
 	}

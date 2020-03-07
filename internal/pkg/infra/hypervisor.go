@@ -274,6 +274,10 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (
 		klog.V(2).Infof("all containers within pod %q in hypervisor %q are running", pod.Name, hypervisor.Name)
 		return podSandboxID, nil
 	}
+	return hypervisor.runPodInNewSandbox(cluster, pod)
+}
+
+func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
 	klog.V(2).Infof("running a pod %q in hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
@@ -292,7 +296,7 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (
 	if err != nil {
 		return "", err
 	}
-	podSandboxID = podSandboxResponse.PodSandboxId
+	podSandboxID := podSandboxResponse.PodSandboxId
 	containerIds := []string{}
 	for _, container := range pod.Containers {
 		containerMounts := []*criapi.Mount{}
@@ -424,8 +428,11 @@ func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod pod
 // UploadFiles uploads a map of files, with location as keys, and
 // contents as values
 func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
+	if err := hypervisor.EnsureImage(toolingImage); err != nil {
+		return err
+	}
 	for fileLocation, fileContents := range files {
-		if err := hypervisor.UploadFile(fileContents, fileLocation); err != nil {
+		if err := hypervisor.uploadFile(fileContents, fileLocation); err != nil {
 			return err
 		}
 	}
@@ -435,16 +442,20 @@ func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
+	if err := hypervisor.EnsureImage(toolingImage); err != nil {
+		return err
+	}
+	return hypervisor.uploadFile(fileContents, hostPath)
+}
+
+func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
+	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	if currentFileContentsSHA1, ok := hypervisor.Files[hostPath]; ok {
 		if currentFileContentsSHA1 == fileContentsSHA1 {
-			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, since hash matches", hypervisor.Name, hostPath)
+			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
 			return nil
 		}
-	}
-	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
-	if err := hypervisor.EnsureImage(toolingImage); err != nil {
-		return err
 	}
 	hostPathDir := filepath.Dir(hostPath)
 	uploadFilePod := podapi.NewSingleContainerPod(
@@ -459,7 +470,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 		map[int]int{},
 		podapi.PrivilegesUnprivileged,
 	)
-	podSandboxID, err := hypervisor.RunPod(nil, uploadFilePod)
+	podSandboxID, err := hypervisor.runPodInNewSandbox(nil, uploadFilePod)
 	if err != nil {
 		return err
 	}

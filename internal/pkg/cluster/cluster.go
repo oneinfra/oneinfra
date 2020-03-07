@@ -24,9 +24,11 @@ import (
 	"github.com/pkg/errors"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
+	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	clientset "k8s.io/client-go/kubernetes"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
@@ -42,7 +44,12 @@ type Cluster struct {
 	StorageClientEndpoints []string
 	StoragePeerEndpoints   []string
 	VPNCIDR                *net.IPNet
-	VPNPeers               VPNPeerList
+	VPNPeers               VPNPeerMap
+	APIServerEndpoint      string
+	DesiredJoinTokens      []string
+	CurrentJoinTokens      []string
+	clientSet              clientset.Interface
+	extensionsClientSet    apiextensionsclientset.Interface
 }
 
 // Map represents a map of clusters
@@ -54,11 +61,15 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 	if err != nil {
 		return nil, err
 	}
-	res := Cluster{Name: clusterName, VPNCIDR: vpnCIDRNet}
+	res := Cluster{
+		Name:     clusterName,
+		VPNCIDR:  vpnCIDRNet,
+		VPNPeers: VPNPeerMap{},
+	}
 	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
 		return nil, err
 	}
-	if err := res.GenerateVPNPeer("control-plane-ingress"); err != nil {
+	if _, err := res.GenerateVPNPeer("control-plane-ingress"); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -93,6 +104,9 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
 		VPNCIDR:                newVPNCIDRFromv1alpha1(cluster.Spec.VPNCIDR),
 		VPNPeers:               newVPNPeersFromv1alpha1(cluster.Status.VPNPeers),
+		APIServerEndpoint:      cluster.Status.APIServerEndpoint,
+		DesiredJoinTokens:      cluster.Spec.JoinTokens,
+		CurrentJoinTokens:      cluster.Status.JoinTokens,
 	}
 	return &res, nil
 }
@@ -148,12 +162,15 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				TLSPrivateKey: cluster.EtcdServer.TLSPrivateKey,
 				ExtraSANs:     cluster.EtcdServer.ExtraSANs,
 			},
-			VPNCIDR: cluster.VPNCIDR.String(),
+			VPNCIDR:    cluster.VPNCIDR.String(),
+			JoinTokens: cluster.DesiredJoinTokens,
 		},
 		Status: clusterv1alpha1.ClusterStatus{
 			StorageClientEndpoints: cluster.StorageClientEndpoints,
 			StoragePeerEndpoints:   cluster.StoragePeerEndpoints,
 			VPNPeers:               cluster.VPNPeers.Export(),
+			APIServerEndpoint:      cluster.APIServerEndpoint,
+			JoinTokens:             cluster.CurrentJoinTokens,
 		},
 	}
 }
@@ -193,14 +210,17 @@ func (cluster *Cluster) generateCertificates(etcdServerExtraSANs, apiServerExtra
 }
 
 // GenerateVPNPeer generates a new VPN peer with name peerName
-func (cluster *Cluster) GenerateVPNPeer(peerName string) error {
+func (cluster *Cluster) GenerateVPNPeer(peerName string) (*VPNPeer, error) {
+	if vpnPeer, err := cluster.VPNPeer(peerName); err == nil {
+		return vpnPeer, nil
+	}
 	controlPlaneIngressVPNIP, err := cluster.requestVPNIP()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	privateKey, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var ipAddressNet net.IPNet
 	ipAddress := net.ParseIP(controlPlaneIngressVPNIP)
@@ -209,21 +229,20 @@ func (cluster *Cluster) GenerateVPNPeer(peerName string) error {
 	} else {
 		ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(32, 32)}
 	}
-	cluster.VPNPeers = append(cluster.VPNPeers, VPNPeer{
+	vpnPeer := &VPNPeer{
 		Name:       peerName,
 		Address:    ipAddressNet.String(),
 		PrivateKey: privateKey.String(),
 		PublicKey:  privateKey.PublicKey().String(),
-	})
-	return nil
+	}
+	cluster.VPNPeers[peerName] = vpnPeer
+	return vpnPeer, nil
 }
 
 // VPNPeer returns the VPN peer with the provided name
 func (cluster *Cluster) VPNPeer(name string) (*VPNPeer, error) {
-	for _, peer := range cluster.VPNPeers {
-		if peer.Name == name {
-			return &peer, nil
-		}
+	if vpnPeer, exists := cluster.VPNPeers[name]; exists {
+		return vpnPeer, nil
 	}
 	return nil, errors.Errorf("vpn peer %q not found", name)
 }

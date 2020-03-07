@@ -60,7 +60,8 @@ Kubernetes master is running at https://127.0.0.1:30000
 `oneinfra` is a heavy Work In Progress, and not intended for
 production yet.
 
-- [ ] Implement worker join ([WIP](https://github.com/oneinfra/oneinfra/compare/master...worker-node-join))
+- [X] Implement initial worker join logic
+- [ ] Extend worker join to wait for `issued` condition
 - [ ] Provide hypervisor VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
 - [ ] Provide worker VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
 

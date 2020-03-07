@@ -39,9 +39,8 @@ func Reconcile() error {
 	components := manifests.RetrieveComponents(string(stdin))
 
 	clusterReconciler := reconciler.NewClusterReconciler(hypervisors, clusters, components)
-	if err := clusterReconciler.Reconcile(); err != nil {
-		return err
-	}
+	clusterReconciler.Reconcile()
+
 	clusterSpecs, err := clusterReconciler.Specs()
 	if err != nil {
 		return err

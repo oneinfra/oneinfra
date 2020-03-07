@@ -27,6 +27,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
 	"github.com/oneinfra/oneinfra/internal/app/oi/component"
+	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 )
 
 func main() {
@@ -69,45 +70,9 @@ func main() {
 								Required: true,
 								Usage:    "cluster name",
 							},
-							&cli.StringFlag{
-								Name:  "endpoint-host-override",
-								Usage: "endpoint host override for the API server",
-							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.KubeConfig(c.String("cluster"), c.String("endpoint-host-override"))
-						},
-					},
-					{
-						Name:  "endpoint",
-						Usage: "print the endpoint for the cluster",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
-							},
-							&cli.StringFlag{
-								Name:  "endpoint-host-override",
-								Usage: "endpoint host override for the API server",
-							},
-						},
-						Action: func(c *cli.Context) error {
-							return cluster.Endpoint(c.String("cluster"), c.String("endpoint-host-override"))
-						},
-					},
-					{
-						Name:  "ingress-component-name",
-						Usage: "print the ingress component name",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
-							},
-						},
-						Action: func(c *cli.Context) error {
-							return cluster.IngressComponentName(c.String("cluster"))
+							return cluster.KubeConfig(c.String("cluster"))
 						},
 					},
 				},
@@ -156,6 +121,41 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
+						},
+					},
+				},
+			},
+			{
+				Name:  "node",
+				Usage: "node operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "join",
+						Usage: "joins a node to an existing cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "nodename",
+								Required: true,
+								Usage:    "node name of this node when joining",
+							},
+							&cli.StringFlag{
+								Name:     "apiserver-endpoint",
+								Required: true,
+								Usage:    "endpoint of the apiserver to join to",
+							},
+							&cli.StringFlag{
+								Name:     "apiserver-ca-cert-file",
+								Required: true,
+								Usage:    "apiserver CA certificate to check the apiserver identity",
+							},
+							&cli.StringFlag{
+								Name:     "join-token",
+								Required: true,
+								Usage:    "token to use for joining",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return node.Join(c.String("nodename"), c.String("apiserver-endpoint"), c.String("apiserver-ca-cert-file"), c.String("join-token"))
 						},
 					},
 				},

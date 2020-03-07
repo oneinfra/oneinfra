@@ -23,31 +23,23 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/cluster/endpoint"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // KubeConfig generates a kubeconfig for cluster clusterName
-func KubeConfig(clusterName, endpointHostOverride string) error {
+func KubeConfig(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
 	clusters := manifests.RetrieveClusters(string(stdin))
-	components := manifests.RetrieveComponents(string(stdin))
 
 	cluster, ok := clusters[clusterName]
 	if !ok {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	endpointURI, err := endpoint.Endpoint(components, cluster, hypervisors, endpointHostOverride)
-	if err != nil {
-		return err
-	}
-
-	kubeConfig, err := cluster.KubeConfig(endpointURI)
+	kubeConfig, err := cluster.KubeConfig()
 	if err != nil {
 		return err
 	}

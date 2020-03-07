@@ -52,6 +52,7 @@ type ComponentHostPortAllocation struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // Component is the Schema for the components API
 type Component struct {

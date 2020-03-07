@@ -28,6 +28,7 @@ import (
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
+	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	clustercontroller "github.com/oneinfra/oneinfra/controllers/cluster"
 	infracontroller "github.com/oneinfra/oneinfra/controllers/infra"
 	// +kubebuilder:scaffold:imports
@@ -43,6 +44,7 @@ func init() {
 
 	_ = infrav1alpha1.AddToScheme(scheme)
 	_ = clusterv1alpha1.AddToScheme(scheme)
+	_ = nodev1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

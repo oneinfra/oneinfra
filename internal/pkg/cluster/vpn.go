@@ -30,18 +30,18 @@ type VPNPeer struct {
 	PublicKey  string
 }
 
-// VPNPeerList represents a list of VPN peers
-type VPNPeerList []VPNPeer
+// VPNPeerMap represents a map of VPN peers
+type VPNPeerMap map[string]*VPNPeer
 
-func newVPNPeersFromv1alpha1(peers []clusterv1alpha1.VPNPeer) VPNPeerList {
-	res := []VPNPeer{}
+func newVPNPeersFromv1alpha1(peers []clusterv1alpha1.VPNPeer) VPNPeerMap {
+	res := VPNPeerMap{}
 	for _, peer := range peers {
-		res = append(res, VPNPeer{
+		res[peer.Name] = &VPNPeer{
 			Name:       peer.Name,
 			Address:    peer.Address,
 			PrivateKey: peer.PrivateKey,
 			PublicKey:  peer.PublicKey,
-		})
+		}
 	}
 	return res
 }
@@ -54,8 +54,8 @@ func newVPNCIDRFromv1alpha1(vpnCIDR string) *net.IPNet {
 	return ipNet
 }
 
-func newVPNPeer(name, address, privateKey, publicKey string) VPNPeer {
-	return VPNPeer{
+func newVPNPeer(name, address, privateKey, publicKey string) *VPNPeer {
+	return &VPNPeer{
 		Name:       name,
 		Address:    address,
 		PrivateKey: privateKey,
@@ -63,10 +63,10 @@ func newVPNPeer(name, address, privateKey, publicKey string) VPNPeer {
 	}
 }
 
-// Export exports the list of VPN peers to a versioned list of VPN peers
-func (vpnPeerList VPNPeerList) Export() []clusterv1alpha1.VPNPeer {
+// Export exports the map of VPN peers to a versioned list of VPN peers
+func (vpnPeerMap VPNPeerMap) Export() []clusterv1alpha1.VPNPeer {
 	res := []clusterv1alpha1.VPNPeer{}
-	for _, peer := range vpnPeerList {
+	for _, peer := range vpnPeerMap {
 		res = append(res, clusterv1alpha1.VPNPeer{
 			Name:       peer.Name,
 			Address:    peer.Address,

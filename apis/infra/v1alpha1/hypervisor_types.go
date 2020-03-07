@@ -63,6 +63,7 @@ type HypervisorPortAllocation struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // Hypervisor is the Schema for the hypervisors API
 type Hypervisor struct {

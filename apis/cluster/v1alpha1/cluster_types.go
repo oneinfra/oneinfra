@@ -28,6 +28,7 @@ type ClusterSpec struct {
 	EtcdServer             EtcdServer             `json:"etcdServer,omitempty"`
 	APIServer              KubeAPIServer          `json:"apiServer,omitempty"`
 	VPNCIDR                string                 `json:"vpnCIDR,omitempty"`
+	JoinTokens             []string               `json:"joinTokens,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
@@ -35,6 +36,8 @@ type ClusterStatus struct {
 	StorageClientEndpoints []string  `json:"storageClientEndpoints,omitempty"`
 	StoragePeerEndpoints   []string  `json:"storagePeerEndpoints,omitempty"`
 	VPNPeers               []VPNPeer `json:"vpnPeers,omitempty"`
+	APIServerEndpoint      string    `json:"apiServerEndpoint,omitempty"`
+	JoinTokens             []string  `json:"joinTokens,omitempty"`
 }
 
 // VPNPeer represents a VPN peer
@@ -78,6 +81,7 @@ type EtcdServer struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // Cluster is the Schema for the clusters API
 type Cluster struct {

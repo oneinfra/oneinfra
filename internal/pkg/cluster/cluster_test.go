@@ -25,7 +25,7 @@ import (
 func TestRequestVPNIP(t *testing.T) {
 	var tests = []struct {
 		cidr        string
-		peers       VPNPeerList
+		peers       VPNPeerMap
 		expectedIP  string
 		expectedErr bool
 	}{
@@ -85,12 +85,13 @@ func TestRequestVPNIP(t *testing.T) {
 	}
 }
 
-func vpnPeers(peerNumber int) VPNPeerList {
-	res := VPNPeerList{}
+func vpnPeers(peerNumber int) VPNPeerMap {
+	res := VPNPeerMap{}
 	for i := 0; i < peerNumber; i++ {
-		res = append(res, VPNPeer{
-			Name: fmt.Sprintf("peer-%d", i),
-		})
+		peerName := fmt.Sprintf("peer-%d", i)
+		res[peerName] = &VPNPeer{
+			Name: peerName,
+		}
 	}
 	return res
 }

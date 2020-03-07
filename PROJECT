@@ -1,6 +1,6 @@
 domain: oneinfra.ereslibre.es
 multigroup: true
-repo: oneinfra.ereslibre.es/m
+repo: github.com/oneinfra/oneinfra
 resources:
 - group: infra
   kind: Hypervisor
@@ -10,5 +10,8 @@ resources:
   version: v1alpha1
 - group: cluster
   kind: Component
+  version: v1alpha1
+- group: node
+  kind: NodeJoinRequest
   version: v1alpha1
 version: "2"

@@ -15,6 +15,8 @@ spec:
     plural: clusters
     singular: cluster
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: Cluster is the Schema for the clusters API
@@ -127,12 +129,22 @@ spec:
                 tlsPrivateKey:
                   type: string
               type: object
+            joinTokens:
+              items:
+                type: string
+              type: array
             vpnCIDR:
               type: string
           type: object
         status:
           description: ClusterStatus defines the observed state of Cluster
           properties:
+            apiServerEndpoint:
+              type: string
+            joinTokens:
+              items:
+                type: string
+              type: array
             storageClientEndpoints:
               items:
                 type: string

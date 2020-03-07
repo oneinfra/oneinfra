@@ -13,7 +13,7 @@ PROJECT_GO_FOLDERS = apis cmd controllers internal
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)
 
-all: manifests manager oi oi-local-cluster
+all: manager oi oi-local-cluster
 
 # Run tests
 test: lint fmt vet
@@ -49,8 +49,13 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests:
-	./scripts/run.sh controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/common/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
+manifests: platform-manifests guest-manifests
+
+platform-manifests:
+	./scripts/run.sh controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
+
+guest-manifests:
+	sh -c 'CRD_OPTIONS=$(CRD_OPTIONS) RUN_EXTRA_OPTS="-e CRD_OPTIONS" ./scripts/run.sh ./scripts/openapi-gen.sh apis/node'
 
 # Run golint against code
 lint:
@@ -65,7 +70,7 @@ vet:
 	./scripts/run.sh go vet ./...
 
 # Generate code
-generate:
+generate: manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 deps: pull kubectl crictl wg
@@ -75,6 +80,9 @@ pull: pull-builder
 
 pull-builder:
 	@docker pull oneinfra/builder:latest
+
+builder-shell:
+	sh -c 'CI="1" RUN_EXTRA_OPTS="-it" ./scripts/run.sh bash'
 
 # Install kubectl
 kubectl:

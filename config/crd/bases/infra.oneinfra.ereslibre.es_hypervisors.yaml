@@ -1,0 +1,108 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: (devel)
+  creationTimestamp: null
+  name: hypervisors.infra.oneinfra.ereslibre.es
+spec:
+  group: infra.oneinfra.ereslibre.es
+  names:
+    kind: Hypervisor
+    listKind: HypervisorList
+    plural: hypervisors
+    singular: hypervisor
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: Hypervisor is the Schema for the hypervisors API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: HypervisorSpec defines the desired state of Hypervisor
+          properties:
+            ipAddress:
+              type: string
+            localCRIEndpoint:
+              description: LocalHypervisorCRIEndpoint represents a local hypervisor
+                CRI endpoint (unix socket)
+              properties:
+                criEndpointPath:
+                  type: string
+              type: object
+            portRange:
+              description: HypervisorPortRange represents a port range
+              properties:
+                high:
+                  type: integer
+                low:
+                  type: integer
+              type: object
+            public:
+              type: boolean
+            remoteCRIEndpoint:
+              description: RemoteHypervisorCRIEndpoint represents a remote hypervisor
+                CRI endpoint (tcp with client certificate authentication)
+              properties:
+                caCertificate:
+                  type: string
+                clientCertificate:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                criEndpointURI:
+                  type: string
+              type: object
+          required:
+          - public
+          type: object
+        status:
+          description: HypervisorStatus defines the observed state of Hypervisor
+          properties:
+            allocatedPorts:
+              items:
+                description: HypervisorPortAllocation represents a port allocation
+                  in an hypervisor
+                properties:
+                  cluster:
+                    type: string
+                  component:
+                    type: string
+                  port:
+                    type: integer
+                type: object
+              type: array
+            files:
+              additionalProperties:
+                type: string
+              type: object
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

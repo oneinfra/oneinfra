@@ -14,9 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ -z "$CI" ]; then
-    GOFLAGS="-mod=vendor" "$@"
-else
-    set -x
-    docker run --rm -v ${PWD}:/app -v ${PWD}/bin:/go/bin -v /tmp/go-build-cache:/root/.cache/go-build -w /app -e GOFLAGS="-mod=vendor" ${RUN_EXTRA_OPTS} oneinfra/builder:latest "$@"
-fi
+BOILERPLATE="$(cat hack/boilerplate.go.txt)"
+
+for crdPath in $(find "${1}" -maxdepth 1 -mindepth 1 -type d); do
+    rawCRD="$(controller-gen ${CRD_OPTIONS} paths="./${crdPath}/..." output:crd:stdout | yq read - "spec.validation.openAPIV3Schema")"
+    crdVersion="$(basename "${crdPath}")"
+    cat <<EOF > ${crdPath}/crd.go
+$BOILERPLATE
+
+package $crdVersion
+
+const (
+	// OpenAPISchema represents this CRD OpenAPI schema
+	OpenAPISchema = \`$rawCRD
+\`
+)
+EOF
+done

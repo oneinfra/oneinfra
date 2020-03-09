@@ -13,7 +13,7 @@ PROJECT_GO_FOLDERS = apis cmd controllers internal
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)
 
-all: manager oi oi-local-cluster
+all: manifests manager oi oi-local-cluster
 
 # Run tests
 test: lint fmt vet
@@ -50,7 +50,7 @@ deploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests:
-	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	./scripts/run.sh controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/common/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
 
 # Run golint against code
 lint:

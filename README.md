@@ -39,9 +39,11 @@ infrastructure.
 ```
 $ oi-local-cluster cluster create | \
     oi cluster inject --name cluster | \
-    oi component inject --name controlplane --cluster cluster --role controlplane | \
+    oi component inject --name controlplane1 --cluster cluster --role controlplane | \
+    oi component inject --name controlplane2 --cluster cluster --role controlplane | \
+    oi component inject --name controlplane3 --cluster cluster --role controlplane | \
     oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
-    oi reconcile | \
+    oi reconcile -v 2 | \
     tee cluster.conf | \
     oi cluster kubeconfig --cluster cluster > ~/.kube/config
 ```

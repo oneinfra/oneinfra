@@ -32,6 +32,7 @@ import (
 
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/clientv3"
+	"go.uber.org/zap"
 	"k8s.io/klog"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
@@ -42,6 +43,10 @@ const (
 	etcdDialTimeout = 5 * time.Second
 	etcdImage       = "oneinfra/etcd:3.4.3"
 	etcdDataDir     = "/var/lib/etcd"
+)
+
+var (
+	logOutput = []string{"/dev/null"}
 )
 
 func (controlPlane *ControlPlane) etcdClient(inquirer inquirer.ReconcilerInquirer) (*clientv3.Client, error) {
@@ -75,6 +80,9 @@ func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.Reco
 	}
 	etcdServerCAPool := x509.NewCertPool()
 	etcdServerCAPool.AddCert(etcdServerCA)
+	logConfig := zap.NewProductionConfig()
+	logConfig.OutputPaths = logOutput
+	logConfig.ErrorOutputPaths = logOutput
 	return clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
 		DialTimeout: etcdDialTimeout,
@@ -82,6 +90,7 @@ func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.Reco
 			RootCAs:      etcdServerCAPool,
 			Certificates: []tls.Certificate{etcdClient},
 		},
+		LogConfig: &logConfig,
 	})
 }
 

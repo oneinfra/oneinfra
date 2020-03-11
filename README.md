@@ -43,7 +43,7 @@ $ oi-local-cluster cluster create | \
     oi component inject --name controlplane2 --cluster cluster --role controlplane | \
     oi component inject --name controlplane3 --cluster cluster --role controlplane | \
     oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
-    oi reconcile -v 2 | \
+    oi reconcile | \
     tee cluster.conf | \
     oi cluster kubeconfig --cluster cluster > ~/.kube/config
 ```

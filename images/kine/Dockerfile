@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 AS builder
 
 ENV GOPATH /root/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
@@ -29,7 +29,7 @@ RUN echo "Installing dependencies" \
 
 FROM ubuntu:18.04
 
-COPY --from=0 /root/go/bin/kine /usr/local/bin/
+COPY --from=builder /root/go/bin/kine /usr/local/bin/
 
 RUN echo "Installing dependencies" \
   && apt-get update -qq \

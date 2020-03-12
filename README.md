@@ -55,6 +55,15 @@ $ kubectl cluster-info
 Kubernetes master is running at https://127.0.0.1:30000
 ```
 
+## Features missing for the first release cut
+
+`oneinfra` is a heavy Work In Progress, and not intended for
+production yet.
+
+- [ ] Implement worker join ([WIP](https://github.com/oneinfra/oneinfra/compare/master...worker-node-join))
+- [ ] Provide hypervisor VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
+- [ ] Provide worker VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
+
 ## License
 
 `oneinfra` is licensed under the terms of the Apache 2.0 license.

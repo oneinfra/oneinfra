@@ -1,4 +1,4 @@
-# Goal
+# Goals
 
 `oneinfra`'s goal is to provide a Kubernetes as a Service platform. It
 allows you to manage a number of Kubernetes Control Planes in a set of
@@ -17,6 +17,14 @@ public cloud.
   * Both CLI and these set of controllers should rely on the same
     API's (custom resources) to drive the reconciliation process
 * Operating System agnostic
+
+# Non-goals
+
+* Create or manage infrastructure in any way
+* Upgrade clusters
+* Perform any kind of worker node management
+  * The only exception is the joining process for setting up the VPN
+    client
 
 # Components
 
@@ -80,14 +88,6 @@ In the future, it will be possible to scale Control Plane components
 in a fine grained way; you will be able to create more `API server`
 instances without having to create more `Controller Manager` or
 `Scheduler` instances.
-
-# Non-goals
-
-* Create or manage infrastructure in any way
-* Upgrade clusters
-* Perform any kind of worker node management
-  * The only exception is the joining process for setting up the VPN
-    client
 
 # Conceptual architecture diagram
 

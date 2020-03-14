@@ -16,7 +16,9 @@ limitations under the License.
 
 package constants
 
-import "path/filepath"
+import (
+	"path/filepath"
+)
 
 const (
 	// OneInfraNamespace is the namespace for storing OneInfra resources

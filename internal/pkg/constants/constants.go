@@ -16,6 +16,8 @@ limitations under the License.
 
 package constants
 
+import "path/filepath"
+
 const (
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
@@ -27,4 +29,11 @@ const (
 	// OneInfraControlPlaneIngressVPNPeerName represents the control plane
 	// ingress peer VPN name
 	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
+	// KubeletKubeConfigPath represents the kubelet kubeconfig path
+	KubeletKubeConfigPath = "/var/lib/kubelet/config.yaml"
+)
+
+var (
+	// KubeletConfigPath represents the kubelet configuration path
+	KubeletConfigPath = filepath.Join(OneInfraConfigDir, "kubelet.conf")
 )

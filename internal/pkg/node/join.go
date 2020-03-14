@@ -53,10 +53,10 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string) error {
 	if err != nil {
 		return err
 	}
-	if err := writeKubeConfig(nodeJoinRequest); err != nil {
+	if err := writeKubeConfig(nodeJoinRequest, keyPair); err != nil {
 		return err
 	}
-	if err := writeKubeletConfig(nodeJoinRequest); err != nil {
+	if err := writeKubeletConfig(nodeJoinRequest, keyPair); err != nil {
 		return err
 	}
 	if err := setupSystemd(nodeJoinRequest); err != nil {
@@ -163,12 +163,20 @@ func readOrGenerateKeyPair() (*certificates.KeyPair, error) {
 	return keyPair, nil
 }
 
-func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	return nil
+func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, keyPair *certificates.KeyPair) error {
+	kubeConfig, err := keyPair.Decrypt(nodeJoinRequest.KubeConfig)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(constants.KubeletKubeConfigPath, []byte(kubeConfig), 0600)
 }
 
-func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	return nil
+func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, keyPair *certificates.KeyPair) error {
+	kubeletConfig, err := keyPair.Decrypt(nodeJoinRequest.KubeletConfig)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(constants.KubeletConfigPath, []byte(kubeletConfig), 0600)
 }
 
 func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {

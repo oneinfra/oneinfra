@@ -46,6 +46,7 @@ type NodeJoinRequest struct {
 	Name              string
 	PublicKey         string
 	APIServerEndpoint string
+	CRIEndpoint       string
 	VPNAddress        string
 	VPNPeer           string
 	KubeConfig        string
@@ -69,6 +70,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		Name:              nodeJoinRequest.ObjectMeta.Name,
 		PublicKey:         nodeJoinRequest.Spec.PublicKey,
 		APIServerEndpoint: nodeJoinRequest.Spec.APIServerEndpoint,
+		CRIEndpoint:       nodeJoinRequest.Spec.CRIEndpoint,
 		VPNAddress:        nodeJoinRequest.Status.VPNAddress,
 		VPNPeer:           nodeJoinRequest.Status.VPNPeer,
 		KubeConfig:        nodeJoinRequest.Status.KubeConfig,
@@ -100,6 +102,7 @@ func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
 			PublicKey:         nodeJoinRequest.PublicKey,
 			APIServerEndpoint: nodeJoinRequest.APIServerEndpoint,
+			CRIEndpoint:       nodeJoinRequest.CRIEndpoint,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
 			VPNAddress:    nodeJoinRequest.VPNAddress,
@@ -138,9 +141,9 @@ func (nodeJoinRequest *NodeJoinRequest) Encrypt(content string) (string, error) 
 	if !ok {
 		return "", errors.New("could not identify public key as an RSA public key")
 	}
-	encryptedMessage, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPublicKey, []byte(content), []byte(""))
+	encryptedContents, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPublicKey, []byte(content), []byte(""))
 	if err != nil {
 		return "", err
 	}
-	return string(base64.StdEncoding.EncodeToString(encryptedMessage)), nil
+	return string(base64.StdEncoding.EncodeToString(encryptedContents)), nil
 }

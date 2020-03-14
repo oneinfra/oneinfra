@@ -20,8 +20,10 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"io/ioutil"
@@ -104,6 +106,19 @@ func NewPrivateKeyFromFile(privateKeyPath string) (*KeyPair, error) {
 		PrivateKey: string(privateKeyPEM),
 		key:        privateKey,
 	}, nil
+}
+
+// Decrypt decrypts the given base-64 contents using this private key
+func (keyPair *KeyPair) Decrypt(content string) (string, error) {
+	rawContent, err := base64.StdEncoding.DecodeString(content)
+	if err != nil {
+		return "", err
+	}
+	decryptedContents, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, keyPair.key, rawContent, []byte(""))
+	if err != nil {
+		return "", err
+	}
+	return string(decryptedContents), nil
 }
 
 // NewCertificateAuthority creates a new certificate authority

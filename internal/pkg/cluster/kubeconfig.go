@@ -53,11 +53,7 @@ func KubeConfigWithToken(clusterName, apiServerEndpoint, caCertificate, token st
 
 // AdminKubeConfig returns a kubeconfig file for the current cluster
 func (cluster *Cluster) AdminKubeConfig() (string, error) {
-	kubeConfig, err := cluster.kubeConfigObject(cluster.APIServerEndpoint, "kubernetes-admin", []string{"system:masters"})
-	if err != nil {
-		return "", err
-	}
-	return marshalKubeConfig(cluster.Name, kubeConfig)
+	return cluster.KubeConfig("kubernetes-admin", []string{"system:masters"})
 }
 
 // KubeConfig returns a kube config with a client certificate with the
@@ -86,15 +82,11 @@ func (cluster *Cluster) KubernetesExtensionsClient() (apiextensionsclientset.Int
 	if cluster.extensionsClientSet != nil {
 		return cluster.extensionsClientSet, nil
 	}
-	kubeConfig, err := cluster.kubeConfigObject(cluster.APIServerEndpoint, "kubernetes-admin", []string{"system:masters"})
+	kubeConfig, err := cluster.AdminKubeConfig()
 	if err != nil {
 		return nil, err
 	}
-	kubeConfigRaw, err := marshalKubeConfig(cluster.Name, kubeConfig)
-	if err != nil {
-		return nil, err
-	}
-	restClient, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfigRaw))
+	restClient, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
 	if err != nil {
 		return nil, err
 	}
@@ -120,15 +112,11 @@ func (cluster *Cluster) KubernetesClient() (clientset.Interface, error) {
 	if cluster.clientSet != nil {
 		return cluster.clientSet, nil
 	}
-	kubeConfig, err := cluster.kubeConfigObject(cluster.APIServerEndpoint, "kubernetes-admin", []string{"system:masters"})
+	kubeConfig, err := cluster.AdminKubeConfig()
 	if err != nil {
 		return nil, err
 	}
-	kubeConfigRaw, err := marshalKubeConfig(cluster.Name, kubeConfig)
-	if err != nil {
-		return nil, err
-	}
-	restClient, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfigRaw))
+	restClient, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
 	if err != nil {
 		return nil, err
 	}

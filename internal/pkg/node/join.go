@@ -17,44 +17,85 @@ limitations under the License.
 package node
 
 import (
+	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"time"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/klog"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
 )
 
 // Join joins a node to an existing cluster
 func Join(nodename, apiServerEndpoint, caCertificate, token string) error {
-	kubeConfig, err := cluster.KubeConfigWithToken("cluster", apiServerEndpoint, caCertificate, token)
+	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
+	}
+	keyPair, err := readOrGenerateKeyPair()
+	if err != nil {
+		return err
+	}
+	if err := createJoinRequest(client, apiServerEndpoint, nodename, keyPair); err != nil {
+		return err
+	}
+	nodeJoinRequest, err := waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
+	if err != nil {
+		return err
+	}
+	if err := writeKubeConfig(nodeJoinRequest); err != nil {
+		return err
+	}
+	if err := writeKubeletConfig(nodeJoinRequest); err != nil {
+		return err
+	}
+	if err := setupSystemd(nodeJoinRequest); err != nil {
+		return err
+	}
+	if err := startKubelet(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.RESTClient, error) {
+	kubeConfig, err := cluster.KubeConfigWithToken("cluster", apiServerEndpoint, caCertificate, token)
+	if err != nil {
+		return nil, err
 	}
 	scheme := runtime.NewScheme()
 	if err := nodev1alpha1.AddToScheme(scheme); err != nil {
-		return err
+		return nil, err
 	}
 	client, err := cluster.RESTClientFromKubeConfig(kubeConfig, &nodev1alpha1.GroupVersion, scheme)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	keyPair, err := certificates.NewPrivateKey()
-	if err != nil {
-		return err
-	}
+	return client, nil
+}
+
+func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename string, keyPair *certificates.KeyPair) error {
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nodename,
 			Namespace: constants.OneInfraNamespace,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			PublicKey: keyPair.PublicKey,
+			PublicKey:         keyPair.PublicKey,
+			APIServerEndpoint: apiServerEndpoint,
 		},
 	}
-	err = client.
+	err := client.
 		Post().
 		Namespace(constants.OneInfraNamespace).
 		Resource("nodejoinrequests").
@@ -67,16 +108,71 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string) error {
 	return nil
 }
 
-func setupSystemd() error {
+func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename string, timeout time.Duration) (*nodejoinrequests.NodeJoinRequest, error) {
+	timeoutChan := time.After(timeout)
+	tickChan := time.Tick(time.Second)
+	for {
+		select {
+		case <-timeoutChan:
+			return nil, errors.New("timed out waiting for issued condition")
+		case <-tickChan:
+			klog.V(2).Info("checking if the node join request has been issued")
+			nodeJoinRequest := nodev1alpha1.NodeJoinRequest{}
+			err := client.
+				Get().
+				Namespace(constants.OneInfraNamespace).
+				Resource("nodejoinrequests").
+				Name(nodename).
+				Do().
+				Into(&nodeJoinRequest)
+			if err != nil {
+				continue
+			}
+			if nodeJoinRequest.HasCondition(nodev1alpha1.Issued) {
+				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&nodeJoinRequest)
+				if err != nil {
+					return nil, errors.New("could not convert node join request")
+				}
+				return nodeJoinRequestInternal, nil
+			}
+		}
+	}
+}
+
+func readOrGenerateKeyPair() (*certificates.KeyPair, error) {
+	var keyPair *certificates.KeyPair
+	if _, err := os.Stat(filepath.Join(constants.OneInfraConfigDir, "join.key")); os.IsNotExist(err) {
+		var err error
+		keyPair, err = certificates.NewPrivateKey()
+		if err != nil {
+			return nil, err
+		}
+		if err := os.MkdirAll(constants.OneInfraConfigDir, 0700); err != nil {
+			return nil, err
+		}
+		if err := ioutil.WriteFile(filepath.Join(constants.OneInfraConfigDir, "join.key"), []byte(keyPair.PrivateKey), 0600); err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		keyPair, err = certificates.NewPrivateKeyFromFile(filepath.Join(constants.OneInfraConfigDir, "join.key"))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return keyPair, nil
+}
+
+func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 	return nil
 }
 
-func retrieveKubeletConfig() (string, error) {
-	return "", nil
+func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	return nil
 }
 
-func retrieveKubeConfig() (string, error) {
-	return "", nil
+func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	return nil
 }
 
 func startKubelet() error {

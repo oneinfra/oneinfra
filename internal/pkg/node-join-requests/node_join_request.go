@@ -43,14 +43,15 @@ const (
 
 // NodeJoinRequest represents a node join request
 type NodeJoinRequest struct {
-	Name            string
-	PublicKey       string
-	VPNAddress      string
-	KubeConfig      string
-	KubeletConfig   string
-	Conditions      ConditionList
-	ResourceVersion string
-	publicKey       interface{}
+	Name              string
+	PublicKey         string
+	APIServerEndpoint string
+	VPNAddress        string
+	KubeConfig        string
+	KubeletConfig     string
+	Conditions        ConditionList
+	ResourceVersion   string
+	publicKey         interface{}
 }
 
 // NewNodeJoinRequestFromv1alpha1 returns a node join request based on a versioned node join request
@@ -64,14 +65,15 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		return nil, err
 	}
 	return &NodeJoinRequest{
-		Name:            nodeJoinRequest.ObjectMeta.Name,
-		PublicKey:       nodeJoinRequest.Spec.PublicKey,
-		VPNAddress:      nodeJoinRequest.Status.VPNAddress,
-		KubeConfig:      nodeJoinRequest.Status.KubeConfig,
-		KubeletConfig:   nodeJoinRequest.Status.KubeletConfig,
-		Conditions:      newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
-		ResourceVersion: nodeJoinRequest.ObjectMeta.ResourceVersion,
-		publicKey:       publicKey,
+		Name:              nodeJoinRequest.ObjectMeta.Name,
+		PublicKey:         nodeJoinRequest.Spec.PublicKey,
+		APIServerEndpoint: nodeJoinRequest.Spec.APIServerEndpoint,
+		VPNAddress:        nodeJoinRequest.Status.VPNAddress,
+		KubeConfig:        nodeJoinRequest.Status.KubeConfig,
+		KubeletConfig:     nodeJoinRequest.Status.KubeletConfig,
+		Conditions:        newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
+		ResourceVersion:   nodeJoinRequest.ObjectMeta.ResourceVersion,
+		publicKey:         publicKey,
 	}, nil
 }
 
@@ -94,7 +96,8 @@ func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
 			ResourceVersion: nodeJoinRequest.ResourceVersion,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			PublicKey: nodeJoinRequest.PublicKey,
+			PublicKey:         nodeJoinRequest.PublicKey,
+			APIServerEndpoint: nodeJoinRequest.APIServerEndpoint,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
 			VPNAddress:    nodeJoinRequest.VPNAddress,

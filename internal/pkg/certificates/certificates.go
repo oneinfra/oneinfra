@@ -24,6 +24,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"io/ioutil"
 	"math/big"
 	"net"
 	"time"
@@ -72,6 +73,36 @@ func NewPrivateKey() (*KeyPair, error) {
 		PublicKey:  publicKeyPEM.String(),
 		PrivateKey: privateKeyPEM.String(),
 		key:        key,
+	}, nil
+}
+
+// NewPrivateKeyFromFile returns a key pair from a private key file in the given path
+func NewPrivateKeyFromFile(privateKeyPath string) (*KeyPair, error) {
+	privateKeyPEM, err := ioutil.ReadFile(privateKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	block, _ := pem.Decode(privateKeyPEM)
+	if block == nil {
+		return nil, errors.New("could not parse private key")
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+	publicKeyPEM := new(bytes.Buffer)
+	pem.Encode(publicKeyPEM, &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKey,
+	})
+	return &KeyPair{
+		PublicKey:  publicKeyPEM.String(),
+		PrivateKey: string(privateKeyPEM),
+		key:        privateKey,
 	}, nil
 }
 

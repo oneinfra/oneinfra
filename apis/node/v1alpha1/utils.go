@@ -14,37 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package v1alpha1
 
-import (
-	"fmt"
-	"io/ioutil"
-	"os"
-
-	"github.com/pkg/errors"
-
-	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
-)
-
-// KubeConfig generates a kubeconfig for cluster clusterName
-func KubeConfig(clusterName string) error {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
+// HasCondition returns whether this node join request has a given condition
+func (nodeJoinRequest *NodeJoinRequest) HasCondition(condition Condition) bool {
+	for _, nodeJoinRequestCondition := range nodeJoinRequest.Status.Conditions {
+		if nodeJoinRequestCondition == condition {
+			return true
+		}
 	}
-	clusters := manifests.RetrieveClusters(string(stdin))
-
-	cluster, ok := clusters[clusterName]
-	if !ok {
-		return errors.Errorf("cluster %q not found", clusterName)
-	}
-
-	kubeConfig, err := cluster.AdminKubeConfig()
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(kubeConfig)
-
-	return nil
+	return false
 }

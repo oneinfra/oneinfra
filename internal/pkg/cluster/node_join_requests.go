@@ -62,8 +62,14 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			continue
 		}
 		nodeJoinRequest.VPNAddress = vpnPeer.Address
-		nodeJoinRequest.KubeConfig = ""
-		nodeJoinRequest.KubeletConfig = ""
+		if err := cluster.fillNodeJoinRequestKubeConfig(nodeJoinRequest); err != nil {
+			klog.Errorf("cannot fill kubeconfig for node join request %q: %v", nodeJoinRequest.Name, err)
+			continue
+		}
+		if err := cluster.fillNodeJoinRequestKubeletConfig(nodeJoinRequest); err != nil {
+			klog.Errorf("cannot fill kubelet config for node join request %q: %v", nodeJoinRequest.Name, err)
+			continue
+		}
 		nodeJoinRequest.Conditions = append(nodeJoinRequest.Conditions, nodejoinrequests.Issued)
 		err = client.
 			Put().
@@ -78,5 +84,31 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			klog.Errorf("cannot update node join request status %q: %v", nodeJoinRequest.Name, err)
 		}
 	}
+	return nil
+}
+
+func (cluster *Cluster) fillNodeJoinRequestKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	kubeConfig, err := cluster.KubeConfigWithEndpoint(nodeJoinRequest.APIServerEndpoint, fmt.Sprintf("system:node:%s", nodeJoinRequest.Name), []string{"system:nodes"})
+	if err != nil {
+		return err
+	}
+	kubeConfig, err = nodeJoinRequest.Encrypt(kubeConfig)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.KubeConfig = kubeConfig
+	return nil
+}
+
+func (cluster *Cluster) fillNodeJoinRequestKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	kubeletConfig, err := cluster.KubeletConfig()
+	if err != nil {
+		return err
+	}
+	kubeletConfig, err = nodeJoinRequest.Encrypt(kubeletConfig)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.KubeletConfig = kubeletConfig
 	return nil
 }

@@ -1,5 +1,5 @@
 /*
-Copyright 2020 Rafael Fernández López <ereslibre@ereslibre.es>
+Copyright 2018 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package constants
+// +k8s:deepcopy-gen=package
+// +k8s:openapi-gen=true
+// +groupName=kubelet.config.k8s.io
 
-const (
-	// OneInfraNamespace is the namespace for storing OneInfra resources
-	OneInfraNamespace = "oneinfra-system"
-	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
-	// extra groups used to identify oneinfra bootstrap tokens
-	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"
-	// OneInfraConfigDir represents the configuration directory for oneinfra
-	OneInfraConfigDir = "/etc/oneinfra"
-)
+package v1beta1 // import "k8s.io/kubelet/config/v1beta1"

@@ -14,7 +14,7 @@ RUN echo "Installing dependencies" \
   && tar -xf go.tar.gz \
   && mv go /usr/local \
   && rm go.tar.gz \
-  && GO111MODULE="on" go get -tags dqlite github.com/ereslibre/kine@6c55e1ae3b8864c3cbe95e6ae5e0d3c6e009f09b \
+  && GO111MODULE="on" go get -tags dqlite github.com/oneinfra/kine@801b3c3d52b33478991292497ee88ac4665b2c48 \
 && echo "Cleaning up image" \
   && apt-get clean -y \
   && rm -rf /var/cache/debconf/* \

@@ -47,6 +47,7 @@ type NodeJoinRequest struct {
 	PublicKey         string
 	APIServerEndpoint string
 	VPNAddress        string
+	VPNPeer           string
 	KubeConfig        string
 	KubeletConfig     string
 	Conditions        ConditionList
@@ -69,6 +70,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		PublicKey:         nodeJoinRequest.Spec.PublicKey,
 		APIServerEndpoint: nodeJoinRequest.Spec.APIServerEndpoint,
 		VPNAddress:        nodeJoinRequest.Status.VPNAddress,
+		VPNPeer:           nodeJoinRequest.Status.VPNPeer,
 		KubeConfig:        nodeJoinRequest.Status.KubeConfig,
 		KubeletConfig:     nodeJoinRequest.Status.KubeletConfig,
 		Conditions:        newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
@@ -101,6 +103,7 @@ func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
 			VPNAddress:    nodeJoinRequest.VPNAddress,
+			VPNPeer:       nodeJoinRequest.VPNPeer,
 			KubeConfig:    nodeJoinRequest.KubeConfig,
 			KubeletConfig: nodeJoinRequest.KubeletConfig,
 			Conditions:    nodeJoinRequest.Conditions.export(),

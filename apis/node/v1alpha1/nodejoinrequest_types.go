@@ -37,6 +37,7 @@ type NodeJoinRequestSpec struct {
 // NodeJoinRequestStatus defines the observed state of NodeJoinRequest
 type NodeJoinRequestStatus struct {
 	VPNAddress    string      `json:"vpnAddress,omitempty"`
+	VPNPeer       string      `json:"vpnPeer,omitempty"`
 	KubeConfig    string      `json:"kubeConfig,omitempty"`
 	KubeletConfig string      `json:"kubeletConfig,omitempty"`
 	Conditions    []Condition `json:"conditions,omitempty"`

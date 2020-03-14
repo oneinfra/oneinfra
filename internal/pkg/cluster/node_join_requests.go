@@ -62,6 +62,12 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			continue
 		}
 		nodeJoinRequest.VPNAddress = vpnPeer.Address
+		ingressVPNPeer, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
+		if !exists {
+			klog.Errorf("cannot find ingress VPN peer name for cluster: %q", cluster.Name)
+			continue
+		}
+		nodeJoinRequest.VPNPeer = ingressVPNPeer.Address
 		if err := cluster.fillNodeJoinRequestKubeConfig(nodeJoinRequest); err != nil {
 			klog.Errorf("cannot fill kubeconfig for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue

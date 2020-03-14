@@ -33,6 +33,7 @@ import (
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 // Cluster represents a cluster
@@ -69,7 +70,7 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
 		return nil, err
 	}
-	if _, err := res.GenerateVPNPeer("control-plane-ingress"); err != nil {
+	if _, err := res.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName); err != nil {
 		return nil, err
 	}
 	return &res, nil

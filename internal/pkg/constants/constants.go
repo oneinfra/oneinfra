@@ -24,4 +24,7 @@ const (
 	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"
 	// OneInfraConfigDir represents the configuration directory for oneinfra
 	OneInfraConfigDir = "/etc/oneinfra"
+	// OneInfraControlPlaneIngressVPNPeerName represents the control plane
+	// ingress peer VPN name
+	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
 )

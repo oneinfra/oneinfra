@@ -26,7 +26,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
-// AdminKubeConfig generates an administrative kubeconfigfile  for cluster clusterName
+// AdminKubeConfig generates an administrative kubeconfig file for cluster clusterName
 func AdminKubeConfig(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {

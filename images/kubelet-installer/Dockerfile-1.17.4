@@ -1,0 +1,11 @@
+FROM alpine:latest
+
+ARG KUBERNETES_VERSION=1.17.4
+
+COPY /fs /
+
+RUN echo "Downloading the kubelet" \
+  && wget -O /usr/local/bin/kubelet https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubelet \
+  && chmod +x /usr/local/bin/kubelet
+
+ENTRYPOINT ["/usr/local/bin/entrypoint"]

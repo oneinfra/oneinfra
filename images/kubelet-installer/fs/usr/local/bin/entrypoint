@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+cp /usr/local/bin/kubelet /host

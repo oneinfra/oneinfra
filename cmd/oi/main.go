@@ -62,8 +62,8 @@ func main() {
 						},
 					},
 					{
-						Name:  "kubeconfig",
-						Usage: "generate a kubeconfig file for the cluster",
+						Name:  "admin-kubeconfig",
+						Usage: "generate an admin kubeconfig file for the cluster",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "cluster",
@@ -72,7 +72,7 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.KubeConfig(c.String("cluster"))
+							return cluster.AdminKubeConfig(c.String("cluster"))
 						},
 					},
 				},

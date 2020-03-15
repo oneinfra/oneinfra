@@ -51,7 +51,7 @@ cat ${CLUSTER_CONF} | \
 
 mv ${RECONCILED_CLUSTER_CONF} ${CLUSTER_CONF}
 
-cat ${CLUSTER_CONF} | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
+cat ${CLUSTER_CONF} | oi cluster admin-kubeconfig --cluster "${CLUSTER_NAME}" > ~/.kube/config
 
 # Tests
 

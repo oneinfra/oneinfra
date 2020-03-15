@@ -45,7 +45,7 @@ INGRESS_CONTAINER_NAME=$(cat "${CLUSTER_CONF}" | oi cluster ingress-component-na
 INGRESS_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' "${INGRESS_CONTAINER_NAME}")
 
 KUBECONFIG=$(mktemp /tmp/kubeconfig-XXXXXXX)
-cat "${CLUSTER_CONF}" | oi cluster kubeconfig --cluster "${CLUSTER_NAME}" --endpoint-host-override "${INGRESS_CONTAINER_IP}" > "${KUBECONFIG}"
+cat "${CLUSTER_CONF}" | oi cluster admin-kubeconfig --cluster "${CLUSTER_NAME}" --endpoint-host-override "${INGRESS_CONTAINER_IP}" > "${KUBECONFIG}"
 
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
 

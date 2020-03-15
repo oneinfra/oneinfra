@@ -45,7 +45,7 @@ $ oi-local-cluster cluster create | \
     oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
     oi reconcile | \
     tee cluster.conf | \
-    oi cluster kubeconfig --cluster cluster > ~/.kube/config
+    oi cluster admin-kubeconfig --cluster cluster > ~/.kube/config
 ```
 
 And access it:

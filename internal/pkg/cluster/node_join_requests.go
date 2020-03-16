@@ -48,7 +48,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 		return err
 	}
 	for _, versionedNodeJoinRequest := range nodeJoinRequestList.Items {
-		nodeJoinRequest, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&versionedNodeJoinRequest)
+		nodeJoinRequest, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&versionedNodeJoinRequest, cluster.JoinKey)
 		if err != nil {
 			klog.Errorf("cannot parse node join request %q public key: %v", versionedNodeJoinRequest.ObjectMeta.Name, err)
 			continue

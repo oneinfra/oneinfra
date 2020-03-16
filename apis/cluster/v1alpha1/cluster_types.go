@@ -24,11 +24,12 @@ import (
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	CertificateAuthorities CertificateAuthorities `json:"certificateAuthorities,omitempty"`
-	EtcdServer             EtcdServer             `json:"etcdServer,omitempty"`
-	APIServer              KubeAPIServer          `json:"apiServer,omitempty"`
-	VPNCIDR                string                 `json:"vpnCIDR,omitempty"`
-	JoinTokens             []string               `json:"joinTokens,omitempty"`
+	CertificateAuthorities CertificateAuthorities  `json:"certificateAuthorities,omitempty"`
+	EtcdServer             EtcdServer              `json:"etcdServer,omitempty"`
+	APIServer              KubeAPIServer           `json:"apiServer,omitempty"`
+	VPNCIDR                string                  `json:"vpnCIDR,omitempty"`
+	JoinKey                *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
+	JoinTokens             []string                `json:"joinTokens,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
@@ -57,18 +58,12 @@ type CertificateAuthorities struct {
 	EtcdPeer          commonv1alpha1.Certificate `json:"etcdPeer,omitempty"`
 }
 
-// KeyPair represents a public/private key pair
-type KeyPair struct {
-	PublicKey  string `json:"publicKey,omitempty"`
-	PrivateKey string `json:"privateKey,omitempty"`
-}
-
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
 	CA             *commonv1alpha1.Certificate `json:"ca,omitempty"`
 	TLSCert        string                      `json:"tlsCert,omitempty"`
 	TLSPrivateKey  string                      `json:"tlsPrivateKey,omitempty"`
-	ServiceAccount KeyPair                     `json:"serviceAccount,omitempty"`
+	ServiceAccount *commonv1alpha1.KeyPair     `json:"serviceAccount,omitempty"`
 	ExtraSANs      []string                    `json:"extraSANs,omitempty"`
 }
 

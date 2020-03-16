@@ -47,6 +47,7 @@ type Cluster struct {
 	VPNCIDR                *net.IPNet
 	VPNPeers               VPNPeerMap
 	APIServerEndpoint      string
+	JoinKey                *certificates.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
 	clientSet              clientset.Interface
@@ -62,10 +63,15 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 	if err != nil {
 		return nil, err
 	}
+	joinKey, err := certificates.NewPrivateKey(constants.DefaultKeyBitSize)
+	if err != nil {
+		return nil, err
+	}
 	res := Cluster{
 		Name:     clusterName,
 		VPNCIDR:  vpnCIDRNet,
 		VPNPeers: VPNPeerMap{},
+		JoinKey:  joinKey,
 	}
 	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
 		return nil, err
@@ -78,6 +84,10 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 
 // NewClusterFromv1alpha1 returns a cluster based on a versioned cluster
 func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) {
+	joinKey, err := certificates.NewKeyPairFromv1alpha1(cluster.Spec.JoinKey)
+	if err != nil {
+		return nil, err
+	}
 	res := Cluster{
 		Name: cluster.ObjectMeta.Name,
 		CertificateAuthorities: &CertificateAuthorities{
@@ -106,6 +116,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		VPNCIDR:                newVPNCIDRFromv1alpha1(cluster.Spec.VPNCIDR),
 		VPNPeers:               newVPNPeersFromv1alpha1(cluster.Status.VPNPeers),
 		APIServerEndpoint:      cluster.Status.APIServerEndpoint,
+		JoinKey:                joinKey,
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
 	}
@@ -148,7 +159,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				},
 				TLSCert:       cluster.APIServer.TLSCert,
 				TLSPrivateKey: cluster.APIServer.TLSPrivateKey,
-				ServiceAccount: clusterv1alpha1.KeyPair{
+				ServiceAccount: &commonv1alpha1.KeyPair{
 					PublicKey:  cluster.APIServer.ServiceAccountPublicKey,
 					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
 				},
@@ -164,6 +175,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				ExtraSANs:     cluster.EtcdServer.ExtraSANs,
 			},
 			VPNCIDR:    cluster.VPNCIDR.String(),
+			JoinKey:    cluster.JoinKey.Export(),
 			JoinTokens: cluster.DesiredJoinTokens,
 		},
 		Status: clusterv1alpha1.ClusterStatus{

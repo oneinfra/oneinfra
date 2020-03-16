@@ -17,17 +17,16 @@ limitations under the License.
 package nodejoinrequests
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
-	"errors"
+	"io"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
 // Condition represents a node join request condition
@@ -44,7 +43,7 @@ const (
 // NodeJoinRequest represents a node join request
 type NodeJoinRequest struct {
 	Name                     string
-	PublicKey                string
+	SymmetricKey             string
 	APIServerEndpoint        string
 	ContainerRuntimeEndpoint string
 	ImageServiceEndpoint     string
@@ -54,22 +53,21 @@ type NodeJoinRequest struct {
 	KubeletConfig            string
 	Conditions               ConditionList
 	ResourceVersion          string
-	publicKey                interface{}
 }
 
 // NewNodeJoinRequestFromv1alpha1 returns a node join request based on a versioned node join request
-func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinRequest) (*NodeJoinRequest, error) {
-	publicKeyBlock, _ := pem.Decode([]byte(nodeJoinRequest.Spec.PublicKey))
-	if publicKeyBlock == nil {
-		return nil, errors.New("could not decode PEM block")
-	}
-	publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)
-	if err != nil {
-		return nil, err
+func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinRequest, joinKey *certificates.KeyPair) (*NodeJoinRequest, error) {
+	symmetricKey := ""
+	if joinKey != nil {
+		var err error
+		symmetricKey, err = joinKey.Decrypt(nodeJoinRequest.Spec.SymmetricKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &NodeJoinRequest{
 		Name:                     nodeJoinRequest.ObjectMeta.Name,
-		PublicKey:                nodeJoinRequest.Spec.PublicKey,
+		SymmetricKey:             symmetricKey,
 		APIServerEndpoint:        nodeJoinRequest.Spec.APIServerEndpoint,
 		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
 		ImageServiceEndpoint:     nodeJoinRequest.Spec.ImageServiceEndpoint,
@@ -79,7 +77,6 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
 		Conditions:               newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
 		ResourceVersion:          nodeJoinRequest.ObjectMeta.ResourceVersion,
-		publicKey:                publicKey,
 	}, nil
 }
 
@@ -102,7 +99,7 @@ func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
 			ResourceVersion: nodeJoinRequest.ResourceVersion,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			PublicKey:                nodeJoinRequest.PublicKey,
+			SymmetricKey:             nodeJoinRequest.SymmetricKey,
 			APIServerEndpoint:        nodeJoinRequest.APIServerEndpoint,
 			ContainerRuntimeEndpoint: nodeJoinRequest.ContainerRuntimeEndpoint,
 			ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
@@ -138,15 +135,19 @@ func (nodeJoinRequest *NodeJoinRequest) HasCondition(condition Condition) bool {
 	return false
 }
 
-// Encrypt encrypts the given content using this node join request public key
+// Encrypt encrypts the given content using this node join request symmetric key
 func (nodeJoinRequest *NodeJoinRequest) Encrypt(content string) (string, error) {
-	rsaPublicKey, ok := nodeJoinRequest.publicKey.(*rsa.PublicKey)
-	if !ok {
-		return "", errors.New("could not identify public key as an RSA public key")
-	}
-	encryptedContents, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPublicKey, []byte(content), []byte(""))
+	block, err := aes.NewCipher([]byte(nodeJoinRequest.SymmetricKey))
 	if err != nil {
 		return "", err
 	}
-	return string(base64.StdEncoding.EncodeToString(encryptedContents)), nil
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+	return base64.RawStdEncoding.EncodeToString(gcm.Seal(nonce, nonce, []byte(content), nil)), nil
 }

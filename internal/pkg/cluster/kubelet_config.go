@@ -17,11 +17,10 @@ limitations under the License.
 package cluster
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	v1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 )
 
@@ -37,9 +36,10 @@ func marshalKubeletConfig(kubeletConfig *kubeletconfigv1beta1.KubeletConfigurati
 		return "", err
 	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
-	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, v1.SchemeGroupVersion)
-	if encodedKubeletConfig, err := runtime.Encode(encoder, kubeletConfig); err == nil {
-		return string(encodedKubeletConfig), nil
+	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, kubeletconfigv1beta1.SchemeGroupVersion)
+	encodedKubeletConfig, err := runtime.Encode(encoder, kubeletConfig)
+	if err != nil {
+		return "", errors.Wrap(err, "could not create a kubelet config")
 	}
-	return "", errors.New("could not create a kubelet config")
+	return string(encodedKubeletConfig), nil
 }

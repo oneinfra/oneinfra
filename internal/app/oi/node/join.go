@@ -19,14 +19,19 @@ package node
 import (
 	"io/ioutil"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/node"
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertFile, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertFile, token, joinTokenPublicKeyFile, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	caCert, err := ioutil.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}
-	return node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint)
+	joinTokenPublicKey, err := certificates.NewPublicKeyFromFile(joinTokenPublicKeyFile)
+	if err != nil {
+		return err
+	}
+	return node.Join(nodename, apiServerEndpoint, string(caCert), token, joinTokenPublicKey, containerRuntimeEndpoint, imageServiceEndpoint)
 }

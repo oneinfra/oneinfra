@@ -38,7 +38,13 @@ properties:
   spec:
     description: NodeJoinRequestSpec defines the desired state of NodeJoinRequest
     properties:
-      publicKey:
+      apiServerEndpoint:
+        type: string
+      containerRuntimeEndpoint:
+        type: string
+      imageServiceEndpoint:
+        type: string
+      symmetricKey:
         type: string
     type: object
   status:
@@ -54,6 +60,8 @@ properties:
       kubeletConfig:
         type: string
       vpnAddress:
+        type: string
+      vpnPeer:
         type: string
     type: object
 type: object`

@@ -14,16 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package cluster
 
-// Certificate represents a Certificate
-type Certificate struct {
-	Certificate string `json:"certificate,omitempty"`
-	PrivateKey  string `json:"privateKey,omitempty"`
-}
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
 
-// KeyPair represents a public/private key pair
-type KeyPair struct {
-	PublicKey  string `json:"publicKey,omitempty"`
-	PrivateKey string `json:"privateKey,omitempty"`
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
+	"github.com/pkg/errors"
+)
+
+// JoinTokenPublicKey prints the join token public key for the given cluster
+func JoinTokenPublicKey(clusterName string) error {
+	stdin, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	clusters := manifests.RetrieveClusters(string(stdin))
+
+	cluster, exists := clusters[clusterName]
+	if !exists {
+		return errors.Errorf("cluster %q not found", clusterName)
+	}
+
+	fmt.Print(cluster.JoinKey.PublicKey)
+
+	return nil
 }

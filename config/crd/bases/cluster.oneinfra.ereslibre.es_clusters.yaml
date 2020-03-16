@@ -129,6 +129,14 @@ spec:
                 tlsPrivateKey:
                   type: string
               type: object
+            joinKey:
+              description: KeyPair represents a public/private key pair
+              properties:
+                privateKey:
+                  type: string
+                publicKey:
+                  type: string
+              type: object
             joinTokens:
               items:
                 type: string

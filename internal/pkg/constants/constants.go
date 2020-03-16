@@ -21,6 +21,8 @@ import (
 )
 
 const (
+	// DefaultKeyBitSize is the default key bit size
+	DefaultKeyBitSize = 1024
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
 	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
@@ -31,11 +33,13 @@ const (
 	// OneInfraControlPlaneIngressVPNPeerName represents the control plane
 	// ingress peer VPN name
 	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
-	// KubeletKubeConfigPath represents the kubelet kubeconfig path
-	KubeletKubeConfigPath = "/var/lib/kubelet/config.yaml"
+	// KubeletDir is the kubelet configuration dir
+	KubeletDir = "/var/lib/kubelet"
 )
 
 var (
+	// KubeletKubeConfigPath represents the kubelet kubeconfig path
+	KubeletKubeConfigPath = filepath.Join(KubeletDir, "config.yaml")
 	// KubeletConfigPath represents the kubelet configuration path
 	KubeletConfigPath = filepath.Join(OneInfraConfigDir, "kubelet.conf")
 )

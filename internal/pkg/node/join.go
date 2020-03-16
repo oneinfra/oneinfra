@@ -17,7 +17,12 @@ limitations under the License.
 package node
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,26 +42,30 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPublicKey *certificates.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
 	}
-	keyPair, err := readOrGenerateKeyPair()
+	symmetricKey, err := readOrGenerateSymmetricKey()
 	if err != nil {
 		return err
 	}
-	if err := createJoinRequest(client, apiServerEndpoint, nodename, keyPair, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
+	cryptedSymmetricKey, err := joinTokenPublicKey.Encrypt(symmetricKey)
+	if err != nil {
+		return err
+	}
+	if err := createJoinRequest(client, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
 		return err
 	}
 	nodeJoinRequest, err := waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
 	if err != nil {
 		return err
 	}
-	if err := writeKubeConfig(nodeJoinRequest, keyPair); err != nil {
+	if err := writeKubeConfig(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
-	if err := writeKubeletConfig(nodeJoinRequest, keyPair); err != nil {
+	if err := writeKubeletConfig(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
 	if err := setupSystemd(nodeJoinRequest); err != nil {
@@ -84,14 +93,14 @@ func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.R
 	return client, nil
 }
 
-func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename string, keyPair *certificates.KeyPair, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nodename,
 			Namespace: constants.OneInfraNamespace,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			PublicKey:                keyPair.PublicKey,
+			SymmetricKey:             symmetricKey,
 			APIServerEndpoint:        apiServerEndpoint,
 			ContainerRuntimeEndpoint: containerRuntimeEndpoint,
 			ImageServiceEndpoint:     imageServiceEndpoint,
@@ -131,7 +140,7 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 				continue
 			}
 			if nodeJoinRequest.HasCondition(nodev1alpha1.Issued) {
-				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&nodeJoinRequest)
+				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&nodeJoinRequest, nil)
 				if err != nil {
 					return nil, errors.New("could not convert node join request")
 				}
@@ -141,40 +150,44 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 	}
 }
 
-func readOrGenerateKeyPair() (*certificates.KeyPair, error) {
-	var keyPair *certificates.KeyPair
+func readOrGenerateSymmetricKey() (string, error) {
+	var symmetricKey string
 	if _, err := os.Stat(filepath.Join(constants.OneInfraConfigDir, "join.key")); os.IsNotExist(err) {
-		var err error
-		keyPair, err = certificates.NewPrivateKey()
+		symmetricKeyRaw := make([]byte, 16)
+		_, err := rand.Read(symmetricKeyRaw)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
+		symmetricKey = fmt.Sprintf("%x", symmetricKeyRaw)
 		if err := os.MkdirAll(constants.OneInfraConfigDir, 0700); err != nil {
-			return nil, err
+			return "", err
 		}
-		if err := ioutil.WriteFile(filepath.Join(constants.OneInfraConfigDir, "join.key"), []byte(keyPair.PrivateKey), 0600); err != nil {
-			return nil, err
+		if err := ioutil.WriteFile(filepath.Join(constants.OneInfraConfigDir, "join.key"), []byte(symmetricKey), 0600); err != nil {
+			return "", err
 		}
 	} else {
-		var err error
-		keyPair, err = certificates.NewPrivateKeyFromFile(filepath.Join(constants.OneInfraConfigDir, "join.key"))
+		symmetricKeyBytes, err := ioutil.ReadFile(filepath.Join(constants.OneInfraConfigDir, "join.key"))
 		if err != nil {
-			return nil, err
+			return "", err
 		}
+		symmetricKey = string(symmetricKeyBytes)
 	}
-	return keyPair, nil
+	return symmetricKey, nil
 }
 
-func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, keyPair *certificates.KeyPair) error {
-	kubeConfig, err := keyPair.Decrypt(nodeJoinRequest.KubeConfig)
+func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	kubeConfig, err := decrypt(symmetricKey, nodeJoinRequest.KubeConfig)
 	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(constants.KubeletDir, 0700); err != nil {
 		return err
 	}
 	return ioutil.WriteFile(constants.KubeletKubeConfigPath, []byte(kubeConfig), 0600)
 }
 
-func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, keyPair *certificates.KeyPair) error {
-	kubeletConfig, err := keyPair.Decrypt(nodeJoinRequest.KubeletConfig)
+func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	kubeletConfig, err := decrypt(symmetricKey, nodeJoinRequest.KubeletConfig)
 	if err != nil {
 		return err
 	}
@@ -187,4 +200,26 @@ func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 
 func startKubelet() error {
 	return nil
+}
+
+func decrypt(symmetricKey string, base64Data string) (string, error) {
+	block, err := aes.NewCipher([]byte(symmetricKey))
+	if err != nil {
+		return "", err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	nonceSize := gcm.NonceSize()
+	data, err := base64.RawStdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return "", err
+	}
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(plaintext), nil
 }

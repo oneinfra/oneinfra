@@ -30,7 +30,7 @@ const (
 
 // NodeJoinRequestSpec defines the desired state of NodeJoinRequest
 type NodeJoinRequestSpec struct {
-	PublicKey                string `json:"publicKey,omitempty"`
+	SymmetricKey             string `json:"symmetricKey,omitempty"`
 	APIServerEndpoint        string `json:"apiServerEndpoint,omitempty"`
 	ContainerRuntimeEndpoint string `json:"containerRuntimeEndpoint,omitempty"`
 	ImageServiceEndpoint     string `json:"imageServiceEndpoint,omitempty"`

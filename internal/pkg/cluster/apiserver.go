@@ -18,6 +18,7 @@ package cluster
 
 import (
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 // KubeAPIServer represents the kube-apiserver component
@@ -31,7 +32,6 @@ type KubeAPIServer struct {
 }
 
 func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
-	// TODO: allow no CA generation, provided cert and key
 	certificateAuthority, err := certificates.NewCertificateAuthority("apiserver-authority")
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	}
 	kubeAPIServer.TLSCert = tlsCert
 	kubeAPIServer.TLSPrivateKey = tlsKey
-	serviceAccountKey, err := certificates.NewPrivateKey()
+	serviceAccountKey, err := certificates.NewPrivateKey(constants.DefaultKeyBitSize)
 	if err != nil {
 		return nil, err
 	}

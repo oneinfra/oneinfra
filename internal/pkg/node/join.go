@@ -37,7 +37,7 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string) error {
 	if err != nil {
 		return err
 	}
-	if err := createJoinRequest(client, apiServerEndpoint, nodename, keyPair); err != nil {
+	if err := createJoinRequest(client, apiServerEndpoint, nodename, keyPair, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
 		return err
 	}
 	nodeJoinRequest, err := waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
@@ -84,15 +84,17 @@ func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.R
 	return client, nil
 }
 
-func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename string, keyPair *certificates.KeyPair) error {
+func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename string, keyPair *certificates.KeyPair, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      nodename,
 			Namespace: constants.OneInfraNamespace,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			PublicKey:         keyPair.PublicKey,
-			APIServerEndpoint: apiServerEndpoint,
+			PublicKey:                keyPair.PublicKey,
+			APIServerEndpoint:        apiServerEndpoint,
+			ContainerRuntimeEndpoint: containerRuntimeEndpoint,
+			ImageServiceEndpoint:     imageServiceEndpoint,
 		},
 	}
 	err := client.

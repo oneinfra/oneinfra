@@ -139,6 +139,16 @@ func main() {
 								Usage:    "node name of this node when joining",
 							},
 							&cli.StringFlag{
+								Name:     "container-runtime-endpoint",
+								Required: true,
+								Usage:    "container runtime endpoint of this node",
+							},
+							&cli.StringFlag{
+								Name:     "image-service-endpoint",
+								Required: true,
+								Usage:    "image service endpoint of this node",
+							},
+							&cli.StringFlag{
 								Name:     "apiserver-endpoint",
 								Required: true,
 								Usage:    "endpoint of the apiserver to join to",
@@ -155,7 +165,14 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return node.Join(c.String("nodename"), c.String("apiserver-endpoint"), c.String("apiserver-ca-cert-file"), c.String("join-token"))
+							return node.Join(
+								c.String("nodename"),
+								c.String("apiserver-endpoint"),
+								c.String("apiserver-ca-cert-file"),
+								c.String("join-token"),
+								c.String("container-runtime-endpoint"),
+								c.String("image-service-endpoint"),
+							)
 						},
 					},
 				},

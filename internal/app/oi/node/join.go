@@ -23,10 +23,10 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertFile, token string) error {
+func Join(nodename, apiServerEndpoint, caCertFile, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	caCert, err := ioutil.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}
-	return node.Join(nodename, apiServerEndpoint, string(caCert), token)
+	return node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint)
 }

@@ -113,7 +113,7 @@ func (controlPlane *ControlPlane) etcdPeerEndpoints(inquirer inquirer.Reconciler
 		endpointURL := strings.Split(endpoint, "=")
 		endpoints = append(endpoints, endpointURL[1])
 	}
-	if etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]; ok {
+	if etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]; exists {
 		endpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 		endpoints = append(endpoints, endpointURL.String())
 	}
@@ -131,8 +131,8 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 	defer cancel()
 	for {
 		klog.V(2).Infof("adding etcd learner %q", component.Name)
-		etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]
-		if !ok {
+		etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]
+		if !exists {
 			return errors.Errorf("etcd peer host port not found for component %q", component.Name)
 		}
 		peerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
@@ -234,8 +234,8 @@ func (controlPlane *ControlPlane) hasEtcdMember(inquirer inquirer.ReconcilerInqu
 	}
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	etcdPeerHostPort, ok := component.AllocatedHostPorts["etcd-peer"]
-	if !ok {
+	etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]
+	if !exists {
 		return false, errors.Errorf("etcd peer host port not found for component %s", component.Name)
 	}
 	peerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}

@@ -34,8 +34,8 @@ func AdminKubeConfig(clusterName string) error {
 	}
 	clusters := manifests.RetrieveClusters(string(stdin))
 
-	cluster, ok := clusters[clusterName]
-	if !ok {
+	cluster, exists := clusters[clusterName]
+	if !exists {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 

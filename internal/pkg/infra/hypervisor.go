@@ -451,7 +451,7 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
 	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
-	if currentFileContentsSHA1, ok := hypervisor.Files[hostPath]; ok {
+	if currentFileContentsSHA1, exists := hypervisor.Files[hostPath]; exists {
 		if currentFileContentsSHA1 == fileContentsSHA1 {
 			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
 			return nil

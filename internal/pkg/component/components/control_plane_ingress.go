@@ -73,8 +73,8 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 	}
 	clusterComponents := inquirer.ClusterComponents(component.ControlPlaneRole)
 	for _, component := range clusterComponents {
-		apiserverHostPort, ok := component.AllocatedHostPorts["apiserver"]
-		if !ok {
+		apiserverHostPort, exists := component.AllocatedHostPorts["apiserver"]
+		if !exists {
 			return "", errors.New("apiserver host port not found")
 		}
 		haProxyConfigData.APIServers[component.Name] = net.JoinHostPort(

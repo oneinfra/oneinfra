@@ -94,7 +94,7 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 
 // RequestPort requests a port on the given hypervisor
 func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name string) (int, error) {
-	if allocatedPort, ok := component.AllocatedHostPorts[name]; ok {
+	if allocatedPort, exists := component.AllocatedHostPorts[name]; exists {
 		return allocatedPort, nil
 	}
 	allocatedPort, err := hypervisor.RequestPort(component.ClusterName, fmt.Sprintf("%s-%s", component.Name, name))
@@ -107,7 +107,7 @@ func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name strin
 
 // ClientCertificate returns a client certificate with the given name
 func (component *Component) ClientCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
-	if clientCertificate, ok := component.ClientCertificates[name]; ok {
+	if clientCertificate, exists := component.ClientCertificates[name]; exists {
 		return clientCertificate, nil
 	}
 	certificate, privateKey, err := ca.CreateCertificate(commonName, organization, extraSANs)

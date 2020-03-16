@@ -94,8 +94,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
-	etcdClientHostPort, ok := component.AllocatedHostPorts["etcd-client"]
-	if !ok {
+	etcdClientHostPort, exists := component.AllocatedHostPorts["etcd-client"]
+	if !exists {
 		return errors.New("etcd client host port not found")
 	}
 	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}

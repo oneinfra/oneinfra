@@ -209,16 +209,22 @@ func (hypervisor *Hypervisor) fullName() string {
 	return fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name)
 }
 
-func (hypervisor *Hypervisor) internalIPAddress() (string, error) {
+// InternalIPAddress returns the internal IP address for the given
+// container name
+func InternalIPAddress(containerName string) (string, error) {
 	ipAddress, err := exec.Command(
 		"docker",
 		"inspect", "-f", "{{ .NetworkSettings.IPAddress }}",
-		hypervisor.fullName(),
+		containerName,
 	).Output()
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimRight(string(ipAddress), "\n"), nil
+}
+
+func (hypervisor *Hypervisor) internalIPAddress() (string, error) {
+	return InternalIPAddress(hypervisor.fullName())
 }
 
 func (hypervisor *Hypervisor) ipAddress() (string, error) {

@@ -68,6 +68,19 @@ func main() {
 						},
 					},
 					{
+						Name:  "endpoint",
+						Usage: "retrieves a test cluster endpoint",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:  "name",
+								Usage: "test cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.Endpoint(c.String("name"))
+						},
+					},
+					{
 						Name:  "destroy",
 						Usage: "destroy a test cluster",
 						Flags: []cli.Flag{

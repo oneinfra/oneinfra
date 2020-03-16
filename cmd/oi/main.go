@@ -75,6 +75,20 @@ func main() {
 							return cluster.AdminKubeConfig(c.String("cluster"))
 						},
 					},
+					{
+						Name:  "apiserver-ca",
+						Usage: "prints the apiserver CA certificate",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return cluster.APIServerCA(c.String("cluster"))
+						},
+					},
 				},
 			},
 			{

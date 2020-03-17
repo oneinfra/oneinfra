@@ -27,6 +27,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
 	"github.com/oneinfra/oneinfra/internal/app/oi/component"
+	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 )
 
@@ -135,6 +136,26 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
+						},
+					},
+				},
+			},
+			{
+				Name:  "join-token",
+				Usage: "join token operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "inject",
+						Usage: "inject a join token",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return jointoken.Inject(c.String("cluster"))
 						},
 					},
 				},

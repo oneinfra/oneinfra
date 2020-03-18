@@ -34,6 +34,7 @@ import (
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
 // Cluster represents a cluster
@@ -47,7 +48,7 @@ type Cluster struct {
 	VPNCIDR                *net.IPNet
 	VPNPeers               VPNPeerMap
 	APIServerEndpoint      string
-	JoinKey                *certificates.KeyPair
+	JoinKey                *crypto.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
 	clientSet              clientset.Interface
@@ -63,7 +64,7 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 	if err != nil {
 		return nil, err
 	}
-	joinKey, err := certificates.NewPrivateKey(constants.DefaultKeyBitSize)
+	joinKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +85,7 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 
 // NewClusterFromv1alpha1 returns a cluster based on a versioned cluster
 func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) {
-	joinKey, err := certificates.NewKeyPairFromv1alpha1(cluster.Spec.JoinKey)
+	joinKey, err := crypto.NewKeyPairFromv1alpha1(cluster.Spec.JoinKey)
 	if err != nil {
 		return nil, err
 	}

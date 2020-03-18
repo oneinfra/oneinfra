@@ -19,7 +19,7 @@ package node
 import (
 	"io/ioutil"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 	"github.com/oneinfra/oneinfra/internal/pkg/node"
 )
 
@@ -29,7 +29,7 @@ func Join(nodename, apiServerEndpoint, caCertFile, token, joinTokenPublicKeyFile
 	if err != nil {
 		return err
 	}
-	joinTokenPublicKey, err := certificates.NewPublicKeyFromFile(joinTokenPublicKeyFile)
+	joinTokenPublicKey, err := crypto.NewPublicKeyFromFile(joinTokenPublicKeyFile)
 	if err != nil {
 		return err
 	}

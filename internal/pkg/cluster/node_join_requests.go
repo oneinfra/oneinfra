@@ -87,13 +87,17 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			continue
 		}
 		nodeJoinRequest.Conditions = append(nodeJoinRequest.Conditions, nodejoinrequests.Issued)
+		versionedNodeJoinRequest, err := nodeJoinRequest.Export()
+		if err != nil {
+			klog.Errorf("could not convert the internal node join request to a versioned node join request: %v", err)
+		}
 		err = client.
 			Put().
 			Namespace(constants.OneInfraNamespace).
 			Resource("nodejoinrequests").
 			Name(nodeJoinRequest.Name).
 			SubResource("status").
-			Body(nodeJoinRequest.Export()).
+			Body(versionedNodeJoinRequest).
 			Do().
 			Error()
 		if err != nil {

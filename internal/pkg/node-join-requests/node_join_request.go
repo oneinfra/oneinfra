@@ -17,16 +17,10 @@ limitations under the License.
 package nodejoinrequests
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/base64"
-	"io"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
 // Condition represents a node join request condition
@@ -43,7 +37,7 @@ const (
 // NodeJoinRequest represents a node join request
 type NodeJoinRequest struct {
 	Name                     string
-	SymmetricKey             string
+	SymmetricKey             crypto.SymmetricKey
 	APIServerEndpoint        string
 	ContainerRuntimeEndpoint string
 	ImageServiceEndpoint     string
@@ -53,21 +47,22 @@ type NodeJoinRequest struct {
 	KubeletConfig            string
 	Conditions               ConditionList
 	ResourceVersion          string
+	joinKey                  *crypto.KeyPair
 }
 
 // NewNodeJoinRequestFromv1alpha1 returns a node join request based on a versioned node join request
-func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinRequest, joinKey *certificates.KeyPair) (*NodeJoinRequest, error) {
-	symmetricKey := ""
+func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinRequest, joinKey *crypto.KeyPair) (*NodeJoinRequest, error) {
+	symmetricKey := nodeJoinRequest.Spec.SymmetricKey
 	if joinKey != nil {
-		var err error
-		symmetricKey, err = joinKey.Decrypt(nodeJoinRequest.Spec.SymmetricKey)
+		key, err := joinKey.Decrypt(nodeJoinRequest.Spec.SymmetricKey)
 		if err != nil {
 			return nil, err
 		}
+		symmetricKey = key
 	}
 	return &NodeJoinRequest{
 		Name:                     nodeJoinRequest.ObjectMeta.Name,
-		SymmetricKey:             symmetricKey,
+		SymmetricKey:             crypto.SymmetricKey(symmetricKey),
 		APIServerEndpoint:        nodeJoinRequest.Spec.APIServerEndpoint,
 		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
 		ImageServiceEndpoint:     nodeJoinRequest.Spec.ImageServiceEndpoint,
@@ -77,6 +72,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
 		Conditions:               newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
 		ResourceVersion:          nodeJoinRequest.ObjectMeta.ResourceVersion,
+		joinKey:                  joinKey,
 	}, nil
 }
 
@@ -92,14 +88,22 @@ func newConditionsFromv1alpha1(conditions []nodev1alpha1.Condition) ConditionLis
 }
 
 // Export exports this node join request to a versioned node join request
-func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
+func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest, error) {
+	symmetricKey := nodeJoinRequest.SymmetricKey
+	if nodeJoinRequest.joinKey != nil {
+		encryptedSymmetricKey, err := nodeJoinRequest.joinKey.Encrypt(string(nodeJoinRequest.SymmetricKey))
+		if err != nil {
+			return nil, err
+		}
+		symmetricKey = crypto.SymmetricKey(encryptedSymmetricKey)
+	}
 	return &nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            nodeJoinRequest.Name,
 			ResourceVersion: nodeJoinRequest.ResourceVersion,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			SymmetricKey:             nodeJoinRequest.SymmetricKey,
+			SymmetricKey:             string(symmetricKey),
 			APIServerEndpoint:        nodeJoinRequest.APIServerEndpoint,
 			ContainerRuntimeEndpoint: nodeJoinRequest.ContainerRuntimeEndpoint,
 			ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
@@ -111,7 +115,7 @@ func (nodeJoinRequest *NodeJoinRequest) Export() *nodev1alpha1.NodeJoinRequest {
 			KubeletConfig: nodeJoinRequest.KubeletConfig,
 			Conditions:    nodeJoinRequest.Conditions.export(),
 		},
-	}
+	}, nil
 }
 
 func (conditionList ConditionList) export() []nodev1alpha1.Condition {
@@ -137,17 +141,5 @@ func (nodeJoinRequest *NodeJoinRequest) HasCondition(condition Condition) bool {
 
 // Encrypt encrypts the given content using this node join request symmetric key
 func (nodeJoinRequest *NodeJoinRequest) Encrypt(content string) (string, error) {
-	block, err := aes.NewCipher([]byte(nodeJoinRequest.SymmetricKey))
-	if err != nil {
-		return "", err
-	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
-	}
-	return base64.RawStdEncoding.EncodeToString(gcm.Seal(nonce, nonce, []byte(content), nil)), nil
+	return nodeJoinRequest.SymmetricKey.Encrypt(content)
 }

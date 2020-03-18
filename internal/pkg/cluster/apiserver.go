@@ -19,6 +19,7 @@ package cluster
 import (
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
 // KubeAPIServer represents the kube-apiserver component
@@ -50,7 +51,7 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	}
 	kubeAPIServer.TLSCert = tlsCert
 	kubeAPIServer.TLSPrivateKey = tlsKey
-	serviceAccountKey, err := certificates.NewPrivateKey(constants.DefaultKeyBitSize)
+	serviceAccountKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
 	if err != nil {
 		return nil, err
 	}

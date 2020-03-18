@@ -35,14 +35,14 @@ import (
 	"k8s.io/klog"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPublicKey *certificates.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPublicKey *crypto.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err

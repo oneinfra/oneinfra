@@ -62,7 +62,7 @@ production yet.
 
 - [X] Implement initial worker join logic
 - [X] Extend worker join to wait for `issued` condition
-- [X] Finish worker node join logic
+- [ ] Finish worker node join logic
 - [ ] Provide hypervisor VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
 - [ ] Provide worker VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
 

@@ -26,7 +26,7 @@ Description=kubelet: The Kubernetes Node Agent
 Documentation=https://kubernetes.io/docs/home/
 
 [Service]
-Environment="KUBELET_ARGS=--hostname-override={{.Name}}"
+Environment="KUBELET_ARGS=--hostname-override={{.Nodename}}"
 Environment="KUBELET_KUBECONFIG_ARGS=--kubeconfig={{.KubeletKubeConfigPath}}"
 Environment="KUBELET_CONFIG_ARGS=--config={{.KubeletConfigPath}}"
 Environment="SERVICE_ENDPOINTS_ARGS=--container-runtime=remote --image-service-endpoint={{.ImageServiceEndpoint}} --container-runtime-endpoint={{.ContainerRuntimeEndpoint}}"

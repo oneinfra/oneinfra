@@ -233,13 +233,13 @@ func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 	}
 	var kubeletSystemdService bytes.Buffer
 	err = kubeletSystemdServiceTpl.Execute(&kubeletSystemdService, struct {
-		Name                     string
+		Nodename                 string
 		KubeletKubeConfigPath    string
 		KubeletConfigPath        string
 		ImageServiceEndpoint     string
 		ContainerRuntimeEndpoint string
 	}{
-		Name:                     nodeJoinRequest.Name,
+		Nodename:                 nodeJoinRequest.Name,
 		KubeletKubeConfigPath:    constants.KubeletKubeConfigPath,
 		KubeletConfigPath:        constants.KubeletConfigPath,
 		ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,

@@ -39,7 +39,7 @@ const (
 
 var (
 	// KubeletKubeConfigPath represents the kubelet kubeconfig path
-	KubeletKubeConfigPath = filepath.Join(KubeletDir, "config.yaml")
+	KubeletKubeConfigPath = filepath.Join(OneInfraConfigDir, "kubelet.conf")
 	// KubeletConfigPath represents the kubelet configuration path
-	KubeletConfigPath = filepath.Join(OneInfraConfigDir, "kubelet.conf")
+	KubeletConfigPath = filepath.Join(KubeletDir, "config.yaml")
 )

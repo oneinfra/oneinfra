@@ -30,12 +30,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	"k8s.io/klog"
 
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
-	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 )
 
 const (

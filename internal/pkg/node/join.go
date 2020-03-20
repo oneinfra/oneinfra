@@ -17,14 +17,17 @@ limitations under the License.
 package node
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -38,6 +41,8 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
 )
 
@@ -66,6 +71,9 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPub
 		return err
 	}
 	if err := writeKubeletConfig(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
+	if err := installKubelet(nodeJoinRequest); err != nil {
 		return err
 	}
 	if err := setupSystemd(nodeJoinRequest); err != nil {
@@ -180,7 +188,7 @@ func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetri
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(constants.KubeletDir, 0700); err != nil {
+	if err := os.MkdirAll(constants.OneInfraConfigDir, 0700); err != nil {
 		return err
 	}
 	return ioutil.WriteFile(constants.KubeletKubeConfigPath, []byte(kubeConfig), 0600)
@@ -191,15 +199,60 @@ func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symme
 	if err != nil {
 		return err
 	}
+	if err := os.MkdirAll(constants.KubeletDir, 0700); err != nil {
+		return err
+	}
 	return ioutil.WriteFile(constants.KubeletConfigPath, []byte(kubeletConfig), 0600)
 }
 
+func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ImageServiceEndpoint)
+	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ContainerRuntimeEndpoint)
+	if err := hypervisorImageEndpoint.EnsureImage(kubeletInstallerImage); err != nil {
+		return err
+	}
+	err := hypervisorRuntimeEndpoint.RunAndWaitForPod(nil, podapi.Pod{
+		Name: "kubelet-installer",
+		Containers: []podapi.Container{
+			{
+				Name:  "kubelet-installer",
+				Image: kubeletInstallerImage,
+				Mounts: map[string]string{
+					"/usr/local/bin": "/host",
+				},
+			},
+		},
+	})
+	return err
+}
+
 func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	return nil
+	kubeletSystemdServiceTpl, err := template.New("").Parse(kubeletSystemdServiceTemplate)
+	if err != nil {
+		return err
+	}
+	var kubeletSystemdService bytes.Buffer
+	err = kubeletSystemdServiceTpl.Execute(&kubeletSystemdService, struct {
+		Name                     string
+		KubeletKubeConfigPath    string
+		KubeletConfigPath        string
+		ImageServiceEndpoint     string
+		ContainerRuntimeEndpoint string
+	}{
+		Name:                     nodeJoinRequest.Name,
+		KubeletKubeConfigPath:    constants.KubeletKubeConfigPath,
+		KubeletConfigPath:        constants.KubeletConfigPath,
+		ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
+		ContainerRuntimeEndpoint: nodeJoinRequest.ContainerRuntimeEndpoint,
+	})
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filepath.Join(systemdDir, "kubelet.service"), kubeletSystemdService.Bytes(), 0644)
 }
 
 func startKubelet() error {
-	return nil
+	return exec.Command("systemctl", "enable", "--now", "kubelet").Run()
 }
 
 func decrypt(symmetricKey string, base64Data string) (string, error) {

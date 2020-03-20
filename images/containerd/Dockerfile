@@ -6,6 +6,9 @@ ARG CONTAINERD_VERSION=1.3.3
 
 COPY /fs /
 
+ENV IMAGE_SERVICE_ENDPOINT unix:///containerd-socket/containerd.sock
+ENV CONTAINER_RUNTIME_ENDPOINT unix:///containerd-socket/containerd.sock
+
 RUN echo "Installing dependencies" \
   && apt-get update -qq \
   && apt-get install --no-install-recommends -qq -y \

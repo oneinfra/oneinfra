@@ -28,25 +28,27 @@ if [ -z "${CLUSTER_NAME}" ]; then
     exit 1
 fi
 
-# This is a bit hacky for this specific Docker based environment.
-#
-# In the real world, worker nodes will connect to the public facing
-# interface of the public hypervisors, but since we are mimicking this
-# in Docker as forwarding the ports to localhost in the host,
-# containers in their own networking namespaces (as fake workers)
-# won't be able to access them.
-#
-# Thus, we will connect them to the Docker IP address of the public
-# hypervisors, that in this model resembles the private interface that
-# we would have in reality, so we are not having a perfect match with
-# the intended real world production design.
-
-INGRESS_CONTAINER_NAME=$(cat "${CLUSTER_CONF}" | oi cluster ingress-component-name --cluster "${CLUSTER_NAME}")
-INGRESS_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' "${INGRESS_CONTAINER_NAME}")
-
-KUBECONFIG=$(mktemp /tmp/kubeconfig-XXXXXXX)
-cat "${CLUSTER_CONF}" | oi cluster admin-kubeconfig --cluster "${CLUSTER_NAME}" --endpoint-host-override "${INGRESS_CONTAINER_IP}" > "${KUBECONFIG}"
-
+OI_BIN=$(which oi)
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
+APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-cluster cluster endpoint --name ${CLUSTER_NAME})
+CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:latest)
 
-docker run --privileged -v /dev/null:/proc/swaps:ro -v "${KUBECONFIG}":/kubeconfig -e CONTAINER_RUNTIME_ENDPOINT=${CONTAINERD_LOCAL_ENDPOINT} -e IMAGE_SERVICE_ENDPOINT=${CONTAINERD_LOCAL_ENDPOINT} -d -i oneinfra/kubelet:latest
+JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
+NODENAME=$(echo ${CONTAINER_ID} | head -c 10)
+
+# Reconcile join tokens
+cat "${CLUSTER_CONF}.new" | oi reconcile > ${CLUSTER_CONF}
+
+docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster apiserver-ca --cluster ${CLUSTER_NAME} > /etc/oneinfra/apiserver-ca.crt"
+docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster join-token-public-key --cluster ${CLUSTER_NAME} > /etc/oneinfra/join-token.pub.key"
+docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --join-token-public-key-file /etc/oneinfra/join-token.pub.key --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
+
+until kubectl get njr ${NODENAME} -n oneinfra-system &> /dev/null
+do
+    echo "waiting for the node join request to be created"
+    sleep 1
+done
+
+# Reconcile node join requests
+cat ${CLUSTER_CONF} | oi reconcile > "${CLUSTER_CONF}.new"
+mv "${CLUSTER_CONF}.new" ${CLUSTER_CONF}

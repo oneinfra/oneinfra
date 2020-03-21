@@ -105,7 +105,11 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 	if err != nil {
 		return err
 	}
-	if err := hypervisor.UploadFile(wireguardConfig, secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))); err != nil {
+	wireguardConfigPath := secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
+	if hypervisor.FileUpToDate(wireguardConfig, wireguardConfigPath) {
+		return nil
+	}
+	if err := hypervisor.UploadFile(wireguardConfig, wireguardConfigPath); err != nil {
 		return err
 	}
 	return hypervisor.RunAndWaitForPod(

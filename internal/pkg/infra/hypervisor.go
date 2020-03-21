@@ -278,7 +278,7 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (
 }
 
 func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
-	klog.V(2).Infof("running a pod %q in hypervisor %q", pod.Name, hypervisor.Name)
+	klog.V(2).Infof("running pod %q in hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err
@@ -448,15 +448,24 @@ func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
 	return hypervisor.uploadFile(fileContents, hostPath)
 }
 
-func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
-	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
+// FileUpToDate returns whether the given file contents match on the
+// host
+func (hypervisor *Hypervisor) FileUpToDate(fileContents, hostPath string) bool {
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	if currentFileContentsSHA1, exists := hypervisor.Files[hostPath]; exists {
 		if currentFileContentsSHA1 == fileContentsSHA1 {
-			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
-			return nil
+			return true
 		}
 	}
+	return false
+}
+
+func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
+	if hypervisor.FileUpToDate(fileContents, hostPath) {
+		klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
+		return nil
+	}
+	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
 	hostPathDir := filepath.Dir(hostPath)
 	uploadFilePod := podapi.NewSingleContainerPod(
 		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
@@ -478,7 +487,7 @@ func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
 		return err
 	}
 	if hypervisor.Files != nil {
-		hypervisor.Files[hostPath] = fileContentsSHA1
+		hypervisor.Files[hostPath] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	}
 	return hypervisor.DeletePod(podSandboxID)
 }

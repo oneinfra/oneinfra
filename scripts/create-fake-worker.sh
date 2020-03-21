@@ -33,22 +33,28 @@ CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
 APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-cluster cluster endpoint --name ${CLUSTER_NAME})
 CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:latest)
 
+echo "creating new join token"
 JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
 NODENAME=$(echo ${CONTAINER_ID} | head -c 10)
 
 # Reconcile join tokens
-cat "${CLUSTER_CONF}.new" | oi reconcile > ${CLUSTER_CONF}
+echo "reconciling join tokens"
+cat "${CLUSTER_CONF}.new" | oi reconcile > ${CLUSTER_CONF} 2> /dev/null
 
+echo "joining new node in background"
 docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster apiserver-ca --cluster ${CLUSTER_NAME} > /etc/oneinfra/apiserver-ca.crt"
 docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster join-token-public-key --cluster ${CLUSTER_NAME} > /etc/oneinfra/join-token.pub.key"
 docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --join-token-public-key-file /etc/oneinfra/join-token.pub.key --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
 
+echo -n "waiting for node join request to be created by the new node"
 until kubectl get njr ${NODENAME} -n oneinfra-system &> /dev/null
 do
-    echo "waiting for the node join request to be created"
+    echo -n "."
     sleep 1
 done
+echo
 
 # Reconcile node join requests
-cat ${CLUSTER_CONF} | oi reconcile > "${CLUSTER_CONF}.new"
+echo "reconciling node join requests"
+cat ${CLUSTER_CONF} | oi reconcile > "${CLUSTER_CONF}.new" 2> /dev/null
 mv "${CLUSTER_CONF}.new" ${CLUSTER_CONF}

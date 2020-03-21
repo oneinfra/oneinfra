@@ -24,6 +24,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
+	"k8s.io/klog"
 )
 
 const (
@@ -107,6 +108,7 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 	}
 	wireguardConfigPath := secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
 	if hypervisor.FileUpToDate(wireguardConfig, wireguardConfigPath) {
+		klog.V(2).Info("skipping wireguard reconfiguration, since configuration is up to date")
 		return nil
 	}
 	if err := hypervisor.UploadFile(wireguardConfig, wireguardConfigPath); err != nil {

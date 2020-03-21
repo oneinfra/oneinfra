@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/urfave/cli/v2"
 	"k8s.io/klog"
@@ -116,12 +117,22 @@ func main() {
 						Usage:   "logging verbosity",
 						Value:   1,
 					},
+					&cli.IntFlag{
+						Name:  "max-retries",
+						Usage: "max reconcile retry loops",
+						Value: 5,
+					},
+					&cli.DurationFlag{
+						Name:  "retry-wait-time",
+						Usage: "time to wait between retries",
+						Value: 5 * time.Second,
+					},
 				},
 				Action: func(c *cli.Context) error {
 					flagSet := flag.FlagSet{}
 					klog.InitFlags(&flagSet)
 					flagSet.Set("v", strconv.Itoa(c.Int("verbosity")))
-					return cluster.Reconcile()
+					return cluster.Reconcile(c.Int("max-retries"), c.Duration("retry-wait-time"))
 				},
 			},
 			{

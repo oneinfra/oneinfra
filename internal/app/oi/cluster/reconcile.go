@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"k8s.io/klog"
 
@@ -29,7 +30,7 @@ import (
 )
 
 // Reconcile reconciles all clusters
-func Reconcile() error {
+func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 	klog.V(1).Info("reading input manifests")
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
@@ -40,16 +41,26 @@ func Reconcile() error {
 	components := manifests.RetrieveComponents(string(stdin))
 
 	clusterReconciler := reconciler.NewClusterReconciler(hypervisors, clusters, components)
-	if err := clusterReconciler.Reconcile(); err != nil {
-		return errors.Wrap(err, "failed to reconcile some resources")
+
+	var reconcileErrs reconciler.ReconcileErrors
+	for i := 0; i < maxRetries; i++ {
+		reconcileErrs = clusterReconciler.Reconcile()
+		if reconcileErrs == nil {
+			break
+		}
+		klog.V(2).Infof("failed to reconcile some resources: %v, retrying (%d/%d) after %s of wait time", reconcileErrs, i+1, maxRetries, retryWaitTime)
+		time.Sleep(retryWaitTime)
 	}
 
 	clusterSpecs, err := clusterReconciler.Specs()
 	if err != nil {
 		return err
 	}
-
 	fmt.Print(clusterSpecs)
+
+	if reconcileErrs != nil {
+		return errors.Wrap(reconcileErrs, "failed to reconcile some resources")
+	}
 
 	return nil
 }

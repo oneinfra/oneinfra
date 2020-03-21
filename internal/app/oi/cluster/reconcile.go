@@ -44,8 +44,7 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 
 	var reconcileErrs reconciler.ReconcileErrors
 	for i := 0; i < maxRetries; i++ {
-		reconcileErrs = clusterReconciler.Reconcile()
-		if reconcileErrs == nil {
+		if reconcileErrs = clusterReconciler.Reconcile(); reconcileErrs == nil {
 			break
 		}
 		klog.V(2).Infof("failed to reconcile some resources: %v, retrying (%d/%d) after %s of wait time", reconcileErrs, i+1, maxRetries, retryWaitTime)

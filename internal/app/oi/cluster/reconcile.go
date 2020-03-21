@@ -25,6 +25,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
+	"github.com/pkg/errors"
 )
 
 // Reconcile reconciles all clusters
@@ -39,7 +40,9 @@ func Reconcile() error {
 	components := manifests.RetrieveComponents(string(stdin))
 
 	clusterReconciler := reconciler.NewClusterReconciler(hypervisors, clusters, components)
-	clusterReconciler.Reconcile()
+	if err := clusterReconciler.Reconcile(); err != nil {
+		return errors.Wrap(err, "failed to reconcile some resources")
+	}
 
 	clusterSpecs, err := clusterReconciler.Specs()
 	if err != nil {

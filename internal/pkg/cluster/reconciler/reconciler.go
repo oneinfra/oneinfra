@@ -23,6 +23,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/pkg/errors"
 )
 
 // ClusterReconciler represents a cluster reconciler
@@ -41,9 +42,13 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 	}
 }
 
-// Reconcile reconciles all components known to this cluster reconciler
-func (clusterReconciler *ClusterReconciler) Reconcile() {
+// Reconcile reconciles all components known to this cluster
+// reconciler. If nothing failed, it will return nil, otherwise a
+// ReconcileErrors object will be returned specifying what
+// reconciliations failed
+func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 	klog.V(1).Info("starting reconciliation process")
+	reconcileErrors := ReconcileErrors{}
 	for _, componentObj := range clusterReconciler.componentList {
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
@@ -53,53 +58,35 @@ func (clusterReconciler *ClusterReconciler) Reconcile() {
 		)
 		if err != nil {
 			klog.Errorf("failed to reconcile component %q: %v", componentObj.Name, err)
+			reconcileErrors.addComponentError(componentObj.ClusterName, componentObj.Name, err)
 		}
 	}
-	clusterReconciler.reconcileCustomResourceDefinitions()
-	clusterReconciler.reconcileNamespaces()
-	clusterReconciler.reconcilePermissions()
-	clusterReconciler.reconcileJoinTokens()
-	clusterReconciler.reconcileNodeJoinRequests()
-}
-
-func (clusterReconciler *ClusterReconciler) reconcileCustomResourceDefinitions() {
 	for clusterName, cluster := range clusterReconciler.clusterMap {
 		if err := cluster.ReconcileCustomResourceDefinitions(); err != nil {
 			klog.Errorf("failed to reconcile custom resource definitions for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile custom resource definitions"))
 		}
-	}
-}
-
-func (clusterReconciler *ClusterReconciler) reconcileNamespaces() {
-	for clusterName, cluster := range clusterReconciler.clusterMap {
 		if err := cluster.ReconcileNamespaces(); err != nil {
 			klog.Errorf("failed to reconcile namespaces for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile namespaces"))
 		}
-	}
-}
-
-func (clusterReconciler *ClusterReconciler) reconcilePermissions() {
-	for clusterName, cluster := range clusterReconciler.clusterMap {
 		if err := cluster.ReconcilePermissions(); err != nil {
-			klog.Errorf("failed to reconcile namespaces for cluster %q: %v", clusterName, err)
+			klog.Errorf("failed to reconcile permissions for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile permissions"))
 		}
-	}
-}
-
-func (clusterReconciler *ClusterReconciler) reconcileJoinTokens() {
-	for clusterName, cluster := range clusterReconciler.clusterMap {
 		if err := cluster.ReconcileJoinTokens(); err != nil {
 			klog.Errorf("failed to reconcile join tokens for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile join tokens"))
 		}
-	}
-}
-
-func (clusterReconciler *ClusterReconciler) reconcileNodeJoinRequests() {
-	for clusterName, cluster := range clusterReconciler.clusterMap {
 		if err := cluster.ReconcileNodeJoinRequests(); err != nil {
 			klog.Errorf("failed to reconcile node join requests for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile node join requests"))
 		}
 	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
 // Specs returns the versioned specs for all resources

@@ -1,4 +1,4 @@
-module github.com/oneinfra/oneinfra/scripts/releaser
+module github.com/oneinfra/oneinfra/scripts/oi-releaser
 
 go 1.14
 

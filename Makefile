@@ -30,7 +30,7 @@ oi-local-cluster: go-generate
 
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
-	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/releaser && go mod vendor'"
+	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/oi-releaser && go mod vendor'"
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -111,15 +111,15 @@ e2e-remote: oi oi-local-cluster
 create-fake-worker:
 	./scripts/create-fake-worker.sh
 
-releaser:
-	./scripts/run.sh sh -c "cd scripts/releaser && go install -mod=vendor ."
+oi-releaser:
+	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
 
-build-container-images: releaser
-	bin/releaser container-images build
+build-container-images: oi-releaser
+	./scripts/run-local.sh oi-releaser container-images build
 
-publish-container-images: releaser build-container-images
+publish-container-images: oi-releaser build-container-images
 	docker login -u oneinfrapublisher -p $(DOCKER_HUB_TOKEN)
-	bin/releaser container-images publish
+	./scripts/run-local.sh oi-releaser container-images publish
 
 check-kubernetes-version-provided:
 ifndef KUBERNETES_VERSION

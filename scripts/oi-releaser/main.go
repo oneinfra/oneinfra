@@ -38,7 +38,7 @@ var (
 
 func main() {
 	app := &cli.App{
-		Usage: "releaser CLI tool",
+		Usage: "oneinfra releaser CLI tool",
 		Commands: []*cli.Command{
 			{
 				Name:  "container-images",

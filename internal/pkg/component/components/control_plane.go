@@ -17,22 +17,23 @@ limitations under the License.
 package components
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
 	"strconv"
 
+	"github.com/pkg/errors"
 	"k8s.io/klog"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
 const (
-	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v1.17.0"
-	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v1.17.0"
-	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v1.17.0"
+	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v%s"
+	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v%s"
+	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v%s"
 )
 
 // ControlPlane represents a complete control plane instance,
@@ -44,8 +45,19 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	kubernetesVersion := inquirer.Cluster().KubernetesVersion
+	versionBundle, err := constants.KubernetesVersionBundle(kubernetesVersion)
+	if err != nil {
+		return errors.Errorf("could not retrieve version bundle for version %q", kubernetesVersion)
+	}
 	klog.V(1).Infof("reconciling control plane in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
-	if err := hypervisor.EnsureImages(etcdImage, kubeAPIServerImage, kubeControllerManagerImage, kubeSchedulerImage); err != nil {
+	err = hypervisor.EnsureImages(
+		fmt.Sprintf(etcdImage, versionBundle.EtcdVersion),
+		fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
+		fmt.Sprintf(kubeControllerManagerImage, kubernetesVersion),
+		fmt.Sprintf(kubeSchedulerImage, kubernetesVersion),
+	)
+	if err != nil {
 		return err
 	}
 	etcdAPIServerClientCertificate, err := component.ClientCertificate(
@@ -106,7 +118,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			[]pod.Container{
 				{
 					Name:    "kube-apiserver",
-					Image:   kubeAPIServerImage,
+					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
 					Args: []string{
 						// Each API server accesses the local etcd component only, to
@@ -133,7 +145,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 				},
 				{
 					Name:    "kube-controller-manager",
-					Image:   kubeControllerManagerImage,
+					Image:   fmt.Sprintf(kubeControllerManagerImage, kubernetesVersion),
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
 						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"),
@@ -146,7 +158,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 				},
 				{
 					Name:    "kube-scheduler",
-					Image:   kubeSchedulerImage,
+					Image:   fmt.Sprintf(kubeSchedulerImage, kubernetesVersion),
 					Command: []string{"kube-scheduler"},
 					Args: []string{
 						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"),

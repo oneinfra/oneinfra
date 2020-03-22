@@ -1,4 +1,5 @@
-all: 1.17.4
+image:
+	docker build --build-arg KUBERNETES_VERSION=$(KUBERNETES_VERSION) -t oneinfra/kubelet-installer:$(KUBERNETES_VERSION) .
 
-1.17.4:
-	docker build --build-arg KUBERNETES_VERSION=1.17.4 -t oneinfra/kubelet-installer:1.17.4 .
+publish:
+	docker push oneinfra/kubelet-installer:$(KUBERNETES_VERSION)

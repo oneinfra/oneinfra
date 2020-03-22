@@ -41,6 +41,7 @@ type NodeJoinRequest struct {
 	APIServerEndpoint        string
 	ContainerRuntimeEndpoint string
 	ImageServiceEndpoint     string
+	KubernetesVersion        string
 	VPNAddress               string
 	VPNPeer                  string
 	KubeConfig               string
@@ -66,6 +67,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		APIServerEndpoint:        nodeJoinRequest.Spec.APIServerEndpoint,
 		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
 		ImageServiceEndpoint:     nodeJoinRequest.Spec.ImageServiceEndpoint,
+		KubernetesVersion:        nodeJoinRequest.Status.KubernetesVersion,
 		VPNAddress:               nodeJoinRequest.Status.VPNAddress,
 		VPNPeer:                  nodeJoinRequest.Status.VPNPeer,
 		KubeConfig:               nodeJoinRequest.Status.KubeConfig,
@@ -109,11 +111,12 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 			ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
-			VPNAddress:    nodeJoinRequest.VPNAddress,
-			VPNPeer:       nodeJoinRequest.VPNPeer,
-			KubeConfig:    nodeJoinRequest.KubeConfig,
-			KubeletConfig: nodeJoinRequest.KubeletConfig,
-			Conditions:    nodeJoinRequest.Conditions.export(),
+			KubernetesVersion: nodeJoinRequest.KubernetesVersion,
+			VPNAddress:        nodeJoinRequest.VPNAddress,
+			VPNPeer:           nodeJoinRequest.VPNPeer,
+			KubeConfig:        nodeJoinRequest.KubeConfig,
+			KubeletConfig:     nodeJoinRequest.KubeletConfig,
+			Conditions:        nodeJoinRequest.Conditions.export(),
 		},
 	}, nil
 }

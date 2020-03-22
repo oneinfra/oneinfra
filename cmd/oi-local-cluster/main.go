@@ -23,6 +23,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi-local-cluster/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 func main() {
@@ -43,9 +44,9 @@ func main() {
 								Usage: "test cluster name",
 							},
 							&cli.StringFlag{
-								Name:  "node-image",
-								Value: "oneinfra/hypervisor:latest",
-								Usage: "node image",
+								Name:  "kubernetes-version",
+								Value: "latest",
+								Usage: "expected Kubernetes version to be deployed (will contain all requirements already installed)",
 							},
 							&cli.IntFlag{
 								Name:  "size-private",
@@ -64,7 +65,11 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Create(c.String("name"), c.String("node-image"), c.Int("size-private"), c.Int("size-public"), c.Bool("remote"))
+							kubernetesVersion := c.String("kubernetes-version")
+							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
+								kubernetesVersion = constants.LatestKubernetesVersion
+							}
+							return cluster.Create(c.String("name"), kubernetesVersion, c.Int("size-private"), c.Int("size-public"), c.Bool("remote"))
 						},
 					},
 					{

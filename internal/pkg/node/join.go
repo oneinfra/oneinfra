@@ -208,22 +208,24 @@ func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symme
 func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ImageServiceEndpoint)
 	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ContainerRuntimeEndpoint)
-	if err := hypervisorImageEndpoint.EnsureImage(kubeletInstallerImage); err != nil {
+	err := hypervisorImageEndpoint.EnsureImage(
+		fmt.Sprintf(kubeletInstallerImage, nodeJoinRequest.KubernetesVersion),
+	)
+	if err != nil {
 		return err
 	}
-	err := hypervisorRuntimeEndpoint.RunAndWaitForPod(nil, podapi.Pod{
+	return hypervisorRuntimeEndpoint.RunAndWaitForPod(nil, podapi.Pod{
 		Name: "kubelet-installer",
 		Containers: []podapi.Container{
 			{
 				Name:  "kubelet-installer",
-				Image: kubeletInstallerImage,
+				Image: fmt.Sprintf(kubeletInstallerImage, nodeJoinRequest.KubernetesVersion),
 				Mounts: map[string]string{
 					"/usr/local/bin": "/host",
 				},
 			},
 		},
 	})
-	return err
 }
 
 func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {

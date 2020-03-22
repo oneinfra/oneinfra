@@ -30,6 +30,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/app/oi/component"
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 func main() {
@@ -50,6 +51,10 @@ func main() {
 								Usage:    "cluster name",
 							},
 							&cli.StringFlag{
+								Name:  "kubernetes-version",
+								Usage: "kubernetes version",
+							},
+							&cli.StringFlag{
 								Name:  "vpn-cidr",
 								Usage: "CIDR used for the internal VPN",
 								Value: "10.0.0.0/8",
@@ -60,7 +65,11 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Inject(c.String("name"), c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
+							kubernetesVersion := c.String("kubernetes-version")
+							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
+								kubernetesVersion = constants.LatestKubernetesVersion
+							}
+							return cluster.Inject(c.String("name"), kubernetesVersion, c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{

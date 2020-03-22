@@ -40,6 +40,7 @@ import (
 // Cluster represents a cluster
 type Cluster struct {
 	Name                   string
+	KubernetesVersion      string
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
 	APIServer              *KubeAPIServer
@@ -59,7 +60,7 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns a cluster with name clusterName
-func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
+func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
 	_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
 	if err != nil {
 		return nil, err
@@ -69,10 +70,11 @@ func NewCluster(clusterName, vpnCIDR string, etcdServerExtraSANs, apiServerExtra
 		return nil, err
 	}
 	res := Cluster{
-		Name:     clusterName,
-		VPNCIDR:  vpnCIDRNet,
-		VPNPeers: VPNPeerMap{},
-		JoinKey:  joinKey,
+		Name:              clusterName,
+		KubernetesVersion: kubernetesVersion,
+		VPNCIDR:           vpnCIDRNet,
+		VPNPeers:          VPNPeerMap{},
+		JoinKey:           joinKey,
 	}
 	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
 		return nil, err
@@ -90,7 +92,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		return nil, err
 	}
 	res := Cluster{
-		Name: cluster.ObjectMeta.Name,
+		Name:              cluster.ObjectMeta.Name,
+		KubernetesVersion: cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: &CertificateAuthorities{
 			APIServerClient:   certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
 			CertificateSigner: certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
@@ -131,6 +134,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			Name: cluster.Name,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
+			KubernetesVersion: cluster.KubernetesVersion,
 			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
 				APIServerClient: commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,

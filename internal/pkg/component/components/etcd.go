@@ -35,13 +35,14 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/klog"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
 const (
 	etcdDialTimeout = 5 * time.Second
-	etcdImage       = "oneinfra/etcd:3.4.3"
+	etcdImage       = "oneinfra/etcd:%s"
 	etcdDataDir     = "/var/lib/etcd"
 )
 
@@ -338,13 +339,18 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	kubernetesVersion := inquirer.Cluster().KubernetesVersion
+	versionBundle, err := constants.KubernetesVersionBundle(kubernetesVersion)
+	if err != nil {
+		return pod.Container{}, errors.Errorf("could not retrieve version bundle for version %q", kubernetesVersion)
+	}
 	listenClientURLs := url.URL{Scheme: "https", Host: "0.0.0.0:2379"}
 	advertiseClientURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	listenPeerURLs := url.URL{Scheme: "https", Host: "0.0.0.0:2380"}
 	initialAdvertisePeerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 	etcdContainer := pod.Container{
 		Name:    "etcd",
-		Image:   etcdImage,
+		Image:   fmt.Sprintf(etcdImage, versionBundle.EtcdVersion),
 		Command: []string{"etcd"},
 		Args: []string{
 			"--name", component.Name,

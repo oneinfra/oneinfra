@@ -21,6 +21,9 @@ jobs:
     vmImage: 'ubuntu-18.04'
   steps:
   - bash: make deps
+    env:
+      KUBERNETES_VERSION: 1.17.4
+      CRI_TOOLS_VERSION: 1.17.0
   - bash: make e2e
 - job: e2e_tests_with_remote_cri_endpoints
   displayName: e2e tests with remote CRI endpoints
@@ -28,4 +31,7 @@ jobs:
     vmImage: 'ubuntu-18.04'
   steps:
   - bash: make deps
+    env:
+      KUBERNETES_VERSION: 1.17.4
+      CRI_TOOLS_VERSION: 1.17.0
   - bash: make e2e-remote

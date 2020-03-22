@@ -59,6 +59,8 @@ properties:
         type: string
       kubeletConfig:
         type: string
+      kubernetesVersion:
+        type: string
       vpnAddress:
         type: string
       vpnPeer:

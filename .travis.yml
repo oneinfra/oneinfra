@@ -20,9 +20,11 @@ jobs:
       script:
         - make deps
         - make e2e
+      env: KUBERNETES_VERSION=1.17.4 CRI_TOOLS_VERSION=1.17.0
     - name: e2e tests with remote CRI endpoints
       dist: bionic
       language: minimal
       script:
         - make deps
         - make e2e-remote
+      env: KUBERNETES_VERSION=1.17.4 CRI_TOOLS_VERSION=1.17.0

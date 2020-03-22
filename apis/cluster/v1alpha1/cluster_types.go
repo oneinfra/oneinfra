@@ -24,6 +24,7 @@ import (
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
+	KubernetesVersion      string                  `json:"kubernetesVersion,omitempty"`
 	CertificateAuthorities CertificateAuthorities  `json:"certificateAuthorities,omitempty"`
 	EtcdServer             EtcdServer              `json:"etcdServer,omitempty"`
 	APIServer              KubeAPIServer           `json:"apiServer,omitempty"`

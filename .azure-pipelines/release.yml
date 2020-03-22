@@ -1,0 +1,20 @@
+variables:
+  CI: "1"
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - RELEASE
+
+jobs:
+- job: publish_container_images
+  displayName: publish container images
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - bash: make publish-container-images
+    env:
+      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)

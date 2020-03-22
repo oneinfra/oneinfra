@@ -38,10 +38,10 @@ type HypervisorCluster struct {
 }
 
 // NewHypervisorCluster creates a new cluster of hypervisors
-func NewHypervisorCluster(name, nodeImage string, privateClusterSize, publicClusterSize int, remote bool) *HypervisorCluster {
+func NewHypervisorCluster(name, kubernetesVersion string, privateClusterSize, publicClusterSize int, remote bool) *HypervisorCluster {
 	cluster := HypervisorCluster{
 		Name:        name,
-		NodeImage:   nodeImage,
+		NodeImage:   fmt.Sprintf("oneinfra/hypervisor:%s", kubernetesVersion),
 		Remote:      remote,
 		Hypervisors: []*Hypervisor{},
 	}

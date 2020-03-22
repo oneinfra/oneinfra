@@ -19,7 +19,7 @@ package node
 const (
 	systemdDir = "/etc/systemd/system"
 
-	kubeletInstallerImage = "oneinfra/kubelet-installer:1.17.4"
+	kubeletInstallerImage = "oneinfra/kubelet-installer:%s"
 
 	kubeletSystemdServiceTemplate = `[Unit]
 Description=kubelet: The Kubernetes Node Agent

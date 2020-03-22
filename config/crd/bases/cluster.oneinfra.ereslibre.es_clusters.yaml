@@ -141,6 +141,8 @@ spec:
               items:
                 type: string
               type: array
+            kubernetesVersion:
+              type: string
             vpnCIDR:
               type: string
           type: object

@@ -1,9 +1,6 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
-# Kubernetes version
-KUBERNETES_VERSION ?= 1.17.0
-
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -20,16 +17,20 @@ test: lint fmt vet
 	./scripts/run.sh go test ./... -coverprofile cover.out
 
 # Build and install manager binary
-manager:
+manager: go-generate
 	./scripts/run.sh go install ./cmd/oi-manager
 
 # Build and install oi binary
-oi:
+oi: go-generate
 	./scripts/run.sh go install ./cmd/oi
 
 # Build and install oi-local-cluster
-oi-local-cluster:
+oi-local-cluster: go-generate
 	./scripts/run.sh go install ./cmd/oi-local-cluster
+
+go-generate: RELEASE
+	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
+	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/releaser && go mod vendor'"
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -75,8 +76,8 @@ generate: manifests
 
 deps: pull kubectl crictl wg
 
-pull: pull-builder
-	@docker pull oneinfra/hypervisor:latest
+pull: check-kubernetes-version-provided pull-builder
+	@docker pull oneinfra/hypervisor:$(KUBERNETES_VERSION)
 
 pull-builder:
 	@docker pull oneinfra/builder:latest
@@ -85,13 +86,13 @@ builder-shell:
 	sh -c 'CI="1" RUN_EXTRA_OPTS="-it" ./scripts/run.sh bash'
 
 # Install kubectl
-kubectl:
+kubectl: check-kubernetes-version-provided
 	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 	sudo chmod +x /usr/local/bin/kubectl
 
 # Install crictl
-crictl:
-	wget -O cri-tools.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v${KUBERNETES_VERSION}/crictl-v${KUBERNETES_VERSION}-linux-amd64.tar.gz
+crictl: check-cri-tools-version-provided
+	wget -O cri-tools.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRI_TOOLS_VERSION}/crictl-v${CRI_TOOLS_VERSION}-linux-amd64.tar.gz
 	sudo tar -C /usr/local/bin -xf cri-tools.tar.gz
 	rm cri-tools.tar.gz
 
@@ -99,17 +100,33 @@ crictl:
 wg:
 	./scripts/install-wireguard.sh
 
-# Build an hypervisor image with many images already present (for faster local testing cycles)
-e2e-build-hypervisor-image:
-	./scripts/build-hypervisor-image.sh
-
-# Run e2e (to be moved to a proper e2e framework)
+# Run e2e with local CRI endpoints (to be moved to a proper e2e framework)
 e2e: oi oi-local-cluster
 	./scripts/e2e.sh
 
+# Run e2e with remote CRI endpoints (to be moved to a proper e2e framework)
 e2e-remote: oi oi-local-cluster
 	./scripts/e2e.sh --remote
 
-# Creates a fake worker
 create-fake-worker:
 	./scripts/create-fake-worker.sh
+
+releaser:
+	./scripts/run.sh sh -c "cd scripts/releaser && go install -mod=vendor ."
+
+build-container-images: releaser
+	bin/releaser container-images build
+
+publish-container-images: releaser build-container-images
+	docker login -u oneinfrapublisher -p $(DOCKER_HUB_TOKEN)
+	bin/releaser container-images publish
+
+check-kubernetes-version-provided:
+ifndef KUBERNETES_VERSION
+	$(error KUBERNETES_VERSION envvar is undefined)
+endif
+
+check-cri-tools-version-provided:
+ifndef CRI_TOOLS_VERSION
+	$(error CRI_TOOLS_VERSION envvar is undefined)
+endif

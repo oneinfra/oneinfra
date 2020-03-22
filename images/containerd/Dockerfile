@@ -1,8 +1,8 @@
 FROM ubuntu:18.04
 
-ARG KUBERNETES_VERSION=1.17.0
-ARG CNI_PLUGINS_VERSION=0.8.5
-ARG CONTAINERD_VERSION=1.3.3
+ARG CRI_TOOLS_VERSION
+ARG CNI_PLUGINS_VERSION
+ARG CONTAINERD_VERSION
 
 COPY /fs /
 
@@ -19,7 +19,7 @@ RUN echo "Installing dependencies" \
        iptables \
        wget \
 && echo "Installing CRI tools" \
-  && wget https://github.com/kubernetes-sigs/cri-tools/releases/download/v${KUBERNETES_VERSION}/crictl-v${KUBERNETES_VERSION}-linux-amd64.tar.gz -O cri-tools.tar.gz \
+  && wget https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRI_TOOLS_VERSION}/crictl-v${CRI_TOOLS_VERSION}-linux-amd64.tar.gz -O cri-tools.tar.gz \
   && tar -C /usr/local/bin -xf cri-tools.tar.gz \
   && rm cri-tools.tar.gz \
 && echo "Installing CNI plugins" \

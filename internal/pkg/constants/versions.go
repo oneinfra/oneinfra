@@ -23,8 +23,25 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Component represents a versioned component
+type Component string
+
+const (
+	// CRITools is the CRI tools component
+	CRITools Component = "cri-tools"
+	// Containerd is the containerd component
+	Containerd Component = "containerd"
+	// CNIPlugins is the CNI plugins component
+	CNIPlugins Component = "cni-plugins"
+	// Etcd is the etcd component
+	Etcd Component = "etcd"
+	// Pause is the pause component
+	Pause Component = "pause"
+)
+
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {
+	Version            string              `json:"version"`
 	KubernetesVersions []KubernetesVersion `json:"kubernetesVersions"`
 }
 
@@ -66,4 +83,26 @@ func KubernetesVersionBundle(version string) (*KubernetesVersion, error) {
 		return &kubernetesVersion, nil
 	}
 	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
+}
+
+// KubernetesComponentVersion returns the component version for the
+// given Kubernetes version and component
+func KubernetesComponentVersion(version string, component Component) (string, error) {
+	kubernetesVersionBundle, err := KubernetesVersionBundle(version)
+	if err != nil {
+		return "", err
+	}
+	switch component {
+	case CRITools:
+		return kubernetesVersionBundle.CRIToolsVersion, nil
+	case Containerd:
+		return kubernetesVersionBundle.ContainerdVersion, nil
+	case CNIPlugins:
+		return kubernetesVersionBundle.CNIPluginsVersion, nil
+	case Etcd:
+		return kubernetesVersionBundle.EtcdVersion, nil
+	case Pause:
+		return kubernetesVersionBundle.PauseVersion, nil
+	}
+	return "", errors.Errorf("could not find component %q in version %q", component, version)
 }

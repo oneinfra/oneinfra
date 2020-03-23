@@ -1,3 +1,4 @@
+version: 0.0.0
 kubernetesVersions:
 - kubernetesVersion: 1.17.0
   criToolsVersion: 1.17.0

@@ -1,3 +1,6 @@
+# Kubernetes version to use
+KUBERNETES_VERSION ?= latest
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
@@ -74,10 +77,10 @@ vet:
 generate: manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-deps: pull kubectl crictl wg
+deps: pull-builder oi pull-hypervisor kubectl crictl wg
 
-pull: check-kubernetes-version-provided pull-builder
-	@docker pull oneinfra/hypervisor:$(KUBERNETES_VERSION)
+pull-hypervisor:
+	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-hypervisor
 
 pull-builder:
 	@docker pull oneinfra/builder:latest
@@ -86,15 +89,12 @@ builder-shell:
 	sh -c 'CI="1" RUN_EXTRA_OPTS="-it" ./scripts/run.sh bash'
 
 # Install kubectl
-kubectl: check-kubernetes-version-provided
-	sudo wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
-	sudo chmod +x /usr/local/bin/kubectl
+kubectl:
+	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh kubectl
 
 # Install crictl
-crictl: check-cri-tools-version-provided
-	wget -O cri-tools.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRI_TOOLS_VERSION}/crictl-v${CRI_TOOLS_VERSION}-linux-amd64.tar.gz
-	sudo tar -C /usr/local/bin -xf cri-tools.tar.gz
-	rm cri-tools.tar.gz
+crictl:
+	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh crictl
 
 # Installs wireguard
 wg:
@@ -120,13 +120,3 @@ build-container-images: oi-releaser
 publish-container-images: oi-releaser build-container-images
 	docker login -u oneinfrapublisher -p $(DOCKER_HUB_TOKEN)
 	./scripts/run-local.sh oi-releaser container-images publish
-
-check-kubernetes-version-provided:
-ifndef KUBERNETES_VERSION
-	$(error KUBERNETES_VERSION envvar is undefined)
-endif
-
-check-cri-tools-version-provided:
-ifndef CRI_TOOLS_VERSION
-	$(error CRI_TOOLS_VERSION envvar is undefined)
-endif

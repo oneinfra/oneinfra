@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -52,7 +53,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "kubernetes-version",
-								Usage: "kubernetes version",
+								Usage: "kubernetes version, latest if not provided",
 							},
 							&cli.StringFlag{
 								Name:  "vpn-cidr",
@@ -248,6 +249,53 @@ func main() {
 								c.String("container-runtime-endpoint"),
 								c.String("image-service-endpoint"),
 							)
+						},
+					},
+				},
+			},
+			{
+				Name:  "version",
+				Usage: "version information",
+				Action: func(c *cli.Context) error {
+					fmt.Println(constants.ReleaseData.Version)
+					return nil
+				},
+				Subcommands: []*cli.Command{
+					{
+						Name:  "kubernetes",
+						Usage: "supported Kubernetes versions",
+						Action: func(c *cli.Context) error {
+							for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+								fmt.Println(kubernetesVersion.KubernetesVersion)
+							}
+							return nil
+						},
+					},
+					{
+						Name: "component",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:  "kubernetes-version",
+								Usage: "Kubernetes version to inspect, latest if not provided",
+							},
+							&cli.StringFlag{
+								Name:     "component",
+								Required: true,
+								Usage:    "component to inspect",
+							},
+						},
+						Usage: "specific component version for the given Kubernetes version",
+						Action: func(c *cli.Context) error {
+							kubernetesVersion := c.String("kubernetes-version")
+							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
+								kubernetesVersion = constants.LatestKubernetesVersion
+							}
+							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, constants.Component(c.String("component")))
+							if err != nil {
+								return err
+							}
+							fmt.Println(componentVersion)
+							return nil
 						},
 					},
 				},

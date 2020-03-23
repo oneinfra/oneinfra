@@ -19,9 +19,6 @@ jobs:
       - run:
           name: make deps
           command: make deps
-          environment:
-            KUBERNETES_VERSION: 1.17.4
-            CRI_TOOLS_VERSION: 1.17.0
       - run:
           name: make e2e
           command: make e2e
@@ -32,9 +29,6 @@ jobs:
       - run:
           name: make deps
           command: make deps
-          environment:
-            KUBERNETES_VERSION: 1.17.4
-            CRI_TOOLS_VERSION: 1.17.0
       - run:
           name: make e2e-remote
           command: make e2e-remote

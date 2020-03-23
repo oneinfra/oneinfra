@@ -85,6 +85,8 @@ func KubernetesVersionBundle(version string) (*KubernetesVersion, error) {
 	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
 }
 
+// KubernetesComponentVersion returns the component version for the
+// given Kubernetes version and component
 func KubernetesComponentVersion(version string, component Component) (string, error) {
 	kubernetesVersionBundle, err := KubernetesVersionBundle(version)
 	if err != nil {

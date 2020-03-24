@@ -115,6 +115,50 @@ func main() {
 							return cluster.JoinTokenPublicKey(c.String("cluster"))
 						},
 					},
+					{
+						Name:  "version",
+						Usage: "prints versioning information for the given cluster",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "cluster",
+								Required: true,
+								Usage:    "cluster name",
+							},
+						},
+						Subcommands: []*cli.Command{
+							{
+								Name:  "kubernetes",
+								Usage: "print the Kubernetes version for the given cluster",
+								Action: func(c *cli.Context) error {
+									kubernetesVersion, err := cluster.KubernetesVersion(c.String("cluster"))
+									if err != nil {
+										return err
+									}
+									fmt.Println(kubernetesVersion)
+									return nil
+								},
+							},
+							{
+								Name:  "component",
+								Usage: "print the given component version for the given cluster",
+								Flags: []cli.Flag{
+									&cli.StringFlag{
+										Name:     "component",
+										Required: true,
+										Usage:    "component to inspect",
+									},
+								},
+								Action: func(c *cli.Context) error {
+									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), constants.Component(c.String("component")))
+									if err != nil {
+										return err
+									}
+									fmt.Println(componentVersion)
+									return nil
+								},
+							},
+						},
+					},
 				},
 			},
 			{

@@ -31,7 +31,8 @@ fi
 OI_BIN=$(which oi)
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
 APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-cluster cluster endpoint --name ${CLUSTER_NAME})
-CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:latest)
+CONTAINERD_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} component --component containerd)
+CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
 
 echo "creating new join token"
 JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')

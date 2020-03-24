@@ -20,9 +20,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/pkg/errors"
+
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
-	"github.com/pkg/errors"
 )
 
 // KubernetesVersion returns the Kubernetes version for the given

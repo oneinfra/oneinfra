@@ -118,5 +118,5 @@ build-container-images: oi-releaser
 	./scripts/run-local.sh oi-releaser container-images build
 
 publish-container-images: oi-releaser build-container-images
-	docker login -u oneinfrapublisher -p $(DOCKER_HUB_TOKEN)
+	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin
 	./scripts/run-local.sh oi-releaser container-images publish

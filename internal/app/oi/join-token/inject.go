@@ -47,6 +47,9 @@ func Inject(clusterName string) error {
 	}
 
 	bootstrapToken, err := bootstraptokenutil.GenerateBootstrapToken()
+	if err != nil {
+		return err
+	}
 	cluster.DesiredJoinTokens = append(cluster.DesiredJoinTokens, bootstrapToken)
 
 	res := ""

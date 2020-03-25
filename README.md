@@ -26,13 +26,21 @@ This should have installed the following binaries:
 * `oi-manager`: Kubernetes set of controllers that reconcile your
   `oneinfra` defined clusters.
 
-## Quick start with docker
+## Quick start with Docker
+
+### Prerequisites
+
+* Docker
+* Go 1.13
+
+### Deploy
 
 You can create hypervisors in your machine with docker. Each docker
 container will resemble a physical or virtual hypervisor in your
 infrastructure.
 
 ```
+$ mkdir ~/.kube
 $ oi-local-cluster cluster create | \
     oi cluster inject --name cluster | \
     oi component inject --name controlplane1 --cluster cluster --role controlplane | \
@@ -50,6 +58,30 @@ And access it:
 $ kubectl cluster-info
 Kubernetes master is running at https://127.0.0.1:30000
 ```
+
+This will have created a Kubernetes cluster named `cluster`, formed by
+3 control plane instances, with an `haproxy` in front of them.
+
+You can follow the same strategy to create any number of clusters with
+any number of control plane instances.
+
+The `loadbalancer` is a required component, so it's trivial to convert
+a single control plane instance cluster into a multiple control plane
+instances cluster -- your kubeconfig file always point to the load
+balancer instance.
+
+## Deploy on Kubernetes
+
+You will soon be able to deploy `oneinfra` on top of Kubernetes, so
+all the resources that you saw on the previous example in local files
+will be sitting on a real cluster saved as CRD's.
+
+`oneinfra`'s set of controllers will watch these resources and act
+upon their changes, reconciling these resources on your defined
+hypervisors.
+
+This is still a WIP, please check the [Features missing for the first
+release cut(#features-missing-for-the-first-release-cut)].
 
 ## Features missing for the first release cut
 

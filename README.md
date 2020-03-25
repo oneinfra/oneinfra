@@ -12,6 +12,8 @@ You can read more about its [design here](docs/DESIGN.md).
 
 ## Install
 
+Build has been tested with Go 1.13.
+
 ```
 $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
 ```
@@ -27,13 +29,6 @@ This should have installed the following binaries:
   `oneinfra` defined clusters.
 
 ## Quick start with Docker
-
-### Prerequisites
-
-* Docker
-* Go 1.13
-
-### Deploy
 
 You can create hypervisors in your machine with docker. Each docker
 container will resemble a physical or virtual hypervisor in your

@@ -81,7 +81,7 @@ upon their changes, reconciling these resources on your defined
 hypervisors.
 
 This is still a WIP, please check the [Features missing for the first
-release cut(#features-missing-for-the-first-release-cut)].
+release cut](#features-missing-for-the-first-release-cut).
 
 ## Features missing for the first release cut
 

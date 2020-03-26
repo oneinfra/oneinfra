@@ -22,7 +22,7 @@ const (
 	// RawReleaseData represents the supported versions for this release
 	RawReleaseData = `version: 0.0.0
 kubernetesVersions:
-- kubernetesVersion: 1.17.0
+- kubernetesVersion: 1.18.0
   criToolsVersion: 1.17.0
   containerdVersion: 1.3.3
   cniPluginsVersion: 0.8.5

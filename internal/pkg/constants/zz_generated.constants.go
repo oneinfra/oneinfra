@@ -21,6 +21,7 @@ package constants
 const (
 	// RawReleaseData represents the supported versions for this release
 	RawReleaseData = `version: 0.0.0
+defaultKubernetesVersion: 1.18.0
 kubernetesVersions:
 - kubernetesVersion: 1.17.4
   criToolsVersion: 1.17.0

@@ -45,7 +45,7 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "kubernetes-version",
-								Value: "latest",
+								Value: "default",
 								Usage: "expected Kubernetes version to be deployed (will contain all requirements already installed)",
 							},
 							&cli.IntFlag{
@@ -66,8 +66,8 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							kubernetesVersion := c.String("kubernetes-version")
-							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
-								kubernetesVersion = constants.LatestKubernetesVersion
+							if len(kubernetesVersion) == 0 || kubernetesVersion == "default" {
+								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
 							return cluster.Create(c.String("name"), kubernetesVersion, c.Int("size-private"), c.Int("size-public"), c.Bool("remote"))
 						},

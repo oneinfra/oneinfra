@@ -1,0 +1,7 @@
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-1
+spec:
+  cluster: cluster
+  role: control-plane

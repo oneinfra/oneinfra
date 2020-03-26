@@ -26,11 +26,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	clustercontroller "github.com/oneinfra/oneinfra/controllers/cluster"
+
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
-	clustercontroller "github.com/oneinfra/oneinfra/controllers/cluster"
-	infracontroller "github.com/oneinfra/oneinfra/controllers/infra"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -72,28 +72,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&infracontroller.HypervisorReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Hypervisor"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Hypervisor")
-		os.Exit(1)
-	}
-	if err = (&clustercontroller.ClusterReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
-		os.Exit(1)
-	}
 	if err = (&clustercontroller.ComponentReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Component"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Component")
+		os.Exit(1)
+	}
+	if err = (&clusterv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
+		os.Exit(1)
+	}
+	if err = (&clusterv1alpha1.Component{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Component")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

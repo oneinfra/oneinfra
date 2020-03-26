@@ -17,7 +17,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 kubernetes_version() {
-    if [ "${KUBERNETES_VERSION}" = "latest" ]; then
+    if [ "${KUBERNETES_VERSION}" = "default" ]; then
         ${SCRIPT_DIR}/run-local.sh oi version kubernetes | tail -n1
     else
         echo "${KUBERNETES_VERSION}"

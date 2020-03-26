@@ -39,10 +39,16 @@ const (
 	Pause Component = "pause"
 )
 
+var (
+	// KubernetesComponents is the list of all versioned components
+	KubernetesComponents = []Component{CRITools, Containerd, CNIPlugins, Etcd, Pause}
+)
+
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {
-	Version            string              `json:"version"`
-	KubernetesVersions []KubernetesVersion `json:"kubernetesVersions"`
+	Version                  string              `json:"version"`
+	DefaultKubernetesVersion string              `json:"defaultKubernetesVersion"`
+	KubernetesVersions       []KubernetesVersion `json:"kubernetesVersions"`
 }
 
 // KubernetesVersion represents a supported Kubernetes version
@@ -59,8 +65,6 @@ var (
 	// ReleaseData includes all release information
 	ReleaseData          *ReleaseInfo
 	kubernetesVersionMap map[string]KubernetesVersion
-	// LatestKubernetesVersion has the latest Kubernetes version
-	LatestKubernetesVersion string
 )
 
 func init() {
@@ -72,7 +76,6 @@ func init() {
 	kubernetesVersionMap = map[string]KubernetesVersion{}
 	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
 		kubernetesVersionMap[kubernetesVersion.KubernetesVersion] = kubernetesVersion
-		LatestKubernetesVersion = kubernetesVersion.KubernetesVersion
 	}
 }
 

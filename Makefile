@@ -1,8 +1,10 @@
 # Kubernetes version to use
-KUBERNETES_VERSION ?= latest
+KUBERNETES_VERSION ?= default
 
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+
+TEST_WEBHOOK_CERTS_DIR ?= /tmp/k8s-webhook-server/serving-certs
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -31,6 +33,10 @@ oi: go-generate
 oi-local-cluster: go-generate
 	./scripts/run.sh go install ./cmd/oi-local-cluster
 
+# Build and install oi-releaser
+oi-releaser: oi
+	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
+
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
 	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/oi-releaser && go mod vendor'"
@@ -38,6 +44,9 @@ go-generate: RELEASE
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
 	go run cmd/oi-manager/main.go
+
+# Run against a kind cluster with webhooks set up with generated certificates
+run-kind: webhook-certs kind run
 
 # Install CRDs into a cluster
 install: manifests
@@ -111,8 +120,33 @@ e2e-remote: oi oi-local-cluster
 create-fake-worker:
 	./scripts/create-fake-worker.sh
 
-oi-releaser:
-	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
+$(TEST_WEBHOOK_CERTS_DIR):
+	mkdir -p $(TEST_WEBHOOK_CERTS_DIR)
+
+$(TEST_WEBHOOK_CERTS_DIR)/ca.key:
+	openssl genrsa -out $(TEST_WEBHOOK_CERTS_DIR)/ca.key 1024
+
+$(TEST_WEBHOOK_CERTS_DIR)/ca.crt: $(TEST_WEBHOOK_CERTS_DIR)/ca.key
+	openssl req -x509 -new -nodes -key $(TEST_WEBHOOK_CERTS_DIR)/ca.key -subj "/C=ES/ST=Madrid/O=oneinfra/CN=webhook" -sha256 -days 3650 -out $(TEST_WEBHOOK_CERTS_DIR)/ca.crt
+
+$(TEST_WEBHOOK_CERTS_DIR)/tls.key:
+	openssl genrsa -out $(TEST_WEBHOOK_CERTS_DIR)/tls.key 1024
+
+$(TEST_WEBHOOK_CERTS_DIR)/tls.csr: $(TEST_WEBHOOK_CERTS_DIR)/tls.key
+	openssl req -new -sha256 -key $(TEST_WEBHOOK_CERTS_DIR)/tls.key -subj "/C=ES/ST=Madrid/O=oneinfra/CN=$(shell .kind/scripts/docker-gateway.sh)" -out $(TEST_WEBHOOK_CERTS_DIR)/tls.csr
+
+$(TEST_WEBHOOK_CERTS_DIR)/tls.crt: $(TEST_WEBHOOK_CERTS_DIR)/tls.csr $(TEST_WEBHOOK_CERTS_DIR)/ca.crt $(TEST_WEBHOOK_CERTS_DIR)/ca.key
+	openssl x509 -req -in $(TEST_WEBHOOK_CERTS_DIR)/tls.csr -CA $(TEST_WEBHOOK_CERTS_DIR)/ca.crt -CAkey $(TEST_WEBHOOK_CERTS_DIR)/ca.key -CAcreateserial -out $(TEST_WEBHOOK_CERTS_DIR)/tls.crt -days 3650 -sha256
+
+webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
+
+kind: webhook-certs
+	kind create cluster --name oi-test-cluster
+	./.kind/scripts/write-runtime-patches.sh
+	kubectl apply -k .kind/kustomize
+
+kind-delete:
+	kind delete cluster --name oi-test-cluster
 
 build-container-images: oi-releaser
 	./scripts/run-local.sh oi-releaser container-images build

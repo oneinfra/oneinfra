@@ -53,7 +53,8 @@ func main() {
 							},
 							&cli.StringFlag{
 								Name:  "kubernetes-version",
-								Usage: "kubernetes version, latest if not provided",
+								Usage: "kubernetes version",
+								Value: "default",
 							},
 							&cli.StringFlag{
 								Name:  "vpn-cidr",
@@ -67,8 +68,8 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							kubernetesVersion := c.String("kubernetes-version")
-							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
-								kubernetesVersion = constants.LatestKubernetesVersion
+							if kubernetesVersion == "default" {
+								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
 							return cluster.Inject(c.String("name"), kubernetesVersion, c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
 						},
@@ -320,19 +321,20 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:  "kubernetes-version",
-								Usage: "Kubernetes version to inspect, latest if not provided",
+								Usage: "Kubernetes version to inspect",
+								Value: "default",
 							},
 							&cli.StringFlag{
 								Name:     "component",
 								Required: true,
-								Usage:    "component to inspect",
+								Usage:    fmt.Sprintf("component to inspect %s", constants.KubernetesComponents),
 							},
 						},
 						Usage: "specific component version for the given Kubernetes version",
 						Action: func(c *cli.Context) error {
 							kubernetesVersion := c.String("kubernetes-version")
-							if len(kubernetesVersion) == 0 || kubernetesVersion == "latest" {
-								kubernetesVersion = constants.LatestKubernetesVersion
+							if kubernetesVersion == "default" {
+								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
 							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, constants.Component(c.String("component")))
 							if err != nil {

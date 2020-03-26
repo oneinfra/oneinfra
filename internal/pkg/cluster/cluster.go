@@ -59,7 +59,7 @@ type Cluster struct {
 // Map represents a map of clusters
 type Map map[string]*Cluster
 
-// NewCluster returns a cluster with name clusterName
+// NewCluster returns an internal cluster
 func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
 	_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
 	if err != nil {
@@ -95,11 +95,11 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		Name:              cluster.ObjectMeta.Name,
 		KubernetesVersion: cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: &CertificateAuthorities{
-			APIServerClient:   certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.APIServerClient),
-			CertificateSigner: certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.CertificateSigner),
-			Kubelet:           certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.Kubelet),
-			EtcdClient:        certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdClient),
-			EtcdPeer:          certificates.NewCertificateFromv1alpha1(&cluster.Spec.CertificateAuthorities.EtcdPeer),
+			APIServerClient:   certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.APIServerClient),
+			CertificateSigner: certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.CertificateSigner),
+			Kubelet:           certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.Kubelet),
+			EtcdClient:        certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.EtcdClient),
+			EtcdPeer:          certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.EtcdPeer),
 		},
 		APIServer: &KubeAPIServer{
 			CA:                       certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
@@ -135,29 +135,29 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion: cluster.KubernetesVersion,
-			CertificateAuthorities: clusterv1alpha1.CertificateAuthorities{
-				APIServerClient: commonv1alpha1.Certificate{
+			CertificateAuthorities: &clusterv1alpha1.CertificateAuthorities{
+				APIServerClient: &commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.APIServerClient.PrivateKey,
 				},
-				CertificateSigner: commonv1alpha1.Certificate{
+				CertificateSigner: &commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.CertificateSigner.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 				},
-				Kubelet: commonv1alpha1.Certificate{
+				Kubelet: &commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
 				},
-				EtcdClient: commonv1alpha1.Certificate{
+				EtcdClient: &commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdClient.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdClient.PrivateKey,
 				},
-				EtcdPeer: commonv1alpha1.Certificate{
+				EtcdPeer: &commonv1alpha1.Certificate{
 					Certificate: cluster.CertificateAuthorities.EtcdPeer.Certificate,
 					PrivateKey:  cluster.CertificateAuthorities.EtcdPeer.PrivateKey,
 				},
 			},
-			APIServer: clusterv1alpha1.KubeAPIServer{
+			APIServer: &clusterv1alpha1.KubeAPIServer{
 				CA: &commonv1alpha1.Certificate{
 					Certificate: cluster.APIServer.CA.Certificate,
 					PrivateKey:  cluster.APIServer.CA.PrivateKey,
@@ -170,7 +170,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 				},
 				ExtraSANs: cluster.APIServer.ExtraSANs,
 			},
-			EtcdServer: clusterv1alpha1.EtcdServer{
+			EtcdServer: &clusterv1alpha1.EtcdServer{
 				CA: &commonv1alpha1.Certificate{
 					Certificate: cluster.EtcdServer.CA.Certificate,
 					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,

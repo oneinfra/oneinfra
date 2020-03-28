@@ -46,7 +46,7 @@ run: generate fmt vet manifests
 	go run cmd/oi-manager/main.go
 
 # Run against a kind cluster with webhooks set up with generated certificates
-run-kind: webhook-certs kind run
+run-kind: kind run
 
 # Install CRDs into a cluster
 install: manifests
@@ -120,6 +120,8 @@ e2e-remote: oi oi-local-cluster
 create-fake-worker:
 	./scripts/create-fake-worker.sh
 
+webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
+
 $(TEST_WEBHOOK_CERTS_DIR):
 	mkdir -p $(TEST_WEBHOOK_CERTS_DIR)
 
@@ -137,8 +139,6 @@ $(TEST_WEBHOOK_CERTS_DIR)/tls.csr: $(TEST_WEBHOOK_CERTS_DIR)/tls.key
 
 $(TEST_WEBHOOK_CERTS_DIR)/tls.crt: $(TEST_WEBHOOK_CERTS_DIR)/tls.csr $(TEST_WEBHOOK_CERTS_DIR)/ca.crt $(TEST_WEBHOOK_CERTS_DIR)/ca.key
 	openssl x509 -req -in $(TEST_WEBHOOK_CERTS_DIR)/tls.csr -CA $(TEST_WEBHOOK_CERTS_DIR)/ca.crt -CAkey $(TEST_WEBHOOK_CERTS_DIR)/ca.key -CAcreateserial -out $(TEST_WEBHOOK_CERTS_DIR)/tls.crt -days 3650 -sha256
-
-webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
 
 kind: webhook-certs
 	kind create cluster --name oi-test-cluster

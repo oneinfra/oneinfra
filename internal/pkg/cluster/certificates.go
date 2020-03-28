@@ -17,6 +17,7 @@ limitations under the License.
 package cluster
 
 import (
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
@@ -57,4 +58,15 @@ func newCertificateAuthorities() (*CertificateAuthorities, error) {
 		EtcdClient:        etcdClientAuthority,
 		EtcdPeer:          etcdPeerAuthority,
 	}, nil
+}
+
+// Export exports these set of certificate authorities to a versioned certificate authority set
+func (certificateAuthorities *CertificateAuthorities) Export() *clusterv1alpha1.CertificateAuthorities {
+	return &clusterv1alpha1.CertificateAuthorities{
+		APIServerClient:   certificateAuthorities.APIServerClient.Export(),
+		CertificateSigner: certificateAuthorities.CertificateSigner.Export(),
+		Kubelet:           certificateAuthorities.Kubelet.Export(),
+		EtcdClient:        certificateAuthorities.EtcdClient.Export(),
+		EtcdPeer:          certificateAuthorities.EtcdPeer.Export(),
+	}
 }

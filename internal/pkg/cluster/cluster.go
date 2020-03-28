@@ -134,29 +134,8 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			Name: cluster.Name,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
-			KubernetesVersion: cluster.KubernetesVersion,
-			CertificateAuthorities: &clusterv1alpha1.CertificateAuthorities{
-				APIServerClient: &commonv1alpha1.Certificate{
-					Certificate: cluster.CertificateAuthorities.APIServerClient.Certificate,
-					PrivateKey:  cluster.CertificateAuthorities.APIServerClient.PrivateKey,
-				},
-				CertificateSigner: &commonv1alpha1.Certificate{
-					Certificate: cluster.CertificateAuthorities.CertificateSigner.Certificate,
-					PrivateKey:  cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
-				},
-				Kubelet: &commonv1alpha1.Certificate{
-					Certificate: cluster.CertificateAuthorities.Kubelet.Certificate,
-					PrivateKey:  cluster.CertificateAuthorities.Kubelet.PrivateKey,
-				},
-				EtcdClient: &commonv1alpha1.Certificate{
-					Certificate: cluster.CertificateAuthorities.EtcdClient.Certificate,
-					PrivateKey:  cluster.CertificateAuthorities.EtcdClient.PrivateKey,
-				},
-				EtcdPeer: &commonv1alpha1.Certificate{
-					Certificate: cluster.CertificateAuthorities.EtcdPeer.Certificate,
-					PrivateKey:  cluster.CertificateAuthorities.EtcdPeer.PrivateKey,
-				},
-			},
+			KubernetesVersion:      cluster.KubernetesVersion,
+			CertificateAuthorities: cluster.CertificateAuthorities.Export(),
 			APIServer: &clusterv1alpha1.KubeAPIServer{
 				CA: &commonv1alpha1.Certificate{
 					Certificate: cluster.APIServer.CA.Certificate,

@@ -309,9 +309,19 @@ func main() {
 					{
 						Name:  "kubernetes",
 						Usage: "supported Kubernetes versions",
+						Flags: []cli.Flag{
+							&cli.BoolFlag{
+								Name:  "default",
+								Usage: "print the default kubernetes version",
+							},
+						},
 						Action: func(c *cli.Context) error {
-							for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-								fmt.Println(kubernetesVersion.KubernetesVersion)
+							if c.Bool("default") {
+								fmt.Println(constants.ReleaseData.DefaultKubernetesVersion)
+							} else {
+								for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+									fmt.Println(kubernetesVersion.KubernetesVersion)
+								}
 							}
 							return nil
 						},

@@ -18,11 +18,14 @@ package v1alpha1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
 // log is for logging in this package.
@@ -43,11 +46,90 @@ var _ webhook.Defaulter = &Cluster{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (cluster *Cluster) Default() {
 	clusterlog.Info("default", "name", cluster.Name)
+	cluster.defaultKubernetesVersion()
+	cluster.defaultCertificateAuthorities()
+	cluster.defaultEtcdServer()
+	cluster.defaultAPIServer()
+	cluster.defaultVPNCIDR()
+	cluster.defaultJoinKey()
+}
+
+func (cluster *Cluster) defaultKubernetesVersion() {
 	if cluster.Spec.KubernetesVersion == "" || cluster.Spec.KubernetesVersion == "default" {
 		cluster.Spec.KubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 	}
-	if len(cluster.Spec.VPNCIDR) == 0 {
+}
+
+func (cluster *Cluster) defaultCertificateAuthorities() {
+	if cluster.Spec.CertificateAuthorities == nil {
+		cluster.Spec.CertificateAuthorities = &CertificateAuthorities{}
+	}
+	if cluster.Spec.CertificateAuthorities.APIServerClient == nil {
+		apiserverClientAuthority, err := certificates.NewCertificateAuthority("apiserver-client-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.CertificateAuthorities.APIServerClient = apiserverClientAuthority.Export()
+	}
+	if cluster.Spec.CertificateAuthorities.CertificateSigner == nil {
+		certificateSignerAuthority, err := certificates.NewCertificateAuthority("certificate-signer-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.CertificateAuthorities.CertificateSigner = certificateSignerAuthority.Export()
+	}
+	if cluster.Spec.CertificateAuthorities.Kubelet == nil {
+		kubeletAuthority, err := certificates.NewCertificateAuthority("kubelet-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.CertificateAuthorities.Kubelet = kubeletAuthority.Export()
+	}
+	if cluster.Spec.CertificateAuthorities.EtcdClient == nil {
+		etcdClientAuthority, err := certificates.NewCertificateAuthority("etcd-client-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.CertificateAuthorities.EtcdClient = etcdClientAuthority.Export()
+	}
+	if cluster.Spec.CertificateAuthorities.EtcdPeer == nil {
+		etcdPeerAuthority, err := certificates.NewCertificateAuthority("etcd-peer-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.CertificateAuthorities.EtcdPeer = etcdPeerAuthority.Export()
+	}
+}
+
+func (cluster *Cluster) defaultEtcdServer() {
+	if cluster.Spec.EtcdServer == nil {
+	}
+}
+
+func (cluster *Cluster) defaultAPIServer() {
+	if cluster.Spec.APIServer == nil {
+	}
+}
+
+func (cluster *Cluster) defaultVPNCIDR() {
+	if cluster.Spec.VPNCIDR == "" {
 		cluster.Spec.VPNCIDR = "10.0.0.0/8"
+	}
+}
+
+func (cluster *Cluster) defaultJoinKey() {
+	if cluster.Spec.JoinKey == nil {
+		joinKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.JoinKey = joinKey.Export()
 	}
 }
 

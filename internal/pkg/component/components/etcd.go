@@ -261,15 +261,23 @@ func (controlPlane *ControlPlane) reconcileCertificatesAndKeys(inquirer inquirer
 		"etcd-peer",
 		fmt.Sprintf("%s.etcd.cluster", cluster.Name),
 		[]string{cluster.Name},
-		cluster.EtcdServer.ExtraSANs,
+		// Peer authentication via SANs
+		[]string{hypervisor.IPAddress},
 	)
 	if err != nil {
 		return err
 	}
+	etcdServerCertificate, err := component.ServerCertificate(
+		cluster.EtcdServer.CA,
+		"etcd-server",
+		"etcd-server",
+		[]string{"etcd-server"},
+		[]string{hypervisor.IPAddress},
+	)
 	return hypervisor.UploadFiles(
 		map[string]string{
-			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           cluster.EtcdServer.TLSCert,
-			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           cluster.EtcdServer.TLSPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           etcdServerCertificate.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           etcdServerCertificate.PrivateKey,
 			secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"): cluster.CertificateAuthorities.EtcdClient.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"):   cluster.CertificateAuthorities.EtcdPeer.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate.Certificate,

@@ -68,6 +68,16 @@ spec:
                     type: string
                 type: object
               type: object
+            serverCertificates:
+              additionalProperties:
+                description: Certificate represents a Certificate
+                properties:
+                  certificate:
+                    type: string
+                  privateKey:
+                    type: string
+                type: object
+              type: object
           type: object
       type: object
   version: v1alpha1

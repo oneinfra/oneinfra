@@ -50,6 +50,7 @@ type Component struct {
 	ClusterName        string
 	AllocatedHostPorts map[string]int
 	ClientCertificates map[string]*certificates.Certificate
+	ServerCertificates map[string]*certificates.Certificate
 }
 
 // NewComponentWithRandomHypervisor creates a component with a random hypervisor from the provided hypervisorList
@@ -65,6 +66,7 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 		Role:               role,
 		AllocatedHostPorts: map[string]int{},
 		ClientCertificates: map[string]*certificates.Certificate{},
+		ServerCertificates: map[string]*certificates.Certificate{},
 	}, nil
 }
 
@@ -89,6 +91,10 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 	for clientCertificateName, clientCertificate := range component.Status.ClientCertificates {
 		res.ClientCertificates[clientCertificateName] = certificates.NewCertificateFromv1alpha1(&clientCertificate)
 	}
+	res.ServerCertificates = map[string]*certificates.Certificate{}
+	for serverCertificateName, serverCertificate := range component.Status.ServerCertificates {
+		res.ServerCertificates[serverCertificateName] = certificates.NewCertificateFromv1alpha1(&serverCertificate)
+	}
 	return &res, nil
 }
 
@@ -107,6 +113,7 @@ func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name strin
 
 // ClientCertificate returns a client certificate with the given name
 func (component *Component) ClientCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
+	// FIXME: not only check for existence, also that contents semantically match
 	if clientCertificate, exists := component.ClientCertificates[name]; exists {
 		return clientCertificate, nil
 	}
@@ -120,6 +127,24 @@ func (component *Component) ClientCertificate(ca *certificates.Certificate, name
 	}
 	component.ClientCertificates[name] = clientCertificate
 	return clientCertificate, nil
+}
+
+// ServerCertificate returns a client certificate with the given name
+func (component *Component) ServerCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
+	// FIXME: not only check for existence, also that contents semantically match
+	if serverCertificate, exists := component.ServerCertificates[name]; exists {
+		return serverCertificate, nil
+	}
+	certificate, privateKey, err := ca.CreateCertificate(commonName, organization, extraSANs)
+	if err != nil {
+		return nil, err
+	}
+	serverCertificate := &certificates.Certificate{
+		Certificate: certificate,
+		PrivateKey:  privateKey,
+	}
+	component.ServerCertificates[name] = serverCertificate
+	return serverCertificate, nil
 }
 
 // KubeConfig returns or generates a new KubeConfig file for the given cluster
@@ -171,6 +196,10 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 	res.Status.ClientCertificates = map[string]commonv1alpha1.Certificate{}
 	for clientCertificateName, clientCertificate := range component.ClientCertificates {
 		res.Status.ClientCertificates[clientCertificateName] = *clientCertificate.Export()
+	}
+	res.Status.ServerCertificates = map[string]commonv1alpha1.Certificate{}
+	for serverCertificateName, serverCertificate := range component.ServerCertificates {
+		res.Status.ServerCertificates[serverCertificateName] = *serverCertificate.Export()
 	}
 	return res
 }

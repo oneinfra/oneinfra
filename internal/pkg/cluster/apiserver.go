@@ -25,8 +25,6 @@ import (
 // KubeAPIServer represents the kube-apiserver component
 type KubeAPIServer struct {
 	CA                       *certificates.Certificate
-	TLSCert                  string
-	TLSPrivateKey            string
 	ServiceAccountPublicKey  string
 	ServiceAccountPrivateKey string
 	ExtraSANs                []string
@@ -41,16 +39,6 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 		CA:        certificateAuthority,
 		ExtraSANs: apiServerExtraSANs,
 	}
-	tlsCert, tlsKey, err := certificateAuthority.CreateCertificate(
-		"kube-apiserver",
-		[]string{"kube-apiserver"},
-		apiServerExtraSANs,
-	)
-	if err != nil {
-		return nil, err
-	}
-	kubeAPIServer.TLSCert = tlsCert
-	kubeAPIServer.TLSPrivateKey = tlsKey
 	serviceAccountKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
 	if err != nil {
 		return nil, err

@@ -62,18 +62,13 @@ type CertificateAuthorities struct {
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
 	CA             *commonv1alpha1.Certificate `json:"ca,omitempty"`
-	TLSCert        string                      `json:"tlsCert,omitempty"`
-	TLSPrivateKey  string                      `json:"tlsPrivateKey,omitempty"`
 	ServiceAccount *commonv1alpha1.KeyPair     `json:"serviceAccount,omitempty"`
 	ExtraSANs      []string                    `json:"extraSANs,omitempty"`
 }
 
 // EtcdServer represents an etcd server
 type EtcdServer struct {
-	CA            *commonv1alpha1.Certificate `json:"ca,omitempty"`
-	TLSCert       string                      `json:"tlsCert,omitempty"`
-	TLSPrivateKey string                      `json:"tlsPrivateKey,omitempty"`
-	ExtraSANs     []string                    `json:"extraSANs,omitempty"`
+	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
 }
 
 // +kubebuilder:object:root=true

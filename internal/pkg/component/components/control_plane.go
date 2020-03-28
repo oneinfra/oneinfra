@@ -70,6 +70,21 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
+	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
+	kubeAPIServerExtraSANs = append(
+		kubeAPIServerExtraSANs,
+		hypervisor.IPAddress,
+	)
+	apiServerServerCertificate, err := component.ServerCertificate(
+		cluster.APIServer.CA,
+		"kube-apiserver-server",
+		"kube-apiserver-server",
+		[]string{"kube-apiserver-server"},
+		kubeAPIServerExtraSANs,
+	)
+	if err != nil {
+		return err
+	}
 	controllerManagerKubeConfig, err := component.KubeConfig(cluster, "https://127.0.0.1:6443", "controller-manager")
 	if err != nil {
 		return err
@@ -86,8 +101,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
 			// API server secrets
 			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           cluster.APIServer.TLSCert,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           cluster.APIServer.TLSPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           apiServerServerCertificate.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           apiServerServerCertificate.PrivateKey,
 			secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
 			// controller-manager secrets
 			secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,

@@ -22,30 +22,15 @@ import (
 
 // EtcdServer represents the etcd component
 type EtcdServer struct {
-	CA            *certificates.Certificate
-	TLSCert       string
-	TLSPrivateKey string
-	ExtraSANs     []string
+	CA *certificates.Certificate
 }
 
-func newEtcdServer(etcdServerExtraSANs []string) (*EtcdServer, error) {
+func newEtcdServer() (*EtcdServer, error) {
 	certificateAuthority, err := certificates.NewCertificateAuthority("etcd-authority")
 	if err != nil {
 		return nil, err
 	}
-	etcdServer := EtcdServer{
-		CA:        certificateAuthority,
-		ExtraSANs: etcdServerExtraSANs,
-	}
-	tlsCert, tlsKey, err := certificateAuthority.CreateCertificate(
-		"etcd-server",
-		[]string{"etcd-server"},
-		etcdServerExtraSANs,
-	)
-	if err != nil {
-		return nil, err
-	}
-	etcdServer.TLSCert = tlsCert
-	etcdServer.TLSPrivateKey = tlsKey
-	return &etcdServer, nil
+	return &EtcdServer{
+		CA: certificateAuthority,
+	}, nil
 }

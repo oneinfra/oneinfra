@@ -1,0 +1,21 @@
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane
+spec:
+  cluster: simple-cluster
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress
+spec:
+  cluster: simple-cluster
+  role: control-plane-ingress

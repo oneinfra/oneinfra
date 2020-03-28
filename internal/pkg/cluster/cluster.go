@@ -60,7 +60,7 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns an internal cluster
-func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, etcdServerExtraSANs, apiServerExtraSANs []string) (*Cluster, error) {
+func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSANs []string) (*Cluster, error) {
 	_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, etcdServerExtraS
 		VPNPeers:          VPNPeerMap{},
 		JoinKey:           joinKey,
 	}
-	if err := res.generateCertificates(etcdServerExtraSANs, apiServerExtraSANs); err != nil {
+	if err := res.generateCertificates(apiServerExtraSANs); err != nil {
 		return nil, err
 	}
 	if _, err := res.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName); err != nil {
@@ -103,17 +103,12 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		},
 		APIServer: &KubeAPIServer{
 			CA:                       certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
-			TLSCert:                  cluster.Spec.APIServer.TLSCert,
-			TLSPrivateKey:            cluster.Spec.APIServer.TLSPrivateKey,
 			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
 			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
 			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
 		},
 		EtcdServer: &EtcdServer{
-			CA:            certificates.NewCertificateFromv1alpha1(cluster.Spec.EtcdServer.CA),
-			TLSCert:       cluster.Spec.EtcdServer.TLSCert,
-			TLSPrivateKey: cluster.Spec.EtcdServer.TLSPrivateKey,
-			ExtraSANs:     cluster.Spec.EtcdServer.ExtraSANs,
+			CA: certificates.NewCertificateFromv1alpha1(cluster.Spec.EtcdServer.CA),
 		},
 		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
@@ -141,8 +136,6 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 					Certificate: cluster.APIServer.CA.Certificate,
 					PrivateKey:  cluster.APIServer.CA.PrivateKey,
 				},
-				TLSCert:       cluster.APIServer.TLSCert,
-				TLSPrivateKey: cluster.APIServer.TLSPrivateKey,
 				ServiceAccount: &commonv1alpha1.KeyPair{
 					PublicKey:  cluster.APIServer.ServiceAccountPublicKey,
 					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
@@ -154,9 +147,6 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 					Certificate: cluster.EtcdServer.CA.Certificate,
 					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,
 				},
-				TLSCert:       cluster.EtcdServer.TLSCert,
-				TLSPrivateKey: cluster.EtcdServer.TLSPrivateKey,
-				ExtraSANs:     cluster.EtcdServer.ExtraSANs,
 			},
 			VPNCIDR:    cluster.VPNCIDR.String(),
 			JoinKey:    cluster.JoinKey.Export(),
@@ -187,13 +177,13 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) generateCertificates(etcdServerExtraSANs, apiServerExtraSANs []string) error {
+func (cluster *Cluster) generateCertificates(apiServerExtraSANs []string) error {
 	certificateAuthorities, err := newCertificateAuthorities()
 	if err != nil {
 		return err
 	}
 	cluster.CertificateAuthorities = certificateAuthorities
-	etcdServer, err := newEtcdServer(etcdServerExtraSANs)
+	etcdServer, err := newEtcdServer()
 	if err != nil {
 		return err
 	}

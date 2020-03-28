@@ -1,4 +1,0 @@
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Cluster
-metadata:
-  name: cluster

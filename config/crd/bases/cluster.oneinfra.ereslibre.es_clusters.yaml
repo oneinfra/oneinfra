@@ -59,10 +59,6 @@ spec:
                     publicKey:
                       type: string
                   type: object
-                tlsCert:
-                  type: string
-                tlsPrivateKey:
-                  type: string
               type: object
             certificateAuthorities:
               description: CertificateAuthorities represents a set of Certificate
@@ -120,14 +116,6 @@ spec:
                     privateKey:
                       type: string
                   type: object
-                extraSANs:
-                  items:
-                    type: string
-                  type: array
-                tlsCert:
-                  type: string
-                tlsPrivateKey:
-                  type: string
               type: object
             joinKey:
               description: KeyPair represents a public/private key pair

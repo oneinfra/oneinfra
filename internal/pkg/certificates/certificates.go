@@ -143,12 +143,21 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 	}
 	sansHosts := []string{"localhost"}
 	sansIps := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+	knownSans := map[string]struct{}{
+		"localhost":               struct{}{},
+		"127.0.0.1":               struct{}{},
+		net.IPv6loopback.String(): struct{}{},
+	}
 	for _, extraSAN := range extraSANs {
+		if _, exists := knownSans[extraSAN]; exists {
+			continue
+		}
 		if ip := net.ParseIP(extraSAN); ip != nil {
 			sansIps = append(sansIps, ip)
 		} else {
 			sansHosts = append(sansHosts, extraSAN)
 		}
+		knownSans[extraSAN] = struct{}{}
 	}
 	newCertificate := x509.Certificate{
 		SerialNumber: serialNumber,

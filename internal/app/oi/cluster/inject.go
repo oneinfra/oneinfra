@@ -49,21 +49,7 @@ func Inject(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSANs [
 		res += clustersSpecs
 	}
 
-	etcdServerExtraSANs := hypervisors.List().IPAddresses()
-
-	apiServerExtraSANsMap := map[string]struct{}{}
-	for _, apiServerExtraSAN := range apiServerExtraSANs {
-		apiServerExtraSANsMap[apiServerExtraSAN] = struct{}{}
-	}
-	for _, publicIPAddress := range hypervisors.PublicList().IPAddresses() {
-		apiServerExtraSANsMap[publicIPAddress] = struct{}{}
-	}
-	finalAPIServerExtraSANs := []string{}
-	for apiServerExtraSAN := range apiServerExtraSANsMap {
-		finalAPIServerExtraSANs = append(finalAPIServerExtraSANs, apiServerExtraSAN)
-	}
-
-	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, vpnCIDR, etcdServerExtraSANs, finalAPIServerExtraSANs)
+	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, vpnCIDR, apiServerExtraSANs)
 	if err != nil {
 		return err
 	}

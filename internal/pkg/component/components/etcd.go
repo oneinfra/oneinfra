@@ -269,9 +269,9 @@ func (controlPlane *ControlPlane) reconcileCertificatesAndKeys(inquirer inquirer
 	}
 	etcdServerCertificate, err := component.ServerCertificate(
 		cluster.EtcdServer.CA,
-		"etcd-server",
-		"etcd-server",
-		[]string{"etcd-server"},
+		"etcd",
+		"etcd",
+		[]string{"etcd"},
 		[]string{hypervisor.IPAddress},
 	)
 	return hypervisor.UploadFiles(

@@ -77,9 +77,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	)
 	apiServerServerCertificate, err := component.ServerCertificate(
 		cluster.APIServer.CA,
-		"kube-apiserver-server",
-		"kube-apiserver-server",
-		[]string{"kube-apiserver-server"},
+		"kube-apiserver",
+		"kube-apiserver",
+		[]string{"kube-apiserver"},
 		kubeAPIServerExtraSANs,
 	)
 	if err != nil {

@@ -129,7 +129,7 @@ func (component *Component) ClientCertificate(ca *certificates.Certificate, name
 	return clientCertificate, nil
 }
 
-// ServerCertificate returns a client certificate with the given name
+// ServerCertificate returns a server certificate with the given name
 func (component *Component) ServerCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
 	// FIXME: not only check for existence, also that contents semantically match
 	if serverCertificate, exists := component.ServerCertificates[name]; exists {

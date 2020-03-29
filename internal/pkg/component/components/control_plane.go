@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/klog"
 
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
@@ -45,6 +46,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	clusterLoadBalancers := inquirer.ClusterComponents(componentapi.ControlPlaneIngressRole)
 	kubernetesVersion := inquirer.Cluster().KubernetesVersion
 	versionBundle, err := constants.KubernetesVersionBundle(kubernetesVersion)
 	if err != nil {
@@ -71,10 +73,23 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return err
 	}
 	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
+	// Add internal IP address, so load balancers can verify our identity
 	kubeAPIServerExtraSANs = append(
 		kubeAPIServerExtraSANs,
 		hypervisor.IPAddress,
 	)
+	// Add all load balancer IP addresses. This is necessary if the
+	// ingress is operating at L4
+	for _, clusterLoadBalancer := range clusterLoadBalancers {
+		loadBalancerHypervisor := inquirer.ComponentHypervisor(clusterLoadBalancer)
+		if loadBalancerHypervisor == nil {
+			continue
+		}
+		kubeAPIServerExtraSANs = append(
+			kubeAPIServerExtraSANs,
+			loadBalancerHypervisor.IPAddress,
+		)
+	}
 	apiServerServerCertificate, err := component.ServerCertificate(
 		cluster.APIServer.CA,
 		"kube-apiserver",

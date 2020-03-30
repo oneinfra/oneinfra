@@ -73,11 +73,6 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return err
 	}
 	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
-	// Add internal IP address, so load balancers can verify our identity
-	kubeAPIServerExtraSANs = append(
-		kubeAPIServerExtraSANs,
-		hypervisor.IPAddress,
-	)
 	// Add all load balancer IP addresses. This is necessary if the
 	// ingress is operating at L4
 	for _, clusterLoadBalancer := range clusterLoadBalancers {

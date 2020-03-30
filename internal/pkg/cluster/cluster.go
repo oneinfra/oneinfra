@@ -17,6 +17,7 @@ limitations under the License.
 package cluster
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"math/big"
 	"net"
@@ -40,6 +41,8 @@ import (
 // Cluster represents a cluster
 type Cluster struct {
 	Name                   string
+	Namespace              string
+	ResourceVersion        string
 	KubernetesVersion      string
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
@@ -54,6 +57,7 @@ type Cluster struct {
 	CurrentJoinTokens      []string
 	clientSet              clientset.Interface
 	extensionsClientSet    apiextensionsclientset.Interface
+	loadedContentsHash     string
 }
 
 // Map represents a map of clusters
@@ -93,6 +97,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 	}
 	res := Cluster{
 		Name:              cluster.Name,
+		Namespace:         cluster.Namespace,
+		ResourceVersion:   cluster.ResourceVersion,
 		KubernetesVersion: cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: &CertificateAuthorities{
 			APIServerClient:   certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.APIServerClient),
@@ -119,6 +125,9 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
 	}
+	if err := res.RefreshCachedSpecs(); err != nil {
+		return nil, err
+	}
 	return &res, nil
 }
 
@@ -126,7 +135,9 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	return &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: cluster.Name,
+			Name:            cluster.Name,
+			Namespace:       cluster.Namespace,
+			ResourceVersion: cluster.ResourceVersion,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion:      cluster.KubernetesVersion,
@@ -160,6 +171,27 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			JoinTokens:             cluster.CurrentJoinTokens,
 		},
 	}
+}
+
+// RefreshCachedSpecs refreshes the cached spec
+func (cluster *Cluster) RefreshCachedSpecs() error {
+	specs, err := cluster.Specs()
+	if err != nil {
+		return err
+	}
+	cluster.loadedContentsHash = fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return nil
+}
+
+// IsDirty returns whether this cluster is dirty compared to when it
+// was loaded
+func (cluster *Cluster) IsDirty() (bool, error) {
+	specs, err := cluster.Specs()
+	if err != nil {
+		return false, err
+	}
+	currentContentsHash := fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return cluster.loadedContentsHash != currentContentsHash, nil
 }
 
 // Specs returns the versioned specs of this cluster

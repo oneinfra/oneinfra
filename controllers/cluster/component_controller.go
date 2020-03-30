@@ -43,6 +43,10 @@ type ComponentReconciler struct {
 
 // +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors/status,verbs=get;update;patch
 
 // Reconcile reconciles the component resources
 func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -53,8 +57,51 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		klog.Error(err)
 	}
 
-	if err := r.scheduleComponents(); err != nil {
+	if err := r.scheduleComponents(ctx); err != nil {
 		klog.Error(err, "could not schedule some components")
+	}
+
+	if err := r.clusterReconciler.Reconcile(); err != nil {
+		klog.Error(err, "failed to reconcile clusters")
+	}
+
+	for _, hypervisor := range r.clusterReconciler.HypervisorMap {
+		isDirty, err := hypervisor.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if hypervisor %q is dirty", hypervisor.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, hypervisor.Export()); err != nil {
+				klog.Errorf("could not update hypervisor %q status: %v", hypervisor.Name, err)
+			}
+		}
+	}
+
+	for _, cluster := range r.clusterReconciler.ClusterMap {
+		isDirty, err := cluster.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if cluster %q is dirty", cluster.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
+				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
+			}
+		}
+	}
+
+	for _, component := range r.clusterReconciler.ComponentList {
+		isDirty, err := component.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if component %q is dirty", component.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, component.Export()); err != nil {
+				klog.Errorf("could not update component %q status: %v", component.Name, err)
+			}
+		}
 	}
 
 	return ctrl.Result{}, nil
@@ -126,7 +173,7 @@ func (r *ComponentReconciler) listComponents(ctx context.Context) (componentapi.
 	return res, nil
 }
 
-func (r *ComponentReconciler) scheduleComponents() error {
+func (r *ComponentReconciler) scheduleComponents(ctx context.Context) error {
 	privateHypervisors := r.clusterReconciler.HypervisorMap.PrivateList()
 	publicHypervisors := r.clusterReconciler.HypervisorMap.PublicList()
 	for _, component := range r.clusterReconciler.ComponentList {
@@ -148,6 +195,13 @@ func (r *ComponentReconciler) scheduleComponents() error {
 				continue
 			}
 			component.HypervisorName = hypervisor.Name
+		}
+		if err := r.Update(ctx, component.Export()); err != nil {
+			klog.Errorf("could not update component %q spec: %v", component.Name, err)
+			continue
+		}
+		if err := component.RefreshCachedSpecs(); err != nil {
+			klog.Errorf("could not refresh component %q cached specs: %v", component.Name, err)
 		}
 	}
 	return nil

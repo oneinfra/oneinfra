@@ -7,7 +7,7 @@ metadata:
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Component
 metadata:
-  name: control-plane-1
+  name: ha-control-plane-1
 spec:
   cluster: ha-cluster
   role: control-plane
@@ -15,7 +15,7 @@ spec:
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Component
 metadata:
-  name: control-plane-2
+  name: ha-control-plane-2
 spec:
   cluster: ha-cluster
   role: control-plane
@@ -23,7 +23,7 @@ spec:
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Component
 metadata:
-  name: control-plane-3
+  name: ha-control-plane-3
 spec:
   cluster: ha-cluster
   role: control-plane
@@ -31,7 +31,7 @@ spec:
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Component
 metadata:
-  name: control-plane-ingress
+  name: ha-control-plane-ingress
 spec:
   cluster: ha-cluster
   role: control-plane-ingress

@@ -46,16 +46,19 @@ const (
 
 // Hypervisor represents an hypervisor
 type Hypervisor struct {
-	Name           string
-	Public         bool
-	IPAddress      string
-	Files          map[string]string
-	Endpoint       hypervisorEndpoint
-	criRuntime     criapi.RuntimeServiceClient
-	criImage       criapi.ImageServiceClient
-	portRangeLow   int
-	portRangeHigh  int
-	allocatedPorts HypervisorPortAllocationList
+	Name               string
+	Namespace          string
+	ResourceVersion    string
+	Public             bool
+	IPAddress          string
+	Files              map[string]string
+	Endpoint           hypervisorEndpoint
+	criRuntime         criapi.RuntimeServiceClient
+	criImage           criapi.ImageServiceClient
+	portRangeLow       int
+	portRangeHigh      int
+	allocatedPorts     HypervisorPortAllocationList
+	loadedContentsHash string
 }
 
 // HypervisorMap represents a map of hypervisors
@@ -71,15 +74,20 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		hypervisorFiles = map[string]string{}
 	}
 	res := Hypervisor{
-		Name:           hypervisor.Name,
-		Public:         hypervisor.Spec.Public,
-		IPAddress:      hypervisor.Spec.IPAddress,
-		Files:          hypervisorFiles,
-		portRangeLow:   hypervisor.Spec.PortRange.Low,
-		portRangeHigh:  hypervisor.Spec.PortRange.High,
-		allocatedPorts: NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
+		Name:            hypervisor.Name,
+		Namespace:       hypervisor.Namespace,
+		ResourceVersion: hypervisor.ResourceVersion,
+		Public:          hypervisor.Spec.Public,
+		IPAddress:       hypervisor.Spec.IPAddress,
+		Files:           hypervisorFiles,
+		portRangeLow:    hypervisor.Spec.PortRange.Low,
+		portRangeHigh:   hypervisor.Spec.PortRange.High,
+		allocatedPorts:  NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
 	}
 	if err := setHypervisorEndpointFromv1alpha1(hypervisor, &res); err != nil {
+		return nil, err
+	}
+	if err := res.RefreshCachedSpecs(); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -524,7 +532,9 @@ func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (in
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	resHypervisor := infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: hypervisor.Name,
+			Name:            hypervisor.Name,
+			Namespace:       hypervisor.Namespace,
+			ResourceVersion: hypervisor.ResourceVersion,
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			Public:    hypervisor.Public,
@@ -541,6 +551,27 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	}
 	resHypervisor.Spec.LocalCRIEndpoint, resHypervisor.Spec.RemoteCRIEndpoint = hypervisor.Endpoint.Export()
 	return &resHypervisor
+}
+
+// RefreshCachedSpecs refreshes the cached spec
+func (hypervisor *Hypervisor) RefreshCachedSpecs() error {
+	specs, err := hypervisor.Specs()
+	if err != nil {
+		return err
+	}
+	hypervisor.loadedContentsHash = fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return nil
+}
+
+// IsDirty returns whether this cluster is dirty compared to when it
+// was loaded
+func (hypervisor *Hypervisor) IsDirty() (bool, error) {
+	specs, err := hypervisor.Specs()
+	if err != nil {
+		return false, err
+	}
+	currentContentsHash := fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return hypervisor.loadedContentsHash != currentContentsHash, nil
 }
 
 // Specs returns the versioned specs of this hypervisor
@@ -612,7 +643,7 @@ func (hypervisorList HypervisorList) IPAddresses() []string {
 	return ipAddresses
 }
 
-// Sample returns a random hypervisor from the curent list
+// Sample returns a random hypervisor from the current list
 func (hypervisorList HypervisorList) Sample() (*Hypervisor, error) {
 	if len(hypervisorList) == 0 {
 		return nil, errors.New("no hypervisors available")

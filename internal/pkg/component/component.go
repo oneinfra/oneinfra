@@ -17,6 +17,7 @@ limitations under the License.
 package component
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -45,12 +46,15 @@ const (
 // Component represents a Control Plane component
 type Component struct {
 	Name               string
+	Namespace          string
+	ResourceVersion    string
 	Role               Role
 	HypervisorName     string
 	ClusterName        string
 	AllocatedHostPorts map[string]int
 	ClientCertificates map[string]*certificates.Certificate
 	ServerCertificates map[string]*certificates.Certificate
+	loadedContentsHash string
 }
 
 // NewComponentWithRandomHypervisor creates a component with a random hypervisor from the provided hypervisorList
@@ -73,9 +77,11 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 // NewComponentFromv1alpha1 returns a component based on a versioned component
 func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component, error) {
 	res := Component{
-		Name:           component.Name,
-		HypervisorName: component.Spec.Hypervisor,
-		ClusterName:    component.Spec.Cluster,
+		Name:            component.Name,
+		Namespace:       component.Namespace,
+		ResourceVersion: component.ResourceVersion,
+		HypervisorName:  component.Spec.Hypervisor,
+		ClusterName:     component.Spec.Cluster,
 	}
 	switch component.Spec.Role {
 	case clusterv1alpha1.ControlPlaneRole:
@@ -94,6 +100,9 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 	res.ServerCertificates = map[string]*certificates.Certificate{}
 	for serverCertificateName, serverCertificate := range component.Status.ServerCertificates {
 		res.ServerCertificates[serverCertificateName] = certificates.NewCertificateFromv1alpha1(&serverCertificate)
+	}
+	if err := res.RefreshCachedSpecs(); err != nil {
+		return nil, err
 	}
 	return &res, nil
 }
@@ -170,7 +179,9 @@ func (component *Component) KubeConfig(cluster *cluster.Cluster, apiServerEndpoi
 func (component *Component) Export() *clusterv1alpha1.Component {
 	res := &clusterv1alpha1.Component{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: component.Name,
+			Name:            component.Name,
+			Namespace:       component.Namespace,
+			ResourceVersion: component.ResourceVersion,
 		},
 		Spec: clusterv1alpha1.ComponentSpec{
 			Hypervisor: component.HypervisorName,
@@ -202,6 +213,27 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 		res.Status.ServerCertificates[serverCertificateName] = *serverCertificate.Export()
 	}
 	return res
+}
+
+// RefreshCachedSpecs refreshes the cached spec
+func (component *Component) RefreshCachedSpecs() error {
+	specs, err := component.Specs()
+	if err != nil {
+		return err
+	}
+	component.loadedContentsHash = fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return nil
+}
+
+// IsDirty returns whether this component is dirty compared to when it
+// was loaded
+func (component *Component) IsDirty() (bool, error) {
+	specs, err := component.Specs()
+	if err != nil {
+		return false, err
+	}
+	currentContentsHash := fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
+	return component.loadedContentsHash != currentContentsHash, nil
 }
 
 // Specs returns the versioned specs of this component

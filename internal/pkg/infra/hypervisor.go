@@ -71,7 +71,7 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		hypervisorFiles = map[string]string{}
 	}
 	res := Hypervisor{
-		Name:           hypervisor.ObjectMeta.Name,
+		Name:           hypervisor.Name,
 		Public:         hypervisor.Spec.Public,
 		IPAddress:      hypervisor.Spec.IPAddress,
 		Files:          hypervisorFiles,

@@ -50,7 +50,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 	for _, versionedNodeJoinRequest := range nodeJoinRequestList.Items {
 		nodeJoinRequest, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&versionedNodeJoinRequest, cluster.JoinKey)
 		if err != nil {
-			klog.Errorf("cannot parse node join request %q public key: %v", versionedNodeJoinRequest.ObjectMeta.Name, err)
+			klog.Errorf("cannot parse node join request %q public key: %v", versionedNodeJoinRequest.Name, err)
 			continue
 		}
 		if nodeJoinRequest.HasCondition(nodejoinrequests.Issued) {

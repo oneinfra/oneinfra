@@ -73,7 +73,7 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 // NewComponentFromv1alpha1 returns a component based on a versioned component
 func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component, error) {
 	res := Component{
-		Name:           component.ObjectMeta.Name,
+		Name:           component.Name,
 		HypervisorName: component.Spec.Hypervisor,
 		ClusterName:    component.Spec.Cluster,
 	}

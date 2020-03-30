@@ -62,7 +62,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		symmetricKey = key
 	}
 	return &NodeJoinRequest{
-		Name:                     nodeJoinRequest.ObjectMeta.Name,
+		Name:                     nodeJoinRequest.Name,
 		SymmetricKey:             crypto.SymmetricKey(symmetricKey),
 		APIServerEndpoint:        nodeJoinRequest.Spec.APIServerEndpoint,
 		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
@@ -73,7 +73,7 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		KubeConfig:               nodeJoinRequest.Status.KubeConfig,
 		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
 		Conditions:               newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
-		ResourceVersion:          nodeJoinRequest.ObjectMeta.ResourceVersion,
+		ResourceVersion:          nodeJoinRequest.ResourceVersion,
 		joinKey:                  joinKey,
 	}, nil
 }

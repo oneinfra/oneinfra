@@ -87,7 +87,7 @@ func (endpoint *remoteHypervisorEndpoint) Export() (*infrav1alpha1.LocalHypervis
 
 func setHypervisorEndpointFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, resHypervisor *Hypervisor) error {
 	if hypervisor.Spec.LocalCRIEndpoint != nil && hypervisor.Spec.RemoteCRIEndpoint != nil {
-		return errors.Errorf("hypervisor %q has both a local and a remote CRI endpoint, can only have one", hypervisor.ObjectMeta.Name)
+		return errors.Errorf("hypervisor %q has both a local and a remote CRI endpoint, can only have one", hypervisor.Name)
 	} else if hypervisor.Spec.LocalCRIEndpoint != nil {
 		resHypervisor.Endpoint = &localHypervisorEndpoint{
 			CRIEndpoint: hypervisor.Spec.LocalCRIEndpoint.CRIEndpoint,
@@ -102,7 +102,7 @@ func setHypervisorEndpointFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, res
 			ClientCertificate: certificates.NewCertificateFromv1alpha1(hypervisor.Spec.RemoteCRIEndpoint.ClientCertificate),
 		}
 	} else {
-		return errors.Errorf("hypervisor %q is missing a local or a remote CRI endpoint", hypervisor.ObjectMeta.Name)
+		return errors.Errorf("hypervisor %q is missing a local or a remote CRI endpoint", hypervisor.Name)
 	}
 	return nil
 }

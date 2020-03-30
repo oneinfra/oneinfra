@@ -72,7 +72,7 @@ func RetrieveClusters(manifests string) cluster.Map {
 		if err != nil {
 			continue
 		}
-		clusters[clusterObj.ObjectMeta.Name] = internalCluster
+		clusters[internalCluster.Name] = internalCluster
 	}
 	return clusters
 }

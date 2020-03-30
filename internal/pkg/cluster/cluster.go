@@ -92,7 +92,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		return nil, err
 	}
 	res := Cluster{
-		Name:              cluster.ObjectMeta.Name,
+		Name:              cluster.Name,
 		KubernetesVersion: cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: &CertificateAuthorities{
 			APIServerClient:   certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.APIServerClient),

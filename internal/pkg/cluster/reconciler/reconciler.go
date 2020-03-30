@@ -28,17 +28,17 @@ import (
 
 // ClusterReconciler represents a cluster reconciler
 type ClusterReconciler struct {
-	hypervisorMap infra.HypervisorMap
-	clusterMap    cluster.Map
-	componentList component.List
+	HypervisorMap infra.HypervisorMap
+	ClusterMap    cluster.Map
+	ComponentList component.List
 }
 
 // NewClusterReconciler creates a cluster reconciler with the provided hypervisors, clusters and components
 func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.Map, componentList component.List) *ClusterReconciler {
 	return &ClusterReconciler{
-		hypervisorMap: hypervisorMap,
-		clusterMap:    clusterMap,
-		componentList: componentList,
+		HypervisorMap: hypervisorMap,
+		ClusterMap:    clusterMap,
+		ComponentList: componentList,
 	}
 }
 
@@ -49,7 +49,7 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 	klog.V(1).Info("starting reconciliation process")
 	reconcileErrors := ReconcileErrors{}
-	for _, componentObj := range clusterReconciler.componentList {
+	for _, componentObj := range clusterReconciler.ComponentList {
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
 				component:         componentObj,
@@ -61,7 +61,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 			reconcileErrors.addComponentError(componentObj.ClusterName, componentObj.Name, err)
 		}
 	}
-	for clusterName, cluster := range clusterReconciler.clusterMap {
+	for clusterName, cluster := range clusterReconciler.ClusterMap {
 		if err := cluster.ReconcileCustomResourceDefinitions(); err != nil {
 			klog.Errorf("failed to reconcile custom resource definitions for cluster %q: %v", clusterName, err)
 			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile custom resource definitions"))
@@ -92,17 +92,17 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 // Specs returns the versioned specs for all resources
 func (clusterReconciler *ClusterReconciler) Specs() (string, error) {
 	res := ""
-	hypervisors, err := clusterReconciler.hypervisorMap.Specs()
+	hypervisors, err := clusterReconciler.HypervisorMap.Specs()
 	if err != nil {
 		return "", nil
 	}
 	res += hypervisors
-	clusters, err := clusterReconciler.clusterMap.Specs()
+	clusters, err := clusterReconciler.ClusterMap.Specs()
 	if err != nil {
 		return "", nil
 	}
 	res += clusters
-	components, err := clusterReconciler.componentList.Specs()
+	components, err := clusterReconciler.ComponentList.Specs()
 	if err != nil {
 		return "", nil
 	}

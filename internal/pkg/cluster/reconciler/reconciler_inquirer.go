@@ -41,17 +41,17 @@ func (inquirer *ClusterReconcilerInquirer) Hypervisor() *infra.Hypervisor {
 
 // Cluster returns the current cluster in reconciliation
 func (inquirer *ClusterReconcilerInquirer) Cluster() *cluster.Cluster {
-	return inquirer.clusterReconciler.clusterMap[inquirer.Component().ClusterName]
+	return inquirer.clusterReconciler.ClusterMap[inquirer.Component().ClusterName]
 }
 
 // ClusterComponents returns a list of components with the provided role for the
 // current cluster in reconciliation
 func (inquirer *ClusterReconcilerInquirer) ClusterComponents(role component.Role) component.List {
-	return inquirer.clusterReconciler.componentList.WithCluster(inquirer.Cluster().Name).WithRole(role)
+	return inquirer.clusterReconciler.ComponentList.WithCluster(inquirer.Cluster().Name).WithRole(role)
 }
 
 // ComponentHypervisor returns the hypervisor where the provided component is
 // located
 func (inquirer *ClusterReconcilerInquirer) ComponentHypervisor(component *component.Component) *infra.Hypervisor {
-	return inquirer.clusterReconciler.hypervisorMap[component.HypervisorName]
+	return inquirer.clusterReconciler.HypervisorMap[component.HypervisorName]
 }

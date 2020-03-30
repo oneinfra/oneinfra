@@ -59,3 +59,14 @@ func (list List) Specs() (string, error) {
 	}
 	return res, nil
 }
+
+// AllWithHypervisorAssigned returns whether all components in this
+// list have an hypervisor assigned
+func (list List) AllWithHypervisorAssigned() bool {
+	for _, component := range list {
+		if component.HypervisorName == "" {
+			return false
+		}
+	}
+	return true
+}

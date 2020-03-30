@@ -18,15 +18,15 @@ package components
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net"
 	"strconv"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
@@ -61,7 +61,7 @@ backend apiservers
 // ControlPlaneIngress represents an endpoint to a set of control plane instances
 type ControlPlaneIngress struct{}
 
-func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.ReconcilerInquirer) (string, error) {
+func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.ReconcilerInquirer, clusterComponents componentapi.List) (string, error) {
 	template, err := template.New("").Parse(haProxyTemplate)
 	if err != nil {
 		return "", err
@@ -71,7 +71,6 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 	}{
 		APIServers: map[string]string{},
 	}
-	clusterComponents := inquirer.ClusterComponents(component.ControlPlaneRole)
 	for _, component := range clusterComponents {
 		apiserverHostPort, exists := component.AllocatedHostPorts["apiserver"]
 		if !exists {
@@ -92,6 +91,10 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
+	clusterComponents := inquirer.ClusterComponents(componentapi.ControlPlaneRole)
+	if !clusterComponents.AllWithHypervisorAssigned() {
+		return errors.Errorf("could not reconcile component %q, not all cluster components have an hypervisor assigned", component.Name)
+	}
 	klog.V(1).Infof("reconciling control plane ingress in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
@@ -100,7 +103,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err != nil {
 		return err
 	}
-	haProxyConfig, err := ingress.haProxyConfiguration(inquirer)
+	haProxyConfig, err := ingress.haProxyConfiguration(inquirer, clusterComponents)
 	if err != nil {
 		return err
 	}

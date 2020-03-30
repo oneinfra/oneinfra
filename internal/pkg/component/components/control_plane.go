@@ -47,12 +47,15 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	clusterLoadBalancers := inquirer.ClusterComponents(componentapi.ControlPlaneIngressRole)
+	if !clusterLoadBalancers.AllWithHypervisorAssigned() {
+		return errors.Errorf("could not reconcile component %q, not all load balancers have an hypervisor assigned", component.Name)
+	}
 	kubernetesVersion := inquirer.Cluster().KubernetesVersion
 	versionBundle, err := constants.KubernetesVersionBundle(kubernetesVersion)
 	if err != nil {
 		return errors.Errorf("could not retrieve version bundle for version %q", kubernetesVersion)
 	}
-	klog.V(1).Infof("reconciling control plane in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
+	klog.V(1).Infof("reconciling component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
 	err = hypervisor.EnsureImages(
 		fmt.Sprintf(etcdImage, versionBundle.EtcdVersion),
 		fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),

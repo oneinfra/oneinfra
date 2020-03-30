@@ -85,7 +85,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			loadBalancerHypervisor.IPAddress,
 		)
 	}
-	apiServerServerCertificate, err := component.ServerCertificate(
+	apiServerCertificate, err := component.ServerCertificate(
 		cluster.APIServer.CA,
 		"kube-apiserver",
 		"kube-apiserver",
@@ -111,8 +111,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
 			// API server secrets
 			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           apiServerServerCertificate.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           apiServerServerCertificate.PrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           apiServerCertificate.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           apiServerCertificate.PrivateKey,
 			secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccountPublicKey,
 			// controller-manager secrets
 			secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,

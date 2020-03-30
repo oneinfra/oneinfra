@@ -76,7 +76,7 @@ func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSA
 		VPNPeers:          VPNPeerMap{},
 		JoinKey:           joinKey,
 	}
-	if err := res.generateCertificates(apiServerExtraSANs); err != nil {
+	if err := res.generateCertificateAuthorities(apiServerExtraSANs); err != nil {
 		return nil, err
 	}
 	if _, err := res.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName); err != nil {
@@ -177,7 +177,7 @@ func (cluster *Cluster) Specs() (string, error) {
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
 }
 
-func (cluster *Cluster) generateCertificates(apiServerExtraSANs []string) error {
+func (cluster *Cluster) generateCertificateAuthorities(apiServerExtraSANs []string) error {
 	certificateAuthorities, err := newCertificateAuthorities()
 	if err != nil {
 		return err

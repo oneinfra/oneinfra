@@ -108,11 +108,37 @@ func (cluster *Cluster) defaultCertificateAuthorities() {
 
 func (cluster *Cluster) defaultEtcdServer() {
 	if cluster.Spec.EtcdServer == nil {
+		cluster.Spec.EtcdServer = &EtcdServer{}
+	}
+	if cluster.Spec.EtcdServer.CA == nil {
+		etcdServerCA, err := certificates.NewCertificateAuthority("etcd-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.EtcdServer.CA = etcdServerCA.Export()
 	}
 }
 
 func (cluster *Cluster) defaultAPIServer() {
 	if cluster.Spec.APIServer == nil {
+		cluster.Spec.APIServer = &KubeAPIServer{}
+	}
+	if cluster.Spec.APIServer.CA == nil {
+		apiserverCA, err := certificates.NewCertificateAuthority("apiserver-authority")
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.APIServer.CA = apiserverCA.Export()
+	}
+	if cluster.Spec.APIServer.ServiceAccount == nil {
+		serviceAccountKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
+		if err != nil {
+			klog.Error(err)
+			return
+		}
+		cluster.Spec.APIServer.ServiceAccount = serviceAccountKey.Export()
 	}
 }
 

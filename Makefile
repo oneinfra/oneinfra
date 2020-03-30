@@ -21,6 +21,9 @@ all: manager oi oi-local-cluster
 test: lint fmt vet
 	./scripts/run.sh go test ./... -coverprofile cover.out
 
+test-coverage: test
+	go tool cover -html=cover.out
+
 # Build and install manager binary
 manager: go-generate
 	./scripts/run.sh go install ./cmd/oi-manager

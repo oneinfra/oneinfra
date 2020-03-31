@@ -144,9 +144,9 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 	sansHosts := []string{"localhost"}
 	sansIps := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
 	knownSans := map[string]struct{}{
-		"localhost":               struct{}{},
-		"127.0.0.1":               struct{}{},
-		net.IPv6loopback.String(): struct{}{},
+		"localhost":               {},
+		"127.0.0.1":               {},
+		net.IPv6loopback.String(): {},
 	}
 	for _, extraSAN := range extraSANs {
 		if _, exists := knownSans[extraSAN]; exists {

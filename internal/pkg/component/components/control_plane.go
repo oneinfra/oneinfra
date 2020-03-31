@@ -120,6 +120,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			// controller-manager secrets
 			secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
 			secretsPathFile(cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccountPrivateKey,
+			secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.crt"):        cluster.CertificateAuthorities.CertificateSigner.Certificate,
+			secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 			// scheduler secrets
 			secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
 		},
@@ -179,6 +181,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"),
 						"--controllers=*,tokencleaner",
 						"--service-account-private-key-file", secretsPathFile(cluster.Name, component.Name, "service-account.key"),
+						"--cluster-signing-cert-file", secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.crt"),
+						"--cluster-signing-key-file", secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.key"),
 					},
 					Mounts: map[string]string{
 						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),

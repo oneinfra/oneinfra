@@ -54,55 +54,20 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("component", req.NamespacedName)
 
 	if err := r.refreshClusterReconciler(ctx); err != nil {
-		klog.Error(err)
+		klog.Errorf("could not refresh cluster reconciler: %v", err)
 	}
 
 	if err := r.scheduleComponents(ctx); err != nil {
-		klog.Error(err, "could not schedule some components")
+		klog.Errorf("could not schedule some components: %v", err)
 	}
 
 	if err := r.clusterReconciler.Reconcile(); err != nil {
-		klog.Error(err, "failed to reconcile clusters")
+		klog.Errorf("failed to reconcile clusters: %v", err)
 	}
 
-	for _, hypervisor := range r.clusterReconciler.HypervisorMap {
-		isDirty, err := hypervisor.IsDirty()
-		if err != nil {
-			klog.Errorf("could not determine if hypervisor %q is dirty", hypervisor.Name)
-			continue
-		}
-		if isDirty {
-			if err := r.Status().Update(ctx, hypervisor.Export()); err != nil {
-				klog.Errorf("could not update hypervisor %q status: %v", hypervisor.Name, err)
-			}
-		}
-	}
-
-	for _, cluster := range r.clusterReconciler.ClusterMap {
-		isDirty, err := cluster.IsDirty()
-		if err != nil {
-			klog.Errorf("could not determine if cluster %q is dirty", cluster.Name)
-			continue
-		}
-		if isDirty {
-			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
-				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
-			}
-		}
-	}
-
-	for _, component := range r.clusterReconciler.ComponentList {
-		isDirty, err := component.IsDirty()
-		if err != nil {
-			klog.Errorf("could not determine if component %q is dirty", component.Name)
-			continue
-		}
-		if isDirty {
-			if err := r.Status().Update(ctx, component.Export()); err != nil {
-				klog.Errorf("could not update component %q status: %v", component.Name, err)
-			}
-		}
-	}
+	r.updateHypervisors(ctx)
+	r.updateClusters(ctx)
+	r.updateComponents(ctx)
 
 	return ctrl.Result{}, nil
 }
@@ -205,6 +170,51 @@ func (r *ComponentReconciler) scheduleComponents(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (r *ComponentReconciler) updateHypervisors(ctx context.Context) {
+	for _, hypervisor := range r.clusterReconciler.HypervisorMap {
+		isDirty, err := hypervisor.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if hypervisor %q is dirty", hypervisor.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, hypervisor.Export()); err != nil {
+				klog.Errorf("could not update hypervisor %q status: %v", hypervisor.Name, err)
+			}
+		}
+	}
+}
+
+func (r *ComponentReconciler) updateClusters(ctx context.Context) {
+	for _, cluster := range r.clusterReconciler.ClusterMap {
+		isDirty, err := cluster.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if cluster %q is dirty", cluster.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
+				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
+			}
+		}
+	}
+}
+
+func (r *ComponentReconciler) updateComponents(ctx context.Context) {
+	for _, component := range r.clusterReconciler.ComponentList {
+		isDirty, err := component.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if component %q is dirty", component.Name)
+			continue
+		}
+		if isDirty {
+			if err := r.Status().Update(ctx, component.Export()); err != nil {
+				klog.Errorf("could not update component %q status: %v", component.Name, err)
+			}
+		}
+	}
 }
 
 // SetupWithManager sets up the component reconciler with mgr manager

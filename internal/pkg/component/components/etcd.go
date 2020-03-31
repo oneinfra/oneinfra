@@ -274,6 +274,9 @@ func (controlPlane *ControlPlane) reconcileCertificatesAndKeys(inquirer inquirer
 		[]string{"etcd"},
 		[]string{hypervisor.IPAddress},
 	)
+	if err != nil {
+		return err
+	}
 	return hypervisor.UploadFiles(
 		map[string]string{
 			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           etcdServerCertificate.Certificate,

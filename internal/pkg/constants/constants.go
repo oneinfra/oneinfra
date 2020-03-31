@@ -40,6 +40,10 @@ const (
 var (
 	// KubeletKubeConfigPath represents the kubelet kubeconfig path
 	KubeletKubeConfigPath = filepath.Join(OneInfraConfigDir, "kubelet.conf")
+	// KubeletServerCertificatePath represents the kubelet server certificate path
+	KubeletServerCertificatePath = filepath.Join(OneInfraConfigDir, "kubelet.crt")
+	// KubeletServerPrivateKeyPath represents the kubelet server private key path
+	KubeletServerPrivateKeyPath = filepath.Join(OneInfraConfigDir, "kubelet.key")
 	// KubeletConfigPath represents the kubelet configuration path
 	KubeletConfigPath = filepath.Join(KubeletDir, "config.yaml")
 )

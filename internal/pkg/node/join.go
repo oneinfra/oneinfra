@@ -73,6 +73,9 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPub
 	if err := writeKubeletConfig(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
+	if err := writeKubeletCertificate(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
 	if err := installKubelet(nodeJoinRequest); err != nil {
 		return err
 	}
@@ -203,6 +206,24 @@ func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symme
 		return err
 	}
 	return ioutil.WriteFile(constants.KubeletConfigPath, []byte(kubeletConfig), 0600)
+}
+
+func writeKubeletCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	certificate, err := decrypt(symmetricKey, nodeJoinRequest.KubeletServerCertificate)
+	if err != nil {
+		return err
+	}
+	privateKey, err := decrypt(symmetricKey, nodeJoinRequest.KubeletServerPrivateKey)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(constants.KubeletDir, 0700); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(constants.KubeletServerCertificatePath, []byte(certificate), 0600); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(constants.KubeletServerPrivateKeyPath, []byte(privateKey), 0600)
 }
 
 func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {

@@ -38,12 +38,14 @@ type NodeJoinRequestSpec struct {
 
 // NodeJoinRequestStatus defines the observed state of NodeJoinRequest
 type NodeJoinRequestStatus struct {
-	KubernetesVersion string      `json:"kubernetesVersion,omitempty"`
-	VPNAddress        string      `json:"vpnAddress,omitempty"`
-	VPNPeer           string      `json:"vpnPeer,omitempty"`
-	KubeConfig        string      `json:"kubeConfig,omitempty"`
-	KubeletConfig     string      `json:"kubeletConfig,omitempty"`
-	Conditions        []Condition `json:"conditions,omitempty"`
+	KubernetesVersion        string      `json:"kubernetesVersion,omitempty"`
+	VPNAddress               string      `json:"vpnAddress,omitempty"`
+	VPNPeer                  string      `json:"vpnPeer,omitempty"`
+	KubeConfig               string      `json:"kubeConfig,omitempty"`
+	KubeletConfig            string      `json:"kubeletConfig,omitempty"`
+	KubeletServerCertificate string      `json:"kubeletServerCertificate,omitempty"`
+	KubeletServerPrivateKey  string      `json:"kubeletServerPrivateKey,omitempty"`
+	Conditions               []Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

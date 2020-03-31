@@ -59,6 +59,10 @@ properties:
         type: string
       kubeletConfig:
         type: string
+      kubeletServerCertificate:
+        type: string
+      kubeletServerPrivateKey:
+        type: string
       kubernetesVersion:
         type: string
       vpnAddress:

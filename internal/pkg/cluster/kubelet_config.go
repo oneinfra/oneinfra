@@ -22,11 +22,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
+
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 // KubeletConfig returns a default kubelet config
 func (cluster *Cluster) KubeletConfig() (string, error) {
-	kubeletConfig := kubeletconfigv1beta1.KubeletConfiguration{}
+	kubeletConfig := kubeletconfigv1beta1.KubeletConfiguration{
+		TLSCertFile:       constants.KubeletServerCertificatePath,
+		TLSPrivateKeyFile: constants.KubeletServerPrivateKeyPath,
+	}
 	return marshalKubeletConfig(&kubeletConfig)
 }
 

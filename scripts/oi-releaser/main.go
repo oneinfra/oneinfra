@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	containerImages = []string{
+	allContainerImages = []string{
 		"containerd",
 		"hypervisor",
 		"kubelet-installer",
@@ -49,16 +49,28 @@ func main() {
 					{
 						Name:  "build",
 						Usage: "build all container image artifacts",
+						Flags: []cli.Flag{
+							&cli.StringSliceFlag{
+								Name:  "image",
+								Usage: fmt.Sprintf("images to build %v; can be provided several times, all if not provided", allContainerImages),
+							},
+						},
 						Action: func(c *cli.Context) error {
-							buildContainerImages()
+							buildContainerImages(chosenContainerImages(c.StringSlice("images")))
 							return nil
 						},
 					},
 					{
 						Name:  "publish",
 						Usage: "publish all container image artifacts",
+						Flags: []cli.Flag{
+							&cli.StringSliceFlag{
+								Name:  "image",
+								Usage: fmt.Sprintf("images to publish %v; can be provided several times, all if not provided", allContainerImages),
+							},
+						},
 						Action: func(c *cli.Context) error {
-							publishContainerImages()
+							publishContainerImages(chosenContainerImages(c.StringSlice("images")))
 							return nil
 						},
 					},
@@ -72,7 +84,7 @@ func main() {
 	}
 }
 
-func buildContainerImages() {
+func buildContainerImages(containerImages []string) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("could not read current working directory: %v", err)
@@ -94,7 +106,7 @@ func buildContainerImages() {
 	}
 }
 
-func publishContainerImages() {
+func publishContainerImages(containerImages []string) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("could not read current working directory: %v", err)
@@ -131,4 +143,18 @@ func setCmdEnv(cmd *exec.Cmd, kubernetesVersion constants.KubernetesVersion) {
 
 func kubernetesVersions() []constants.KubernetesVersion {
 	return constants.ReleaseData.KubernetesVersions
+}
+
+func chosenContainerImages(containerImages []string) []string {
+	chosenContainerImages := map[string]struct{}{}
+	for _, chosenContainerImage := range containerImages {
+		chosenContainerImages[chosenContainerImage] = struct{}{}
+	}
+	res := []string{}
+	for _, containerImage := range allContainerImages {
+		if _, exists := chosenContainerImages[containerImage]; exists {
+			res = append(res, containerImage)
+		}
+	}
+	return res
 }

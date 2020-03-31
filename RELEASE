@@ -1,4 +1,4 @@
-version: 0.0.0
+version: 0.0.1
 defaultKubernetesVersion: 1.18.0
 kubernetesVersions:
 - kubernetesVersion: 1.17.4

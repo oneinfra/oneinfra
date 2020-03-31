@@ -33,6 +33,8 @@ var (
 		"containerd",
 		"hypervisor",
 		"kubelet-installer",
+		"oi",
+		"oi-manager",
 	}
 )
 
@@ -117,6 +119,7 @@ func publishContainerImages() {
 func setCmdEnv(cmd *exec.Cmd, kubernetesVersion constants.KubernetesVersion) {
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, []string{
+		fmt.Sprintf("ONEINFRA_VERSION=%s", constants.ReleaseData.Version),
 		fmt.Sprintf("KUBERNETES_VERSION=%s", kubernetesVersion.KubernetesVersion),
 		fmt.Sprintf("CRI_TOOLS_VERSION=%s", kubernetesVersion.CRIToolsVersion),
 		fmt.Sprintf("CONTAINERD_VERSION=%s", kubernetesVersion.ContainerdVersion),

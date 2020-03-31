@@ -1,5 +1,5 @@
 image:
-	docker build -t oneinfra/oi:latest -f Dockerfile ../..
+	docker build -t oneinfra/oi:$(ONEINFRA_VERSION) -f Dockerfile ../..
 
 publish:
-	docker push oneinfra/oi:latest
+	docker push oneinfra/oi:$(ONEINFRA_VERSION)

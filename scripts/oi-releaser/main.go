@@ -146,6 +146,9 @@ func kubernetesVersions() []constants.KubernetesVersion {
 }
 
 func chosenContainerImages(containerImages []string) []string {
+	if len(containerImages) == 0 {
+		return allContainerImages
+	}
 	chosenContainerImages := map[string]struct{}{}
 	for _, chosenContainerImage := range containerImages {
 		chosenContainerImages[chosenContainerImage] = struct{}{}

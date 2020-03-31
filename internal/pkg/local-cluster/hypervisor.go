@@ -87,7 +87,7 @@ func (hypervisor *Hypervisor) Create() error {
 	if err != nil {
 		return err
 	}
-	arguments := []string{
+	return exec.Command("docker", []string{
 		"run", "-d", "--privileged",
 		"--name", hypervisor.fullName(),
 		"-v", fmt.Sprintf("%s:%s", hypervisor.runtimeDirectory(), hypervisor.localContainerdSockDirectory()),
@@ -95,14 +95,8 @@ func (hypervisor *Hypervisor) Create() error {
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
-	}
-	if hypervisor.Public {
-		arguments = append(arguments,
-			"-p", fmt.Sprintf("%d-%d:%d-%d", hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh, hypervisor.ExposedPortRangeLow, hypervisor.ExposedPortRangeHigh),
-		)
-	}
-	arguments = append(arguments, hypervisor.HypervisorCluster.NodeImage)
-	return exec.Command("docker", arguments...).Run()
+		hypervisor.HypervisorCluster.NodeImage,
+	}...).Run()
 }
 
 // StartRemoteCRIEndpoint initializes the remote CRI endpoint on this
@@ -227,13 +221,6 @@ func (hypervisor *Hypervisor) internalIPAddress() (string, error) {
 	return InternalIPAddress(hypervisor.fullName())
 }
 
-func (hypervisor *Hypervisor) ipAddress() (string, error) {
-	if hypervisor.Public {
-		return "127.0.0.1", nil
-	}
-	return hypervisor.internalIPAddress()
-}
-
 func (hypervisor *Hypervisor) createCACertificates() error {
 	caCertificate, err := certificates.NewCertificateAuthority(hypervisor.fullName())
 	if err != nil {
@@ -250,7 +237,7 @@ func (hypervisor *Hypervisor) createCACertificates() error {
 
 // Export exports the local hypervisor to a versioned hypervisor
 func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
-	ipAddress, err := hypervisor.ipAddress()
+	ipAddress, err := hypervisor.internalIPAddress()
 	if err != nil {
 		klog.Fatalf("error while retrieving hypervisor IP address: %v", err)
 	}

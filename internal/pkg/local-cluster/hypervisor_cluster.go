@@ -56,18 +56,16 @@ func NewHypervisorCluster(name, kubernetesVersion string, privateClusterSize, pu
 			},
 		)
 	}
-	exposedPortRange := 30000
 	for i := 0; i < publicClusterSize; i++ {
 		cluster.addHypervisor(
 			&Hypervisor{
 				Name:                 fmt.Sprintf("public-hypervisor-%d", i),
 				Public:               true,
 				HypervisorCluster:    &cluster,
-				ExposedPortRangeLow:  exposedPortRange,
-				ExposedPortRangeHigh: exposedPortRange + 99,
+				ExposedPortRangeLow:  30000,
+				ExposedPortRangeHigh: 60000,
 			},
 		)
-		exposedPortRange += 100
 	}
 	return &cluster
 }

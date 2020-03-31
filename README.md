@@ -4,15 +4,16 @@
 
 It features a declarative infrastructure definition.
 
-You can read more about its [design here](docs/DESIGN.md).
+You can [read more about its design here](docs/DESIGN.md).
 
 | Go Report                                                                                                                                      | Travis                                                                                                             | CircleCI                                                                                                             | Azure Test                                                                                                                                                                                    | Azure Release                                                                                                                                                                                       | License                                                                                                                              |
 |------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra) | [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=master)](https://travis-ci.org/oneinfra/oneinfra) | [![CircleCI](https://circleci.com/gh/oneinfra/oneinfra.svg?style=shield)](https://circleci.com/gh/oneinfra/oneinfra) | [![Test Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=3&branchName=master) | [![Release Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/release?branchName=master)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=4&branchName=master) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)|
 
-## Install
 
-Build has been tested with Go 1.13.
+## Go install
+
+Build has been tested with Go 1.13 and 1.14.
 
 ```
 $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
@@ -65,40 +66,18 @@ Kubernetes master is running at https://127.0.0.1:30000
 ```
 
 This will have created a Kubernetes cluster named `cluster`, formed by
-3 control plane instances, with an `haproxy` in front of them.
+three control plane instances, with an `haproxy` instance in front of
+them.
 
-You can follow the same strategy to create any number of clusters with
-any number of control plane instances.
+Note: this setup is passive, in the sense that when you run `oi
+reconcile` a single reconciliation pass will take place, and the
+process will exit. `oneinfra` in this case **will not** be running as
+a daemon, and is provided as a simple way of testing `oneinfra`, not
+intended to be used for production purposes.
 
-The `loadbalancer` is a required component, so it's trivial to convert
-a single control plane instance cluster into a multiple control plane
-instances cluster -- your kubeconfig file always point to the load
-balancer instance.
+If you are interested in using `oneinfra` in production, please deploy
+it on top of a Kubernetes cluster and use the operator mode.
 
-## Deploy on Kubernetes
-
-You will soon be able to deploy `oneinfra` on top of Kubernetes, so
-all the resources that you saw on the previous example in local files
-will be sitting on a real cluster saved as CRD's.
-
-`oneinfra`'s set of controllers will watch these resources and act
-upon their changes, reconciling these resources on your defined
-hypervisors.
-
-This is still a WIP, please check the [Features missing for the first
-release cut](#features-missing-for-the-first-release-cut).
-
-## Features missing for the first release cut
-
-`oneinfra` is a heavy Work In Progress, and not intended for
-production yet.
-
-- [X] Implement initial worker join logic
-- [X] Extend worker join to wait for `issued` condition
-- [X] Finish worker node join logic
-- [ ] Create minimal set of controllers
-- [ ] Provide hypervisor VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
-- [ ] Provide worker VM images ([WIP](https://github.com/oneinfra/oneinfra/compare/master...vm-images))
 
 ## License
 

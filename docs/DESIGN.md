@@ -12,10 +12,13 @@ public cloud.
     located networking-wise with respect to control plane components
     (e.g. workers behind several NAT levels), or among them
   * CNI overlay will be set on top of the VPN tunnel
-* Provide both a CLI and a set of controllers (TODO) to drive the
+* Provide both a CLI and a set of controllers to drive the
   reconciliation process
   * Both CLI and these set of controllers should rely on the same
-    API's (custom resources) to drive the reconciliation process
+    API's (custom resources). CLI will read this information from
+    within the local FS (or stdin), whereas controllers will read this
+    information from resources sitting on your management Kubernetes
+    cluster.
 * Operating System agnostic
 
 # Non-goals

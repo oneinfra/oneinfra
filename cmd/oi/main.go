@@ -211,7 +211,7 @@ func main() {
 							&cli.StringFlag{
 								Name:     "role",
 								Required: true,
-								Usage:    "role of the component (controlplane, controlplane-ingress)",
+								Usage:    "role of the component (control-plane, control-plane-ingress)",
 							},
 						},
 						Action: func(c *cli.Context) error {

@@ -45,10 +45,10 @@ func Inject(componentName, clusterName, role string) error {
 	var injectedComponentRole component.Role
 	var hypervisorList infra.HypervisorList
 	switch role {
-	case "controlplane":
+	case "control-plane":
 		injectedComponentRole = component.ControlPlaneRole
 		hypervisorList = hypervisors.PrivateList()
-	case "controlplane-ingress":
+	case "control-plane-ingress":
 		injectedComponentRole = component.ControlPlaneIngressRole
 		hypervisorList = hypervisors.PublicList()
 	default:

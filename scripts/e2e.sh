@@ -44,10 +44,10 @@ APISERVER_EXTRA_SANS="$(docker ps -q | xargs docker inspect -f '{{ .NetworkSetti
 echo "Reconciling infrastructure"
 cat ${CLUSTER_CONF} | \
     oi cluster inject --name "${CLUSTER_NAME}" --kubernetes-version "${KUBERNETES_VERSION}" ${APISERVER_EXTRA_SANS} | \
-    oi component inject --name controlplane1 --cluster "${CLUSTER_NAME}" --role controlplane | \
-    oi component inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role controlplane | \
-    oi component inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role controlplane | \
-    oi component inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role controlplane-ingress | \
+    oi component inject --name controlplane1 --cluster "${CLUSTER_NAME}" --role control-plane | \
+    oi component inject --name controlplane2 --cluster "${CLUSTER_NAME}" --role control-plane | \
+    oi component inject --name controlplane3 --cluster "${CLUSTER_NAME}" --role control-plane | \
+    oi component inject --name loadbalancer --cluster "${CLUSTER_NAME}" --role control-plane-ingress | \
     oi reconcile -v 2 > ${RECONCILED_CLUSTER_CONF}
 
 mv ${RECONCILED_CLUSTER_CONF} ${CLUSTER_CONF}

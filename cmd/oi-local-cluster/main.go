@@ -77,12 +77,13 @@ func main() {
 						Usage: "retrieves a test cluster endpoint",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:  "name",
-								Usage: "test cluster name",
+								Name:     "cluster",
+								Required: true,
+								Usage:    "test cluster name",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Endpoint(c.String("name"))
+							return cluster.Endpoint(c.String("cluster"))
 						},
 					},
 					{
@@ -90,13 +91,13 @@ func main() {
 						Usage: "destroy a test cluster",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:  "name",
+								Name:  "cluster",
 								Value: "test",
 								Usage: "test cluster name",
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.Destroy(c.String("name"))
+							return cluster.Destroy(c.String("cluster"))
 						},
 					},
 				},

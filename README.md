@@ -21,27 +21,37 @@ $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
 This should have installed the following binaries:
 
 * `oi-local-cluster`: allows you to test `oneinfra` locally in your
-  machine, with docker containers as hypervisors.
+  machine, creating Docker containers as hypervisors.
 
-* `oi`: CLI tool that allows you to discover `oneinfra`.
+* `oi`: CLI tool that allows you to test `oneinfra` locally in a
+  standalone way, without requiring Kubernetes to store your
+  manifests.
 
 * `oi-manager`: Kubernetes set of controllers that reconcile your
   `oneinfra` defined clusters.
 
-## Quick start with Docker
 
-You can create hypervisors in your machine with docker. Each docker
-container will resemble a physical or virtual hypervisor in your
-infrastructure.
+## Quick start
+
+## With Kubernetes as a management cluster
+
+WIP
+
+
+## Without Kubernetes
+
+If you don't want to deploy Kubernetes to test `oneinfra`, you can try
+the `oi` CLI tool that will allow you to test the reconciliation
+processes of `oneinfra` without the need of a Kubernetes cluster.
 
 ```
 $ mkdir ~/.kube
 $ oi-local-cluster cluster create | \
     oi cluster inject --name cluster | \
-    oi component inject --name controlplane1 --cluster cluster --role controlplane | \
-    oi component inject --name controlplane2 --cluster cluster --role controlplane | \
-    oi component inject --name controlplane3 --cluster cluster --role controlplane | \
-    oi component inject --name loadbalancer --cluster cluster --role controlplane-ingress | \
+    oi component inject --name controlplane1 --cluster cluster --role control-plane | \
+    oi component inject --name controlplane2 --cluster cluster --role control-plane | \
+    oi component inject --name controlplane3 --cluster cluster --role control-plane | \
+    oi component inject --name loadbalancer --cluster cluster --role control-plane-ingress | \
     oi reconcile | \
     tee cluster.conf | \
     oi cluster admin-kubeconfig --cluster cluster > ~/.kube/config

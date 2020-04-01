@@ -20,7 +20,7 @@ package constants
 
 const (
 	// RawReleaseData represents the supported versions for this release
-	RawReleaseData = `version: 0.0.1
+	RawReleaseData = `version: 20.04.0-alpha1
 defaultKubernetesVersion: 1.18.0
 kubernetesVersions:
 - kubernetesVersion: 1.17.4

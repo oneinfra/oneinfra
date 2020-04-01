@@ -38,7 +38,6 @@ echo "creating new join token"
 JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
 NODENAME=$(echo ${CONTAINER_ID} | head -c 10)
 
-# Reconcile join tokens
 echo "reconciling join tokens"
 cat "${CLUSTER_CONF}.new" | oi reconcile > ${CLUSTER_CONF} 2> /dev/null
 
@@ -55,7 +54,6 @@ do
 done
 echo
 
-# Reconcile node join requests
 echo "reconciling node join requests"
 cat ${CLUSTER_CONF} | oi reconcile > "${CLUSTER_CONF}.new" 2> /dev/null
 mv "${CLUSTER_CONF}.new" ${CLUSTER_CONF}

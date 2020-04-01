@@ -76,7 +76,7 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPub
 	if err := writeKubeletCertificate(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
-	if err := installKubelet(nodeJoinRequest); err != nil {
+	if err := installKubelet(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
 	if err := setupSystemd(nodeJoinRequest); err != nil {
@@ -226,11 +226,15 @@ func writeKubeletCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, 
 	return ioutil.WriteFile(constants.KubeletServerPrivateKeyPath, []byte(privateKey), 0600)
 }
 
-func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	kubernetesVersion, err := decrypt(symmetricKey, nodeJoinRequest.KubernetesVersion)
+	if err != nil {
+		return err
+	}
 	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ImageServiceEndpoint)
 	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ContainerRuntimeEndpoint)
-	err := hypervisorImageEndpoint.EnsureImage(
-		fmt.Sprintf(kubeletInstallerImage, nodeJoinRequest.KubernetesVersion),
+	err = hypervisorImageEndpoint.EnsureImage(
+		fmt.Sprintf(kubeletInstallerImage, kubernetesVersion),
 	)
 	if err != nil {
 		return err
@@ -240,7 +244,7 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 		Containers: []podapi.Container{
 			{
 				Name:  "kubelet-installer",
-				Image: fmt.Sprintf(kubeletInstallerImage, nodeJoinRequest.KubernetesVersion),
+				Image: fmt.Sprintf(kubeletInstallerImage, kubernetesVersion),
 				Mounts: map[string]string{
 					"/usr/local/bin": "/host",
 				},

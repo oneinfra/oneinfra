@@ -56,7 +56,12 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 		if nodeJoinRequest.HasCondition(nodejoinrequests.Issued) {
 			continue
 		}
-		nodeJoinRequest.KubernetesVersion = cluster.KubernetesVersion
+		kubernetesVersion, err := nodeJoinRequest.Encrypt(cluster.KubernetesVersion)
+		if err != nil {
+			klog.Errorf("cannot set the Kubernetes version for node join request %q: %v", nodeJoinRequest.Name, err)
+			continue
+		}
+		nodeJoinRequest.KubernetesVersion = kubernetesVersion
 		vpnPeer, err := cluster.GenerateVPNPeer(fmt.Sprintf("worker-%s", nodeJoinRequest.Name))
 		if err != nil {
 			klog.Errorf("cannot request a VPN peer for node join request %q: %v", nodeJoinRequest.Name, err)

@@ -226,7 +226,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:  "inject",
-						Usage: "inject a join token",
+						Usage: "inject a join token; prints resulting manifests in stdout, and the created join token in stderr",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "cluster",

@@ -85,6 +85,7 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPub
 	if err := startKubelet(); err != nil {
 		return err
 	}
+	// TODO: set up wireguard
 	return nil
 }
 

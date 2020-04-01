@@ -56,34 +56,14 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 		if nodeJoinRequest.HasCondition(nodejoinrequests.Issued) {
 			continue
 		}
-		kubernetesVersion, err := nodeJoinRequest.Encrypt(cluster.KubernetesVersion)
-		if err != nil {
-			klog.Errorf("cannot set the Kubernetes version for node join request %q: %v", nodeJoinRequest.Name, err)
+		if err := cluster.fillNodeJoinRequestKubernetesVersion(nodeJoinRequest); err != nil {
+			klog.Errorf("cannot fill Kubernetes version for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue
 		}
-		nodeJoinRequest.KubernetesVersion = kubernetesVersion
-		vpnPeer, err := cluster.GenerateVPNPeer(fmt.Sprintf("worker-%s", nodeJoinRequest.Name))
-		if err != nil {
-			klog.Errorf("cannot request a VPN peer for node join request %q: %v", nodeJoinRequest.Name, err)
+		if err := cluster.fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest); err != nil {
+			klog.Errorf("cannot fill VPN address and peers for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue
 		}
-		vpnAddress, err := nodeJoinRequest.Encrypt(vpnPeer.Address)
-		if err != nil {
-			klog.Errorf("cannot encrypt VPN peer address for cluster %q", cluster.Name)
-			continue
-		}
-		nodeJoinRequest.VPNAddress = vpnAddress
-		ingressVPNPeerRaw, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
-		if !exists {
-			klog.Errorf("cannot find ingress VPN peer name for cluster %q", cluster.Name)
-			continue
-		}
-		ingressVPNPeer, err := nodeJoinRequest.Encrypt(ingressVPNPeerRaw.Address)
-		if err != nil {
-			klog.Errorf("cannot encrypt ingress VPN peer address for cluster %q", cluster.Name)
-			continue
-		}
-		nodeJoinRequest.VPNPeer = ingressVPNPeer
 		if err := cluster.fillNodeJoinRequestKubeConfig(nodeJoinRequest); err != nil {
 			klog.Errorf("cannot fill kubeconfig for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue
@@ -114,6 +94,37 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			klog.Errorf("cannot update node join request status %q: %v", nodeJoinRequest.Name, err)
 		}
 	}
+	return nil
+}
+
+func (cluster *Cluster) fillNodeJoinRequestKubernetesVersion(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	kubernetesVersion, err := nodeJoinRequest.Encrypt(cluster.KubernetesVersion)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.KubernetesVersion = kubernetesVersion
+	return nil
+}
+
+func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	vpnPeer, err := cluster.GenerateVPNPeer(fmt.Sprintf("worker-%s", nodeJoinRequest.Name))
+	if err != nil {
+		return err
+	}
+	vpnAddress, err := nodeJoinRequest.Encrypt(vpnPeer.Address)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPNAddress = vpnAddress
+	ingressVPNPeerRaw, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
+	if !exists {
+		return err
+	}
+	ingressVPNPeer, err := nodeJoinRequest.Encrypt(ingressVPNPeerRaw.Address)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPNPeer = ingressVPNPeer
 	return nil
 }
 

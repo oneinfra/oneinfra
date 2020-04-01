@@ -54,15 +54,21 @@ func NewPrivateKey(keyBitSize int) (*KeyPair, error) {
 		return nil, err
 	}
 	publicKeyPEM := new(bytes.Buffer)
-	pem.Encode(publicKeyPEM, &pem.Block{
+	err = pem.Encode(publicKeyPEM, &pem.Block{
 		Type:  "PUBLIC KEY",
 		Bytes: publicKey,
 	})
+	if err != nil {
+		return nil, err
+	}
 	privateKeyPEM := new(bytes.Buffer)
-	pem.Encode(privateKeyPEM, &pem.Block{
+	err = pem.Encode(privateKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
 	})
+	if err != nil {
+		return nil, err
+	}
 	return &KeyPair{
 		PublicKey:  publicKeyPEM.String(),
 		PrivateKey: privateKeyPEM.String(),

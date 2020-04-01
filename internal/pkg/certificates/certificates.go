@@ -76,10 +76,13 @@ func NewCertificateAuthority(authorityName string) (*Certificate, error) {
 		return nil, err
 	}
 	caPEM := new(bytes.Buffer)
-	pem.Encode(caPEM, &pem.Block{
+	err = pem.Encode(caPEM, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: caCertificateBytes,
 	})
+	if err != nil {
+		return nil, err
+	}
 	return &Certificate{
 		Certificate: caPEM.String(),
 		PrivateKey:  privateKey.PrivateKey,
@@ -183,14 +186,20 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 		return "", "", err
 	}
 	certificatePEM := new(bytes.Buffer)
-	pem.Encode(certificatePEM, &pem.Block{
+	err = pem.Encode(certificatePEM, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: certificateBytes,
 	})
+	if err != nil {
+		return "", "", err
+	}
 	certificatePrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(certificatePrivKeyPEM, &pem.Block{
+	err = pem.Encode(certificatePrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(certificate.privateKey),
 	})
+	if err != nil {
+		return "", "", err
+	}
 	return certificatePEM.String(), certificatePrivKeyPEM.String(), nil
 }

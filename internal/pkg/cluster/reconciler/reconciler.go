@@ -49,6 +49,12 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 	klog.V(1).Info("starting reconciliation process")
 	reconcileErrors := ReconcileErrors{}
+	for clusterName, cluster := range clusterReconciler.ClusterMap {
+		if err := cluster.ReconcileMinimalVPNPeers(); err != nil {
+			klog.Errorf("failed to reconcile minimal VPN peers for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile minimal VPN peers"))
+		}
+	}
 	for _, componentObj := range clusterReconciler.ComponentList {
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{

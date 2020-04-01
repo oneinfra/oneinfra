@@ -24,10 +24,10 @@ spec:
     spec:
       containers:
       - command:
-        - /manager
+        - /oi-manager
         args:
         - --enable-leader-election
-        image: controller:latest
+        image: oneinfra/oi-manager:20.04.0-alpha1
         name: manager
         resources:
           limits:

@@ -36,8 +36,16 @@ This should have installed the following binaries:
 
 ## With Kubernetes as a management cluster
 
-WIP
+Install `kind` in order to try `oneinfra` easily. You can apply the
+same concepts on any other conformant Kubernetes cluster.
 
+```
+$ kind create cluster
+$ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
+$ kubectl apply -k config/default
+$ oi-local-cluster cluster create --remote | kubectl apply -f -
+$ kubectl apply -f config/samples/ha-cluster.yaml
+```
 
 ## Without Kubernetes
 

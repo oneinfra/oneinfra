@@ -20,6 +20,7 @@ import (
 	"net"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 // VPNPeer represents a VPN peer
@@ -75,4 +76,10 @@ func (vpnPeerMap VPNPeerMap) Export() []clusterv1alpha1.VPNPeer {
 		})
 	}
 	return res
+}
+
+// ReconcileMinimalVPNPeers reconciles a minimal list of VPN peers
+func (cluster *Cluster) ReconcileMinimalVPNPeers() error {
+	_, err := cluster.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName)
+	return err
 }

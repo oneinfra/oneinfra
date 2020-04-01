@@ -83,9 +83,6 @@ func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSA
 	if err := res.generateCertificateAuthorities(apiServerExtraSANs); err != nil {
 		return nil, err
 	}
-	if _, err := res.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName); err != nil {
-		return nil, err
-	}
 	return &res, nil
 }
 

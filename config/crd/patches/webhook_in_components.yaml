@@ -5,6 +5,7 @@ kind: CustomResourceDefinition
 metadata:
   name: components.cluster.oneinfra.ereslibre.es
 spec:
+  preserveUnknownFields: false
   conversion:
     strategy: Webhook
     webhookClientConfig:

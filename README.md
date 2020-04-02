@@ -13,6 +13,8 @@
 |------------------|-------------------|-------------------|----------------------------|
 | 20.04.0-alpha1   | ✔                 | ✔                 | 1.18.0                     |
 
+You can find a detailed description of the supported versions [in the
+RELEASE file](https://github.com/oneinfra/oneinfra/blob/master/RELEASE).
 
 ## Go install
 

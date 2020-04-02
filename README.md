@@ -1,6 +1,6 @@
 # oneinfra
 
-`oneinfra` is a Kubernetes as a Service platform, or KaaS.
+`oneinfra` is a Kubernetes as a Service platform.
 
 You can [read more about its design here](docs/DESIGN.md).
 
@@ -81,7 +81,7 @@ $ oi-local-cluster cluster create | \
     oi component inject --name controlplane3 --role control-plane | \
     oi component inject --name loadbalancer --role control-plane-ingress | \
     oi reconcile | \
-    tee cluster.conf | \
+    tee cluster.conf |  # so you can inspect the cluster.conf afterwards :-) \
     oi cluster admin-kubeconfig > ~/.kube/config
 ```
 
@@ -91,19 +91,6 @@ And access it:
 $ kubectl cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
-
-This will have created a Kubernetes cluster named `cluster`, formed by
-three control plane instances, with an `haproxy` instance in front of
-them.
-
-Note: this setup is passive, in the sense that when you run `oi
-reconcile` a single reconciliation pass will take place, and the
-process will exit. `oneinfra` in this case **will not** be running as
-a daemon, and is provided as a simple way of testing `oneinfra`, not
-intended to be used for production purposes.
-
-If you are interested in using `oneinfra` in production, please deploy
-it on top of a Kubernetes cluster and use the operator mode.
 
 
 ## License

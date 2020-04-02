@@ -42,6 +42,12 @@ func Inject(componentName, clusterName, role string) error {
 	clusters := manifests.RetrieveClusters(string(stdin))
 	components := manifests.RetrieveComponents(string(stdin))
 
+	if clusterName == "" && len(clusters) == 1 {
+		for clusterNameFromManifest := range clusters {
+			clusterName = clusterNameFromManifest
+		}
+	}
+
 	var injectedComponentRole component.Role
 	var hypervisorList infra.HypervisorList
 	switch role {

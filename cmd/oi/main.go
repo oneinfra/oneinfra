@@ -80,7 +80,7 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:  "cluster",
-								Usage: "cluster name",
+								Usage: "cluster name (can be omitted if stdin has only one cluster resource)",
 							},
 						},
 						Action: func(c *cli.Context) error {
@@ -203,9 +203,8 @@ func main() {
 								Usage:    "component name",
 							},
 							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "cluster",
+								Usage: "cluster name (can be omitted if stdin has only one cluster resource)",
 							},
 							&cli.StringFlag{
 								Name:     "role",

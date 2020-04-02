@@ -32,6 +32,7 @@ This should have installed the following binaries:
 
 ## Quick start
 
+
 ### With Kubernetes as a management cluster
 
 Install `kind` in order to try `oneinfra` easily. You can apply the
@@ -61,8 +62,9 @@ And access it:
 
 ```
 $ kubectl --kubeconfig=simple-cluster.conf cluster-info
-Kubernetes master is running at https://127.0.0.1:30000
+Kubernetes master is running at https://172.17.0.5:30000
 ```
+
 
 ### Without Kubernetes
 
@@ -74,20 +76,20 @@ processes of `oneinfra` without the need of a Kubernetes cluster.
 $ mkdir ~/.kube
 $ oi-local-cluster cluster create | \
     oi cluster inject --name cluster | \
-    oi component inject --name controlplane1 --cluster cluster --role control-plane | \
-    oi component inject --name controlplane2 --cluster cluster --role control-plane | \
-    oi component inject --name controlplane3 --cluster cluster --role control-plane | \
-    oi component inject --name loadbalancer --cluster cluster --role control-plane-ingress | \
+    oi component inject --name controlplane1 --role control-plane | \
+    oi component inject --name controlplane2 --role control-plane | \
+    oi component inject --name controlplane3 --role control-plane | \
+    oi component inject --name loadbalancer --role control-plane-ingress | \
     oi reconcile | \
     tee cluster.conf | \
-    oi cluster admin-kubeconfig --cluster cluster > ~/.kube/config
+    oi cluster admin-kubeconfig > ~/.kube/config
 ```
 
 And access it:
 
 ```
 $ kubectl cluster-info
-Kubernetes master is running at https://127.0.0.1:30000
+Kubernetes master is running at https://172.17.0.4:30000
 ```
 
 This will have created a Kubernetes cluster named `cluster`, formed by

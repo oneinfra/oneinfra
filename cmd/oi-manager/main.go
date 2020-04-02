@@ -19,14 +19,16 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	clustercontroller "github.com/oneinfra/oneinfra/controllers/cluster"
+	"github.com/oneinfra/oneinfra/controllers"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
@@ -51,15 +53,22 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var verbosityLevel int
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.IntVar(&verbosityLevel, "verbosity", 1, "The verbosity level for the controller manager.")
+	flag.Set("alsologtostderr", "true")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(func(o *zap.Options) {
 		o.Development = true
 	}))
+
+	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
+	klog.InitFlags(klogFlags)
+	klogFlags.Set("v", strconv.Itoa(verbosityLevel))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -68,31 +77,36 @@ func main() {
 		Port:               9443,
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		klog.Error("could not set up controller manager")
 		os.Exit(1)
 	}
 
-	if err = (&clustercontroller.ComponentReconciler{
+	if err = (&controllers.ComponentScheduler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Component"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Component")
+		klog.Error("could not set component scheduler controller")
+		os.Exit(1)
+	}
+	if err = (&controllers.ClusterReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error("could not set cluster reconciler controller")
 		os.Exit(1)
 	}
 	if err = (&clusterv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
+		klog.Error("could not set up cluster webhook")
 		os.Exit(1)
 	}
 	if err = (&clusterv1alpha1.Component{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Component")
+		klog.Error("could not set up component webhook")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
 
-	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+		klog.Error("error starting controller manager")
 		os.Exit(1)
 	}
 }

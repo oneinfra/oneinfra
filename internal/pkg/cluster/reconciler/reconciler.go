@@ -42,6 +42,32 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap cluster.
 	}
 }
 
+// IsComponentScheduled returns whether this component is scheduled to
+// an existing hypervisor
+func (clusterReconciler *ClusterReconciler) IsComponentScheduled(component *component.Component) bool {
+	if component.HypervisorName == "" {
+		return false
+	}
+	_, exists := clusterReconciler.HypervisorMap[component.HypervisorName]
+	return exists
+}
+
+// IsClusterFullyScheduled returns whether all components assigned to
+// this cluster are scheduled
+func (clusterReconciler *ClusterReconciler) IsClusterFullyScheduled(cluster *cluster.Cluster) bool {
+	hasComponents := false
+	for _, component := range clusterReconciler.ComponentList {
+		if component.ClusterName != cluster.Name {
+			continue
+		}
+		hasComponents = true
+		if !clusterReconciler.IsComponentScheduled(component) {
+			return false
+		}
+	}
+	return hasComponents
+}
+
 // Reconcile reconciles all components known to this cluster
 // reconciler. If nothing failed, it will return nil, otherwise a
 // ReconcileErrors object will be returned specifying what
@@ -50,12 +76,20 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 	klog.V(1).Info("starting reconciliation process")
 	reconcileErrors := ReconcileErrors{}
 	for clusterName, cluster := range clusterReconciler.ClusterMap {
+		if !clusterReconciler.IsClusterFullyScheduled(cluster) {
+			klog.Infof("cluster %q is not fully scheduled; skipping", clusterName)
+			continue
+		}
 		if err := cluster.ReconcileMinimalVPNPeers(); err != nil {
 			klog.Errorf("failed to reconcile minimal VPN peers for cluster %q: %v", clusterName, err)
 			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile minimal VPN peers"))
 		}
 	}
 	for _, componentObj := range clusterReconciler.ComponentList {
+		if !clusterReconciler.IsComponentScheduled(componentObj) {
+			klog.Infof("component %q is not scheduled; skipping", componentObj.Name)
+			continue
+		}
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
 				component:         componentObj,
@@ -68,6 +102,10 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 		}
 	}
 	for clusterName, cluster := range clusterReconciler.ClusterMap {
+		if !clusterReconciler.IsClusterFullyScheduled(cluster) {
+			klog.Infof("cluster %q is not fully scheduled; skipping", clusterName)
+			continue
+		}
 		if err := cluster.ReconcileCustomResourceDefinitions(); err != nil {
 			klog.Errorf("failed to reconcile custom resource definitions for cluster %q: %v", clusterName, err)
 			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile custom resource definitions"))

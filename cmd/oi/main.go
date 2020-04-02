@@ -79,9 +79,8 @@ func main() {
 						Usage: "generate an admin kubeconfig file for the cluster",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "cluster",
+								Usage: "cluster name",
 							},
 						},
 						Action: func(c *cli.Context) error {

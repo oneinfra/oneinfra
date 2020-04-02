@@ -35,7 +35,7 @@ func AdminKubeConfig(clusterName string) error {
 	clusters := manifests.RetrieveClusters(string(stdin))
 
 	if clusterName == "" && len(clusters) == 1 {
-		for clusterNameFromManifest, _ := range clusters {
+		for clusterNameFromManifest := range clusters {
 			clusterName = clusterNameFromManifest
 		}
 	}

@@ -2,8 +2,6 @@
 
 `oneinfra` is a Kubernetes as a Service platform, or KaaS.
 
-It features a declarative infrastructure definition.
-
 You can [read more about its design here](docs/DESIGN.md).
 
 | Go Report                                                                                                                                      | Travis                                                                                                             | CircleCI                                                                                                             | Azure Test                                                                                                                                                                                    | Azure Release                                                                                                                                                                                       | License                                                                                                                              |
@@ -34,20 +32,39 @@ This should have installed the following binaries:
 
 ## Quick start
 
-## With Kubernetes as a management cluster
+### With Kubernetes as a management cluster
 
 Install `kind` in order to try `oneinfra` easily. You can apply the
-same concepts on any other conformant Kubernetes cluster.
+same concepts to any other conformant Kubernetes cluster.
 
 ```
 $ kind create cluster
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
-$ kubectl apply -k config/default
+$ kubectl wait --for=condition=available deployment -l app.kubernetes.io/instance=cert-manager -n cert-manager
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
 $ oi-local-cluster cluster create --remote | kubectl apply -f -
-$ kubectl apply -f config/samples/ha-cluster.yaml
 ```
 
-## Without Kubernetes
+Now, create a cluster:
+
+```
+$ kubectl apply -f config/samples/simple-cluster.yaml
+```
+
+Wait for it to be reconciled and generate an administrative kubeconfig file for it:
+
+```
+$ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
+```
+
+And access it:
+
+```
+$ kubectl --kubeconfig=simple-cluster.conf cluster-info
+Kubernetes master is running at https://127.0.0.1:30000
+```
+
+### Without Kubernetes
 
 If you don't want to deploy Kubernetes to test `oneinfra`, you can try
 the `oi` CLI tool that will allow you to test the reconciliation

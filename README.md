@@ -48,7 +48,7 @@ $ oi-local-cluster cluster create --remote | kubectl apply -f -
 Now, create a cluster:
 
 ```
-$ kubectl apply -f config/samples/simple-cluster.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/samples/simple-cluster.yaml
 ```
 
 Wait for it to be reconciled and generate an administrative kubeconfig file for it:

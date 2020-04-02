@@ -1,0 +1,780 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: oneinfra-system
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+    controller-gen.kubebuilder.io/version: (devel)
+  creationTimestamp: null
+  name: clusters.cluster.oneinfra.ereslibre.es
+spec:
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: Cg==
+      service:
+        name: oneinfra-webhook-service
+        namespace: oneinfra-system
+        path: /convert
+  group: cluster.oneinfra.ereslibre.es
+  names:
+    kind: Cluster
+    listKind: ClusterList
+    plural: clusters
+    singular: cluster
+  preserveUnknownFields: false
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Cluster is the Schema for the clusters API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ClusterSpec defines the desired state of Cluster
+          properties:
+            apiServer:
+              description: KubeAPIServer represents a kube apiserver
+              properties:
+                ca:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                extraSANs:
+                  items:
+                    type: string
+                  type: array
+                serviceAccount:
+                  description: KeyPair represents a public/private key pair
+                  properties:
+                    privateKey:
+                      type: string
+                    publicKey:
+                      type: string
+                  type: object
+              type: object
+            certificateAuthorities:
+              description: CertificateAuthorities represents a set of Certificate
+                Authorities
+              properties:
+                apiServerClient:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                certificateSigner:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                etcdClient:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                etcdPeer:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                kubelet:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+              type: object
+            etcdServer:
+              description: EtcdServer represents an etcd server
+              properties:
+                ca:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+              type: object
+            joinKey:
+              description: KeyPair represents a public/private key pair
+              properties:
+                privateKey:
+                  type: string
+                publicKey:
+                  type: string
+              type: object
+            joinTokens:
+              items:
+                type: string
+              type: array
+            kubernetesVersion:
+              type: string
+            vpnCIDR:
+              type: string
+          type: object
+        status:
+          description: ClusterStatus defines the observed state of Cluster
+          properties:
+            apiServerEndpoint:
+              type: string
+            joinTokens:
+              items:
+                type: string
+              type: array
+            storageClientEndpoints:
+              items:
+                type: string
+              type: array
+            storagePeerEndpoints:
+              items:
+                type: string
+              type: array
+            vpnPeers:
+              items:
+                description: VPNPeer represents a VPN peer
+                properties:
+                  address:
+                    type: string
+                  name:
+                    type: string
+                  privateKey:
+                    type: string
+                  publicKey:
+                    type: string
+                type: object
+              type: array
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+    controller-gen.kubebuilder.io/version: (devel)
+  creationTimestamp: null
+  name: components.cluster.oneinfra.ereslibre.es
+spec:
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: Cg==
+      service:
+        name: oneinfra-webhook-service
+        namespace: oneinfra-system
+        path: /convert
+  group: cluster.oneinfra.ereslibre.es
+  names:
+    kind: Component
+    listKind: ComponentList
+    plural: components
+    singular: component
+  preserveUnknownFields: false
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Component is the Schema for the components API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ComponentSpec defines the desired state of Component
+          properties:
+            cluster:
+              type: string
+            hypervisor:
+              type: string
+            role:
+              description: Role defines the role of this component
+              type: string
+          type: object
+        status:
+          description: ComponentStatus defines the observed state of Component
+          properties:
+            allocatedHostPorts:
+              items:
+                description: ComponentHostPortAllocation represents a port allocation
+                  in a component
+                properties:
+                  name:
+                    type: string
+                  port:
+                    type: integer
+                type: object
+              type: array
+            clientCertificates:
+              additionalProperties:
+                description: Certificate represents a Certificate
+                properties:
+                  certificate:
+                    type: string
+                  privateKey:
+                    type: string
+                type: object
+              type: object
+            serverCertificates:
+              additionalProperties:
+                description: Certificate represents a Certificate
+                properties:
+                  certificate:
+                    type: string
+                  privateKey:
+                    type: string
+                type: object
+              type: object
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+    controller-gen.kubebuilder.io/version: (devel)
+  creationTimestamp: null
+  name: hypervisors.infra.oneinfra.ereslibre.es
+spec:
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: Cg==
+      service:
+        name: oneinfra-webhook-service
+        namespace: oneinfra-system
+        path: /convert
+  group: infra.oneinfra.ereslibre.es
+  names:
+    kind: Hypervisor
+    listKind: HypervisorList
+    plural: hypervisors
+    singular: hypervisor
+  preserveUnknownFields: false
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Hypervisor is the Schema for the hypervisors API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: HypervisorSpec defines the desired state of Hypervisor
+          properties:
+            ipAddress:
+              type: string
+            localCRIEndpoint:
+              description: LocalHypervisorCRIEndpoint represents a local hypervisor
+                CRI endpoint (unix socket)
+              properties:
+                criEndpointPath:
+                  type: string
+              type: object
+            portRange:
+              description: HypervisorPortRange represents a port range
+              properties:
+                high:
+                  type: integer
+                low:
+                  type: integer
+              type: object
+            public:
+              type: boolean
+            remoteCRIEndpoint:
+              description: RemoteHypervisorCRIEndpoint represents a remote hypervisor
+                CRI endpoint (tcp with client certificate authentication)
+              properties:
+                caCertificate:
+                  type: string
+                clientCertificate:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      type: string
+                    privateKey:
+                      type: string
+                  type: object
+                criEndpointURI:
+                  type: string
+              type: object
+          required:
+          - public
+          type: object
+        status:
+          description: HypervisorStatus defines the observed state of Hypervisor
+          properties:
+            allocatedPorts:
+              items:
+                description: HypervisorPortAllocation represents a port allocation
+                  in an hypervisor
+                properties:
+                  cluster:
+                    type: string
+                  component:
+                    type: string
+                  port:
+                    type: integer
+                type: object
+              type: array
+            files:
+              additionalProperties:
+                type: string
+              type: object
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+  creationTimestamp: null
+  name: oneinfra-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster
+  failurePolicy: Fail
+  name: mcluster.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-component
+  failurePolicy: Fail
+  name: mcomponent.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - components
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: oneinfra-leader-election-role
+  namespace: oneinfra-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: oneinfra-manager-role
+rules:
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - clusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - clusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - components
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cluster.oneinfra.ereslibre.es
+  resources:
+  - components/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infra.oneinfra.ereslibre.es
+  resources:
+  - hypervisors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infra.oneinfra.ereslibre.es
+  resources:
+  - hypervisors/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: oneinfra-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: oneinfra-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: oneinfra-leader-election-rolebinding
+  namespace: oneinfra-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: oneinfra-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: oneinfra-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: oneinfra-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: oneinfra-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: oneinfra-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: oneinfra-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: oneinfra-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: oneinfra-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: oneinfra-controller-manager-metrics-service
+  namespace: oneinfra-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oneinfra-webhook-service
+  namespace: oneinfra-system
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: oneinfra-controller-manager
+  namespace: oneinfra-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.1
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      - args:
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command:
+        - /oi-manager
+        image: oneinfra/oi-manager:20.04.0-alpha1
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: oneinfra-serving-cert
+  namespace: oneinfra-system
+spec:
+  dnsNames:
+  - oneinfra-webhook-service.oneinfra-system.svc
+  - oneinfra-webhook-service.oneinfra-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: oneinfra-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: oneinfra-selfsigned-issuer
+  namespace: oneinfra-system
+spec:
+  selfSigned: {}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+  creationTimestamp: null
+  name: oneinfra-validating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /validate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster
+  failurePolicy: Fail
+  name: vcluster.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+- clientConfig:
+    caBundle: Cg==
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /validate-cluster-oneinfra-ereslibre-es-v1alpha1-component
+  failurePolicy: Fail
+  name: vcomponent.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - components

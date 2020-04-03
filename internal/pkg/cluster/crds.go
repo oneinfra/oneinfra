@@ -19,10 +19,14 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	extensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	versionapi "k8s.io/apimachinery/pkg/util/version"
 	"sigs.k8s.io/yaml"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
@@ -33,6 +37,17 @@ func (cluster *Cluster) ReconcileCustomResourceDefinitions() error {
 	client, err := cluster.KubernetesExtensionsClient()
 	if err != nil {
 		return err
+	}
+	version, err := versionapi.ParseSemantic(cluster.KubernetesVersion)
+	if err != nil {
+		return errors.Wrapf(err, "could not parse version %q", cluster.KubernetesVersion)
+	}
+	versionCompare, err := version.Compare("1.16.0")
+	if err != nil {
+		return err
+	}
+	if versionCompare < 0 {
+		return cluster.reconcileNodeJoinRequestsCRDLegacy(client)
 	}
 	return cluster.reconcileNodeJoinRequestsCRD(client)
 }
@@ -61,14 +76,50 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRD(client apiextensionsclients
 					Name:    nodev1alpha1.GroupVersion.Version,
 					Served:  true,
 					Storage: true,
-					Subresources: &extensionsv1.CustomResourceSubresources{
-						Status: &extensionsv1.CustomResourceSubresourceStatus{},
-					},
 					Schema: &extensionsv1.CustomResourceValidation{
 						OpenAPIV3Schema: &openAPISchema,
 					},
+					Subresources: &extensionsv1.CustomResourceSubresources{
+						Status: &extensionsv1.CustomResourceSubresourceStatus{},
+					},
 				},
 			},
+		},
+	})
+	if err != nil && apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
+}
+
+func (cluster *Cluster) reconcileNodeJoinRequestsCRDLegacy(client apiextensionsclientset.Interface) error {
+	openAPISchema := extensionsv1beta1.JSONSchemaProps{}
+	if err := yaml.Unmarshal([]byte(nodev1alpha1.NodeJoinRequestOpenAPISchema), &openAPISchema); err != nil {
+		return err
+	}
+	falseVar := false
+	_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Create(&extensionsv1beta1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("nodejoinrequests.%s", nodev1alpha1.GroupVersion.Group),
+		},
+		Spec: extensionsv1beta1.CustomResourceDefinitionSpec{
+			Group:   nodev1alpha1.GroupVersion.Group,
+			Version: nodev1alpha1.GroupVersion.Version,
+			Names: extensionsv1beta1.CustomResourceDefinitionNames{
+				Plural:     "nodejoinrequests",
+				Singular:   "nodejoinrequest",
+				ShortNames: []string{"njr", "njrs"},
+				Kind:       "NodeJoinRequest",
+				ListKind:   "NodeJoinRequestList",
+			},
+			Scope: extensionsv1beta1.NamespaceScoped,
+			Validation: &extensionsv1beta1.CustomResourceValidation{
+				OpenAPIV3Schema: &openAPISchema,
+			},
+			Subresources: &extensionsv1beta1.CustomResourceSubresources{
+				Status: &extensionsv1beta1.CustomResourceSubresourceStatus{},
+			},
+			PreserveUnknownFields: &falseVar,
 		},
 	})
 	if err != nil && apierrors.IsAlreadyExists(err) {

@@ -24,4 +24,4 @@ bin
 *~
 
 # other files
-/cluster.conf
+/*.conf

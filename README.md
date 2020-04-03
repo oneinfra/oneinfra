@@ -1,24 +1,30 @@
-# oneinfra
-
-`oneinfra` is a Kubernetes as a Service platform. You can [read more about its design here](docs/DESIGN.md).
-
 | Go Report                                                                                                                                      | Travis                                                                                                             | CircleCI                                                                                                             | Azure Test                                                                                                                                                                                    | Azure Release                                                                                                                                                                                       | License                                                                                                                              |
 |------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra) | [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=master)](https://travis-ci.org/oneinfra/oneinfra) | [![CircleCI](https://circleci.com/gh/oneinfra/oneinfra.svg?style=shield)](https://circleci.com/gh/oneinfra/oneinfra) | [![Test Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=3&branchName=master) | [![Release Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/release?branchName=master)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=4&branchName=master) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)|
 
+# oneinfra
+
+`oneinfra` is a Kubernetes as a Service platform.
+
+You can [read more about its design here](docs/DESIGN.md).
+
 
 ## Kubernetes versions
 
-| oneinfra version | Kubernetes 1.17.4 | Kubernetes 1.18.0 | Default Kubernetes Version |
-|------------------|-------------------|-------------------|----------------------------|
-| 20.04.0-alpha1   | ✔                 | ✔                 | 1.18.0                     |
+When you create a Kubernetes cluster using `oneinfra` you can choose
+what Kubernetes version you want to deploy.
+
+| oneinfra       | 1.15.11 | 1.16.8 | 1.17.4 | 1.18.0 | 1.19.0-alpha.1 | Default |
+|----------------|---------|--------|--------|--------|----------------|---------|
+| 20.04.0-alpha1 | ✔       | ✔      | ✔      | ✔      | ✔              | 1.18.0  |
 
 You can find a detailed description of the supported versions [in the
 RELEASE file](https://github.com/oneinfra/oneinfra/blob/master/RELEASE).
 
+
 ## Go install
 
-Build has been tested with Go 1.13 and 1.14.
+Build has been tested with go versions 1.13 and 1.14.
 
 ```
 $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
@@ -30,15 +36,13 @@ This should have installed the following binaries:
   machine, creating Docker containers as hypervisors.
 
 * `oi`: CLI tool that allows you to test `oneinfra` locally in a
-  standalone way, without requiring Kubernetes to store your
-  manifests.
+  standalone way, without requiring Kubernetes to store manifests.
 
-* `oi-manager`: Kubernetes set of controllers that reconcile your
-  `oneinfra` defined clusters.
+* `oi-manager`: Kubernetes set of controllers that reconcile defined
+  clusters.
 
 
 ## Quick start
-
 
 ### With Kubernetes as a management cluster
 
@@ -82,13 +86,13 @@ processes of `oneinfra` without the need of a Kubernetes cluster.
 ```
 $ mkdir ~/.kube
 $ oi-local-cluster cluster create | \
-    oi cluster inject --name cluster | \
+    oi cluster inject --name simple-cluster | \
     oi component inject --name controlplane1 --role control-plane | \
     oi component inject --name controlplane2 --role control-plane | \
     oi component inject --name controlplane3 --role control-plane | \
     oi component inject --name loadbalancer --role control-plane-ingress | \
     oi reconcile | \
-    tee cluster.conf |  # so you can inspect the cluster.conf afterwards :-) \
+    tee simple-cluster.conf |  # so you can inspect the simple-cluster.conf afterwards :-) \
     oi cluster admin-kubeconfig > ~/.kube/config
 ```
 
@@ -98,6 +102,12 @@ And access it:
 $ kubectl cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
+
+
+## Joining worker nodes to a cluster
+
+You can read more details about the [worker joining process
+here](https://github.com/oneinfra/oneinfra/blob/master/docs/joining-worker-nodes.md).
 
 
 ## License

@@ -9,7 +9,7 @@
 You can [read more about its design here](docs/DESIGN.md).
 
 
-## Kubernetes versions
+## Managed Kubernetes versions
 
 When you create a Kubernetes cluster using `oneinfra` you can choose
 what Kubernetes version you want to deploy.

@@ -40,6 +40,9 @@ oi-local-cluster: go-generate
 oi-releaser: oi
 	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
 
+pipelines: oi-releaser
+	oi-releaser test-pipeline dump > .azure-pipelines/test.yml
+
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
 	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/oi-releaser && go mod vendor'"

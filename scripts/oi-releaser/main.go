@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
 
 	"github.com/urfave/cli/v2"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/scripts/oi-releaser/images"
+	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines"
 )
 
 var (
@@ -56,7 +56,10 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							buildContainerImages(chosenContainerImages(c.StringSlice("images")))
+							images.BuildContainerImages(
+								kubernetesVersions(),
+								chosenContainerImages(c.StringSlice("images")),
+							)
 							return nil
 						},
 					},
@@ -70,8 +73,26 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							publishContainerImages(chosenContainerImages(c.StringSlice("images")))
+							images.PublishContainerImages(
+								kubernetesVersions(),
+								chosenContainerImages(c.StringSlice("images")),
+							)
 							return nil
+						},
+					},
+				},
+			},
+			{
+				Name:  "test-pipeline",
+				Usage: "test pipeline operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "dump",
+						Usage: "dump the test pipeline to stdout",
+						Action: func(c *cli.Context) error {
+							return pipelines.AzureTest(
+								kubernetesVersions(),
+							)
 						},
 					},
 				},
@@ -82,63 +103,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func buildContainerImages(containerImages []string) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("could not read current working directory: %v", err)
-	}
-	kubernetesVersions := kubernetesVersions()
-	for _, containerImage := range containerImages {
-		if err := os.Chdir(filepath.Join(cwd, "images", containerImage)); err != nil {
-			log.Fatalf("could not change directory: %v", err)
-		}
-		for _, kubernetesVersion := range kubernetesVersions {
-			cmd := exec.Command("make", "image")
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			setCmdEnv(cmd, kubernetesVersion)
-			if err := cmd.Run(); err != nil {
-				log.Printf("failed to build %q image: %v", containerImage, err)
-			}
-		}
-	}
-}
-
-func publishContainerImages(containerImages []string) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("could not read current working directory: %v", err)
-	}
-	kubernetesVersions := kubernetesVersions()
-	for _, containerImage := range containerImages {
-		if err := os.Chdir(filepath.Join(cwd, "images", containerImage)); err != nil {
-			log.Fatalf("could not change directory: %v", err)
-		}
-		for _, kubernetesVersion := range kubernetesVersions {
-			cmd := exec.Command("make", "publish")
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			setCmdEnv(cmd, kubernetesVersion)
-			if err := cmd.Run(); err != nil {
-				log.Printf("failed to publish %q image: %v", containerImage, err)
-			}
-		}
-	}
-}
-
-func setCmdEnv(cmd *exec.Cmd, kubernetesVersion constants.KubernetesVersion) {
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, []string{
-		fmt.Sprintf("ONEINFRA_VERSION=%s", constants.ReleaseData.Version),
-		fmt.Sprintf("KUBERNETES_VERSION=%s", kubernetesVersion.KubernetesVersion),
-		fmt.Sprintf("CRI_TOOLS_VERSION=%s", kubernetesVersion.CRIToolsVersion),
-		fmt.Sprintf("CONTAINERD_VERSION=%s", kubernetesVersion.ContainerdVersion),
-		fmt.Sprintf("CNI_PLUGINS_VERSION=%s", kubernetesVersion.CNIPluginsVersion),
-		fmt.Sprintf("ETCD_VERSION=%s", kubernetesVersion.EtcdVersion),
-		fmt.Sprintf("PAUSE_VERSION=%s", kubernetesVersion.PauseVersion),
-	}...)
 }
 
 func kubernetesVersions() []constants.KubernetesVersion {

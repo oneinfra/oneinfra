@@ -28,7 +28,9 @@ will take place:
 
 * `oi` will create a Kubernetes client pointing to the
   `--apiserver-endpoint`, validating its identity with
-  `--apiserver-ca-cert-file`.
+  `--apiserver-ca-cert-file`. This client will authenticate against
+  the API server using the provided join token, having a very locked
+  down set of permissions.
 
 * `oi` will generate a symmetric key, ciphering it with the cluster
   public key provided in the `--join-token-public-key-file` argument.

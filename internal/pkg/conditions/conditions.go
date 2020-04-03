@@ -76,6 +76,17 @@ func (conditionList ConditionList) IsCondition(conditionType ConditionType, cond
 	return false
 }
 
+// DropCondition drops the condition type
+func (conditionList *ConditionList) DropCondition(conditionType ConditionType) {
+	newConditionList := ConditionList{}
+	for _, condition := range *conditionList {
+		if condition.Type != conditionType {
+			newConditionList = append(newConditionList, condition)
+		}
+	}
+	*conditionList = newConditionList
+}
+
 // SetCondition sets the condition type to the condition status
 func (conditionList *ConditionList) SetCondition(conditionType ConditionType, conditionStatus ConditionStatus) {
 	newConditionList := ConditionList{}

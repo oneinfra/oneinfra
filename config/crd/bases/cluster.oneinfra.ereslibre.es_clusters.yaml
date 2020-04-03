@@ -139,6 +139,26 @@ spec:
           properties:
             apiServerEndpoint:
               type: string
+            conditions:
+              description: ConditionList represents a list of conditions
+              items:
+                description: Condition represents a condition
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    description: ConditionStatus represents a condition status
+                    type: string
+                  type:
+                    description: ConditionType represents a condition type
+                    type: string
+                type: object
+              type: array
             joinTokens:
               items:
                 type: string

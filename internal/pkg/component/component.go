@@ -30,6 +30,7 @@ import (
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
@@ -54,6 +55,7 @@ type Component struct {
 	AllocatedHostPorts map[string]int
 	ClientCertificates map[string]*certificates.Certificate
 	ServerCertificates map[string]*certificates.Certificate
+	Conditions         conditions.ConditionList
 	loadedContentsHash string
 }
 
@@ -82,6 +84,7 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 		ResourceVersion: component.ResourceVersion,
 		HypervisorName:  component.Spec.Hypervisor,
 		ClusterName:     component.Spec.Cluster,
+		Conditions:      conditions.NewConditionListFromv1alpha1(component.Status.Conditions),
 	}
 	switch component.Spec.Role {
 	case clusterv1alpha1.ControlPlaneRole:
@@ -186,6 +189,9 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 		Spec: clusterv1alpha1.ComponentSpec{
 			Hypervisor: component.HypervisorName,
 			Cluster:    component.ClusterName,
+		},
+		Status: clusterv1alpha1.ComponentStatus{
+			Conditions: component.Conditions.Export(),
 		},
 	}
 	switch component.Role {

@@ -34,6 +34,7 @@ import (
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
@@ -55,6 +56,7 @@ type Cluster struct {
 	JoinKey                *crypto.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
+	Conditions             conditions.ConditionList
 	clientSet              clientset.Interface
 	extensionsClientSet    apiextensionsclientset.Interface
 	loadedContentsHash     string
@@ -121,6 +123,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		JoinKey:                joinKey,
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
+		Conditions:             conditions.NewConditionListFromv1alpha1(cluster.Status.Conditions),
 	}
 	if err := res.RefreshCachedSpecs(); err != nil {
 		return nil, err
@@ -166,6 +169,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			VPNPeers:               cluster.VPNPeers.Export(),
 			APIServerEndpoint:      cluster.APIServerEndpoint,
 			JoinTokens:             cluster.CurrentJoinTokens,
+			Conditions:             cluster.Conditions.Export(),
 		},
 	}
 }

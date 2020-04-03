@@ -16,13 +16,23 @@ limitations under the License.
 
 package azure
 
+// If you happen to wonder about underscores, have a look at:
+//
+// https://developercommunity.visualstudio.com/content/problem/346122/job-parser-erroneously-treats-yaml-mapping-keys-or.html
+//
+// Azure Pipelines created their own YAML parser that doesn't strictly
+// follow the YAML spec, and thus, requires some fields to be
+// "first". These are the fields you see with underscore in the
+// structs. The final textual YAML file will be post processed to
+// remove the underscores.
+
 type Pipeline struct {
 	Variables map[string]string `json:"variables,omitempty"`
 	Jobs      []Job             `json:"jobs,omitempty"`
 }
 
 type Job struct {
-	Job         string `json:"job,omitempty"`
+	Job         string `json:"_job,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`
 	Pool        Pool   `json:"pool,omitempty"`
 	Steps       []Step `json:"steps,omitempty"`
@@ -33,7 +43,7 @@ type Pool struct {
 }
 
 type Step struct {
-	Bash        string            `json:"bash,omitempty"`
+	Bash        string            `json:"_bash,omitempty"`
 	DisplayName string            `json:"displayName,omitempty"`
 	Env         map[string]string `json:"env,omitempty"`
 }

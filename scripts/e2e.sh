@@ -33,6 +33,9 @@ echo "Creating infrastructure"
 oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" --kubernetes-version "${KUBERNETES_VERSION}" "$@" > ${CLUSTER_CONF}
 docker ps -a
 
+echo "Hypervisor manifests"
+cat ${CLUSTER_CONF}
+
 RECONCILED_CLUSTER_CONF=$(mktemp /tmp/reconciled-cluster-${INFRA_TEST_CLUSTER_NAME}-XXXXXXX.conf)
 
 echo "Reconciling infrastructure"

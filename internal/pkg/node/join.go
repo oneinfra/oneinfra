@@ -37,6 +37,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog"
 
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
@@ -151,7 +152,7 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 			if err != nil {
 				continue
 			}
-			if nodeJoinRequest.HasCondition(nodev1alpha1.Issued) {
+			if nodeJoinRequest.Status.Conditions.IsCondition(nodev1alpha1.Issued, commonv1alpha1.ConditionTrue) {
 				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&nodeJoinRequest, nil)
 				if err != nil {
 					return nil, errors.New("could not convert node join request")

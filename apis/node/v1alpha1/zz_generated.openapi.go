@@ -51,9 +51,24 @@ properties:
     description: NodeJoinRequestStatus defines the observed state of NodeJoinRequest
     properties:
       conditions:
+        description: ConditionList represents a list of conditions
         items:
-          description: Condition represents the node join request conditions
-          type: string
+          description: Condition represents a condition
+          properties:
+            lastTransitionTime:
+              format: date-time
+              type: string
+            message:
+              type: string
+            reason:
+              type: string
+            status:
+              description: ConditionStatus represents a condition status
+              type: string
+            type:
+              description: ConditionType represents a condition type
+              type: string
+          type: object
         type: array
       kubeConfig:
         type: string

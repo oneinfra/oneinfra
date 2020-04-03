@@ -20,18 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
-// Condition represents a node join request condition
-type Condition string
-
-// ConditionList represents a node join request condition list
-type ConditionList []Condition
-
 const (
-	// Issued represents a join request that has been completed
-	Issued Condition = "issued"
+	// Issued represents an issued condition type for the node join
+	// request
+	Issued conditions.ConditionType = "Issued"
 )
 
 // NodeJoinRequest represents a node join request
@@ -48,7 +44,7 @@ type NodeJoinRequest struct {
 	KubeletConfig            string
 	KubeletServerCertificate string
 	KubeletServerPrivateKey  string
-	Conditions               ConditionList
+	Conditions               conditions.ConditionList
 	ResourceVersion          string
 	joinKey                  *crypto.KeyPair
 }
@@ -76,21 +72,10 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
 		KubeletServerCertificate: nodeJoinRequest.Status.KubeletServerCertificate,
 		KubeletServerPrivateKey:  nodeJoinRequest.Status.KubeletServerPrivateKey,
-		Conditions:               newConditionsFromv1alpha1(nodeJoinRequest.Status.Conditions),
+		Conditions:               conditions.NewConditionListFromv1alpha1(nodeJoinRequest.Status.Conditions),
 		ResourceVersion:          nodeJoinRequest.ResourceVersion,
 		joinKey:                  joinKey,
 	}, nil
-}
-
-func newConditionsFromv1alpha1(conditions []nodev1alpha1.Condition) ConditionList {
-	res := ConditionList{}
-	for _, condition := range conditions {
-		switch condition {
-		case nodev1alpha1.Issued:
-			res = append(res, Issued)
-		}
-	}
-	return res
 }
 
 // Export exports this node join request to a versioned node join request
@@ -122,30 +107,9 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 			KubeletConfig:            nodeJoinRequest.KubeletConfig,
 			KubeletServerCertificate: nodeJoinRequest.KubeletServerCertificate,
 			KubeletServerPrivateKey:  nodeJoinRequest.KubeletServerPrivateKey,
-			Conditions:               nodeJoinRequest.Conditions.export(),
+			Conditions:               nodeJoinRequest.Conditions.Export(),
 		},
 	}, nil
-}
-
-func (conditionList ConditionList) export() []nodev1alpha1.Condition {
-	res := []nodev1alpha1.Condition{}
-	for _, condition := range conditionList {
-		switch condition {
-		case Issued:
-			res = append(res, nodev1alpha1.Issued)
-		}
-	}
-	return res
-}
-
-// HasCondition returns whether this node join request has a given condition
-func (nodeJoinRequest *NodeJoinRequest) HasCondition(condition Condition) bool {
-	for _, nodeJoinRequestCondition := range nodeJoinRequest.Conditions {
-		if nodeJoinRequestCondition == condition {
-			return true
-		}
-	}
-	return false
 }
 
 // Encrypt encrypts the given content using this node join request symmetric key

@@ -21,6 +21,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -103,8 +104,10 @@ func (in *NodeJoinRequestStatus) DeepCopyInto(out *NodeJoinRequestStatus) {
 	*out = *in
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
-		*out = make([]Condition, len(*in))
-		copy(*out, *in)
+		*out = make(commonv1alpha1.ConditionList, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 

@@ -23,6 +23,7 @@ import (
 	"k8s.io/klog"
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
 )
@@ -53,7 +54,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			klog.Errorf("cannot parse node join request %q public key: %v", versionedNodeJoinRequest.Name, err)
 			continue
 		}
-		if nodeJoinRequest.HasCondition(nodejoinrequests.Issued) {
+		if nodeJoinRequest.Conditions.IsCondition(nodejoinrequests.Issued, conditions.ConditionTrue) {
 			continue
 		}
 		if err := cluster.fillNodeJoinRequestKubernetesVersion(nodeJoinRequest); err != nil {
@@ -76,7 +77,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			klog.Errorf("cannot fill kubelet server certificate for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue
 		}
-		nodeJoinRequest.Conditions = append(nodeJoinRequest.Conditions, nodejoinrequests.Issued)
+		nodeJoinRequest.Conditions.SetCondition(nodejoinrequests.Issued, conditions.ConditionTrue)
 		versionedNodeJoinRequest, err := nodeJoinRequest.Export()
 		if err != nil {
 			klog.Errorf("could not convert the internal node join request to a versioned node join request: %v", err)

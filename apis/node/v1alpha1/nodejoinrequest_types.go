@@ -18,14 +18,13 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 )
 
-// Condition represents the node join request conditions
-type Condition string
-
 const (
-	// Issued represents a join request that has been completed
-	Issued Condition = "issued"
+	// Issued represents a join request Issued condition
+	Issued commonv1alpha1.ConditionType = "Issued"
 )
 
 // NodeJoinRequestSpec defines the desired state of NodeJoinRequest
@@ -38,14 +37,14 @@ type NodeJoinRequestSpec struct {
 
 // NodeJoinRequestStatus defines the observed state of NodeJoinRequest
 type NodeJoinRequestStatus struct {
-	KubernetesVersion        string      `json:"kubernetesVersion,omitempty"`
-	VPNAddress               string      `json:"vpnAddress,omitempty"`
-	VPNPeer                  string      `json:"vpnPeer,omitempty"`
-	KubeConfig               string      `json:"kubeConfig,omitempty"`
-	KubeletConfig            string      `json:"kubeletConfig,omitempty"`
-	KubeletServerCertificate string      `json:"kubeletServerCertificate,omitempty"`
-	KubeletServerPrivateKey  string      `json:"kubeletServerPrivateKey,omitempty"`
-	Conditions               []Condition `json:"conditions,omitempty"`
+	KubernetesVersion        string                       `json:"kubernetesVersion,omitempty"`
+	VPNAddress               string                       `json:"vpnAddress,omitempty"`
+	VPNPeer                  string                       `json:"vpnPeer,omitempty"`
+	KubeConfig               string                       `json:"kubeConfig,omitempty"`
+	KubeletConfig            string                       `json:"kubeletConfig,omitempty"`
+	KubeletServerCertificate string                       `json:"kubeletServerCertificate,omitempty"`
+	KubeletServerPrivateKey  string                       `json:"kubeletServerPrivateKey,omitempty"`
+	Conditions               commonv1alpha1.ConditionList `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

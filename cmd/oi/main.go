@@ -102,8 +102,8 @@ func main() {
 						},
 					},
 					{
-						Name:  "join-token-public-key",
-						Usage: "prints the join token public key",
+						Name:  "join-public-key",
+						Usage: "prints the join public key",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "cluster",
@@ -112,7 +112,7 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
-							return cluster.JoinTokenPublicKey(c.String("cluster"))
+							return cluster.JoinPublicKey(c.String("cluster"))
 						},
 					},
 					{
@@ -277,9 +277,9 @@ func main() {
 								Usage:    "token to use for joining",
 							},
 							&cli.StringFlag{
-								Name:     "join-token-public-key-file",
+								Name:     "join-public-key-file",
 								Required: true,
-								Usage:    "join token public key",
+								Usage:    "join public key",
 							},
 						},
 						Action: func(c *cli.Context) error {
@@ -288,7 +288,7 @@ func main() {
 								c.String("apiserver-endpoint"),
 								c.String("apiserver-ca-cert-file"),
 								c.String("join-token"),
-								c.String("join-token-public-key-file"),
+								c.String("join-public-key-file"),
 								c.String("container-runtime-endpoint"),
 								c.String("image-service-endpoint"),
 							)

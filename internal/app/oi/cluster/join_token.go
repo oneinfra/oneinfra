@@ -25,8 +25,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// JoinTokenPublicKey prints the join token public key for the given cluster
-func JoinTokenPublicKey(clusterName string) error {
+// JoinPublicKey prints the join public key for the given cluster
+func JoinPublicKey(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err

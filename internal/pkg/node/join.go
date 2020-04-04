@@ -48,7 +48,7 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPublicKey *crypto.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token string, joinPublicKey *crypto.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func Join(nodename, apiServerEndpoint, caCertificate, token string, joinTokenPub
 	if err != nil {
 		return err
 	}
-	cryptedSymmetricKey, err := joinTokenPublicKey.Encrypt(symmetricKey)
+	cryptedSymmetricKey, err := joinPublicKey.Encrypt(symmetricKey)
 	if err != nil {
 		return err
 	}

@@ -24,14 +24,14 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertFile, token, joinTokenPublicKeyFile, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertFile, token, joinPublicKeyFile, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	caCert, err := ioutil.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}
-	joinTokenPublicKey, err := crypto.NewPublicKeyFromFile(joinTokenPublicKeyFile)
+	joinPublicKey, err := crypto.NewPublicKeyFromFile(joinPublicKeyFile)
 	if err != nil {
 		return err
 	}
-	return node.Join(nodename, apiServerEndpoint, string(caCert), token, joinTokenPublicKey, containerRuntimeEndpoint, imageServiceEndpoint)
+	return node.Join(nodename, apiServerEndpoint, string(caCert), token, joinPublicKey, containerRuntimeEndpoint, imageServiceEndpoint)
 }

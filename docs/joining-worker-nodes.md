@@ -21,7 +21,7 @@ cluster, these are the arguments you will need:
 | `--apiserver-endpoint`         | The API server endpoint of the cluster that this node will join                                                 |
 | `--apiserver-ca-cert-file`     | The file containing the CA certificate to validate the API server endpoint                                      |
 | `--join-token`                 | The join token that will be used for joining the existing cluster                                               |
-| `--join-token-public-key-file` | The public key of the cluster to be joining                                                                     |
+| `--join-public-key-file`       | The join public key of the cluster to be joining                                                                     |
 
 When you execute this command, this is the sequence of actions that
 will take place:
@@ -33,7 +33,7 @@ will take place:
   down set of permissions.
 
 * `oi` will generate a symmetric key, ciphering it with the cluster
-  public key provided in the `--join-token-public-key-file` argument.
+  public key provided in the `--join-public-key-file` argument.
 
 * `oi` will create a [`NodeJoinRequest`
   resource](https://github.com/oneinfra/oneinfra/blob/master/apis/node/v1alpha1/nodejoinrequest_types.go)

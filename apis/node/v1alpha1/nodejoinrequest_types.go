@@ -29,22 +29,59 @@ const (
 
 // NodeJoinRequestSpec defines the desired state of NodeJoinRequest
 type NodeJoinRequestSpec struct {
-	SymmetricKey             string `json:"symmetricKey,omitempty"`
-	APIServerEndpoint        string `json:"apiServerEndpoint,omitempty"`
+	// Generated symmetric key, used by `oneinfra` management cluster to
+	// cipher joining information. This key must be ciphered with the
+	// join public key of the cluster to be joined, and encoded in
+	// base64 format.
+	SymmetricKey string `json:"symmetricKey,omitempty"`
+	// The API Server endpoint for what this join request is for.
+	APIServerEndpoint string `json:"apiServerEndpoint,omitempty"`
+	// The local node container runtime endpoint (e.g. containerd,
+	// cri-o unix socket...)
 	ContainerRuntimeEndpoint string `json:"containerRuntimeEndpoint,omitempty"`
-	ImageServiceEndpoint     string `json:"imageServiceEndpoint,omitempty"`
+	// The local node image service endpoint (e.g. containerd, cri-o
+	// unix socket...). It's usually the same as the
+	// ContainerRuntimeEndpoint.
+	ImageServiceEndpoint string `json:"imageServiceEndpoint,omitempty"`
 }
 
 // NodeJoinRequestStatus defines the observed state of NodeJoinRequest
 type NodeJoinRequestStatus struct {
-	KubernetesVersion        string                       `json:"kubernetesVersion,omitempty"`
-	VPNAddress               string                       `json:"vpnAddress,omitempty"`
-	VPNPeer                  string                       `json:"vpnPeer,omitempty"`
-	KubeConfig               string                       `json:"kubeConfig,omitempty"`
-	KubeletConfig            string                       `json:"kubeletConfig,omitempty"`
-	KubeletServerCertificate string                       `json:"kubeletServerCertificate,omitempty"`
-	KubeletServerPrivateKey  string                       `json:"kubeletServerPrivateKey,omitempty"`
-	Conditions               commonv1alpha1.ConditionList `json:"conditions,omitempty"`
+	// KubernetesVersion contains the Kubernetes version of the cluster
+	// this node is joining to. Filled by `oneinfra`, and ciphered using
+	// the provided SymmetricKey in the request spec. Base64 encoded.
+	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+	// VPNAddress contains the VPN address of this node. Filled by
+	// `oneinfra`, and ciphered using the provided SymmetricKey in the
+	// request spec. Base64 encoded.
+	VPNAddress string `json:"vpnAddress,omitempty"`
+	// VPNPeer contains the VPN address of the VPN peer of this
+	// node. Filled by `oneinfra`, and ciphered using the provided
+	// SymmetricKey in the rqeuest spec. Base64 encoded.
+	VPNPeer string `json:"vpnPeer,omitempty"`
+	// KubeConfig has the kubeconfig contents that the kubelet should
+	// use. Filled by `oneinfra`, and ciphered using the provided
+	// SymmetricKey in the request spec. Base64 encoded.
+	KubeConfig string `json:"kubeConfig,omitempty"`
+	// KubeletConfig has the kubelet configuration contents that the
+	// kubelet should use. Filled by `oneinfra`, and ciphered using the
+	// provided SymmetricKey in the request spec. Base64 encoded.
+	KubeletConfig string `json:"kubeletConfig,omitempty"`
+	// KubeletServerCertificate contains the contents of the Kubelet
+	// server certificate to be used. Filled by `oneinfra`, and ciphered
+	// using the provided SymmetricKey in the request spec. Base64
+	// encoded.
+	KubeletServerCertificate string `json:"kubeletServerCertificate,omitempty"`
+	// KubeletServerPrivateKey contains the contents of the Kubelet
+	// server private key to be used. Filled by `oneinfra`, and ciphered
+	// using the provided SymmetricKey in the request spec. Base64
+	// encoded.
+	KubeletServerPrivateKey string `json:"kubeletServerPrivateKey,omitempty"`
+	// Conditions contains a list of conditions for this
+	// request. `oneinfra` will set the `Issued` condition to `True`
+	// when this request has all the information set, and available in
+	// this `Status` object.
+	Conditions commonv1alpha1.ConditionList `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

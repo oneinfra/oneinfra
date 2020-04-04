@@ -39,6 +39,15 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
+const (
+	// ReconcileStarted represents a condition type signaling whether a
+	// reconcile has been started
+	ReconcileStarted conditions.ConditionType = "ReconcileStarted"
+	// ReconcileSucceeded represents a condition type signaling that a
+	// reconcile has succeeded
+	ReconcileSucceeded conditions.ConditionType = "ReconcileSucceeded"
+)
+
 // Cluster represents a cluster
 type Cluster struct {
 	Name                   string

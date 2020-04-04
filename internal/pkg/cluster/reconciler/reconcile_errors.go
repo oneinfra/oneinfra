@@ -42,6 +42,16 @@ func (reconcileErrors ReconcileErrors) Error() string {
 	return strings.Join(allErrors, ", ")
 }
 
+// IsClusterErrorFree returns whether the cluster provided has at
+// least one error
+func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterName string) bool {
+	clusterErrors, exists := reconcileErrors[clusterName]
+	if !exists {
+		return true
+	}
+	return len(clusterErrors) == 0
+}
+
 func (reconcileErrors ReconcileErrors) addClusterError(clusterName string, err error) {
 	reconcileErrors.ensureEntry(clusterName)
 	reconcileErrors[clusterName] = append(

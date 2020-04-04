@@ -48,8 +48,10 @@ This should have installed the following binaries:
   * A Kubernetes cluster (will be our management cluster)
   * Docker (for creating fake local hypervisors)
 
-Install `kind` in order to try `oneinfra` easily. If you already have
-a Kubernetes cluster you can use, you can skip this step.
+[Install
+`kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage)
+in order to try `oneinfra` in the easiest way. If you already have a
+Kubernetes cluster you can use, you can skip this step.
 
 ```
 $ kind create cluster
@@ -60,8 +62,7 @@ Deploy `cert-manager` and `oneinfra`.
 ```
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
 $ kubectl wait --for=condition=Available deployment -l app.kubernetes.io/instance=cert-manager -n cert-manager
-$ kubectl apply -f
-https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
 ```
 
 Create a fake local set of hypervisors, so we can schedule clusters

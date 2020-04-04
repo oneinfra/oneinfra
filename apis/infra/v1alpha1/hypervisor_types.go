@@ -28,11 +28,13 @@ type HypervisorSpec struct {
 	// reachable. This is only intended for development and testing
 	// purposes. On production environments RemoteCRIEndpoint should be
 	// used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
-	// provided.  +optional
+	// provided.
+	// +optional
 	LocalCRIEndpoint *LocalHypervisorCRIEndpoint `json:"localCRIEndpoint,omitempty"`
 	// RemoteCRIEndpoint is the TCP address where this hypervisor is
 	// reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
-	// to be provided.  +optional
+	// to be provided.
+	// +optional
 	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
 	// Public hypervisors will be scheduled cluster ingress components,
 	// whereas private hypervisors will be scheduled the control plane

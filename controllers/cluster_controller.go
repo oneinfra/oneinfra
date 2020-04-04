@@ -24,6 +24,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
@@ -73,7 +74,7 @@ func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ct
 		klog.Error(err, "could not get cluster %q", req)
 		return err
 	}
-	componentList, err := listClusterComponents(ctx, r, cluster.Namespace, cluster.Name)
+	componentList, err := listClusterComponents(ctx, r, cluster.Name)
 	if err != nil {
 		klog.Error(err, "could not list components")
 		return err
@@ -133,6 +134,19 @@ func (r *ClusterReconciler) updateComponents(ctx context.Context) {
 
 // SetupWithManager sets up the cluster reconciler with mgr manager
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	err := mgr.GetFieldIndexer().IndexField(&v1alpha1.Component{}, ".spec.cluster", func(rawObj runtime.Object) []string {
+		component, ok := rawObj.(*v1alpha1.Component)
+		if !ok {
+			return nil
+		}
+		if component.APIVersion != clusterv1alpha1.GroupVersion.String() || component.Kind != "Component" {
+			return nil
+		}
+		return []string{component.Spec.Cluster}
+	})
+	if err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&clusterv1alpha1.Cluster{}).
 		Complete(r)

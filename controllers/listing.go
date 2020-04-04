@@ -91,16 +91,13 @@ func listComponents(ctx context.Context, client clientapi.Client) (componentapi.
 	return res, nil
 }
 
-func listClusterComponents(ctx context.Context, client clientapi.Client, clusterNamespace, clusterName string) (componentapi.List, error) {
+func listClusterComponents(ctx context.Context, client clientapi.Client, clusterName string) (componentapi.List, error) {
 	var componentList clusterv1alpha1.ComponentList
-	if err := client.List(ctx, &componentList, clientapi.InNamespace(clusterNamespace)); err != nil {
+	if err := client.List(ctx, &componentList, clientapi.MatchingField(".spec.cluster", clusterName)); err != nil {
 		return componentapi.List{}, err
 	}
 	res := componentapi.List{}
 	for _, component := range componentList.Items {
-		if component.Spec.Cluster != clusterName {
-			continue
-		}
 		internalComponent, err := componentapi.NewComponentFromv1alpha1(&component)
 		if err != nil {
 			continue

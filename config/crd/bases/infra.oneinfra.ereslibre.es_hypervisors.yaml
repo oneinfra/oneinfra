@@ -78,8 +78,10 @@ spec:
                     be used to authenticate requests
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 criEndpointURI:

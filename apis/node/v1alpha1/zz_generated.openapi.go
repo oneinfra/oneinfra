@@ -39,19 +39,29 @@ properties:
     description: NodeJoinRequestSpec defines the desired state of NodeJoinRequest
     properties:
       apiServerEndpoint:
+        description: The API Server endpoint for what this join request is for.
         type: string
       containerRuntimeEndpoint:
+        description: The local node container runtime endpoint (e.g. containerd, cri-o
+          unix socket...)
         type: string
       imageServiceEndpoint:
+        description: The local node image service endpoint (e.g. containerd, cri-o
+          unix socket...). It's usually the same as the ContainerRuntimeEndpoint.
         type: string
       symmetricKey:
+        description: Generated symmetric key, used by "oneinfra" management cluster
+          to cipher joining information. This key must be ciphered with the join public
+          key of the cluster to be joined, and encoded in base64 format.
         type: string
     type: object
   status:
     description: NodeJoinRequestStatus defines the observed state of NodeJoinRequest
     properties:
       conditions:
-        description: ConditionList represents a list of conditions
+        description: Conditions contains a list of conditions for this request. "oneinfra"
+          will set the "Issued" condition to "True" when this request has all the
+          information set, and available in this "Status" object.
         items:
           description: Condition represents a condition
           properties:
@@ -71,18 +81,39 @@ properties:
           type: object
         type: array
       kubeConfig:
+        description: KubeConfig has the kubeconfig contents that the kubelet should
+          use. Filled by "oneinfra", and ciphered using the provided SymmetricKey
+          in the request spec. Base64 encoded.
         type: string
       kubeletConfig:
+        description: KubeletConfig has the kubelet configuration contents that the
+          kubelet should use. Filled by "oneinfra", and ciphered using the provided
+          SymmetricKey in the request spec. Base64 encoded.
         type: string
       kubeletServerCertificate:
+        description: KubeletServerCertificate contains the contents of the Kubelet
+          server certificate to be used. Filled by "oneinfra", and ciphered using
+          the provided SymmetricKey in the request spec. Base64 encoded.
         type: string
       kubeletServerPrivateKey:
+        description: KubeletServerPrivateKey contains the contents of the Kubelet
+          server private key to be used. Filled by "oneinfra", and ciphered using
+          the provided SymmetricKey in the request spec. Base64 encoded.
         type: string
       kubernetesVersion:
+        description: KubernetesVersion contains the Kubernetes version of the cluster
+          this node is joining to. Filled by "oneinfra", and ciphered using the provided
+          SymmetricKey in the request spec. Base64 encoded.
         type: string
       vpnAddress:
+        description: VPNAddress contains the VPN address of this node. Filled by "oneinfra",
+          and ciphered using the provided SymmetricKey in the request spec. Base64
+          encoded.
         type: string
       vpnPeer:
+        description: VPNPeer contains the VPN address of the VPN peer of this node.
+          Filled by "oneinfra", and ciphered using the provided SymmetricKey in the
+          rqeuest spec. Base64 encoded.
         type: string
     type: object
 type: object`

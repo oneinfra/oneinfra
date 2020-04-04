@@ -43,8 +43,10 @@ spec:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 extraSANs:
@@ -55,8 +57,10 @@ spec:
                   description: KeyPair represents a public/private key pair
                   properties:
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                     publicKey:
+                      description: PublicKey is a PEM encoded public key
                       type: string
                   type: object
               type: object
@@ -68,40 +72,50 @@ spec:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 certificateSigner:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 etcdClient:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 etcdPeer:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
                 kubelet:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
               type: object
@@ -112,8 +126,10 @@ spec:
                   description: Certificate represents a Certificate
                   properties:
                     certificate:
+                      description: Certificate is a PEM encoded certificate
                       type: string
                     privateKey:
+                      description: PrivateKey is a PEM encoded private key
                       type: string
                   type: object
               type: object
@@ -121,8 +137,10 @@ spec:
               description: KeyPair represents a public/private key pair
               properties:
                 privateKey:
+                  description: PrivateKey is a PEM encoded private key
                   type: string
                 publicKey:
+                  description: PublicKey is a PEM encoded public key
                   type: string
               type: object
             joinTokens:

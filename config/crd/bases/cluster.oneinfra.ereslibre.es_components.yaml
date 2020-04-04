@@ -63,8 +63,10 @@ spec:
                 description: Certificate represents a Certificate
                 properties:
                   certificate:
+                    description: Certificate is a PEM encoded certificate
                     type: string
                   privateKey:
+                    description: PrivateKey is a PEM encoded private key
                     type: string
                 type: object
               type: object
@@ -93,8 +95,10 @@ spec:
                 description: Certificate represents a Certificate
                 properties:
                   certificate:
+                    description: Certificate is a PEM encoded certificate
                     type: string
                   privateKey:
+                    description: PrivateKey is a PEM encoded private key
                     type: string
                 type: object
               type: object

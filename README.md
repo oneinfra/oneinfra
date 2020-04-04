@@ -56,6 +56,10 @@ don't want to use Kubernetes just to try `oneinfra`.
 
 * Requirements
   * A Kubernetes cluster (will be our management cluster)
+    * Important: note that the `oneinfra` manager running in the
+      Kubernetes cluster needs to be able to reach the hypervisors you
+      create -- hypervisors is where the `oneinfra` manager will
+      create the control plane component instances.
   * Docker (for creating fake local hypervisors)
 
 [Install

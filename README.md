@@ -65,11 +65,7 @@ Now, create a cluster:
 
 ```
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/samples/simple-cluster.yaml
-```
-
-Wait for it to be reconciled and generate an administrative kubeconfig file for it:
-
-```
+$ kubectl wait --for=condition=ReconcileSucceeded cluster simple-cluster
 $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
 ```
 

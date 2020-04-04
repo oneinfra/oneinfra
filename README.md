@@ -42,9 +42,9 @@ This should have installed the following binaries:
 
 ## Quick start
 
-For the quick start you can either leverage Kubernetes as a
-managementn cluster, or you can go with the standalone approach if you
-don't want to use Kubernetes just to try `oneinfra`.
+For the quick start you can either leverage Kubernetes as a management
+cluster, or you can go with the standalone approach if you don't want
+to use Kubernetes.
 
 * [With Kubernetes as a management
   cluster](#with-kubernetes-as-a-management-cluster)
@@ -55,17 +55,14 @@ don't want to use Kubernetes just to try `oneinfra`.
 ### With Kubernetes as a management cluster
 
 * Requirements
-  * A Kubernetes cluster (will be our management cluster)
-    * Important: note that the `oneinfra` manager running in the
-      Kubernetes cluster needs to be able to reach the hypervisors you
-      create -- hypervisors is where the `oneinfra` manager will
-      create the control plane component instances.
-  * Docker (for creating fake local hypervisors)
+  * A Kubernetes cluster that will be the management cluster
+  * The management cluster needs to reach the hypervisors you create
+  * Docker, for creating fake local hypervisors
 
 [Install
-`kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage)
-in order to try `oneinfra` in the easiest way. If you already have a
-Kubernetes cluster you can use, you can skip this step.
+`kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage). If
+you already have a Kubernetes cluster you can use, you can skip this
+step.
 
 ```
 $ kind create cluster
@@ -79,8 +76,11 @@ $ kubectl wait --for=condition=Available deployment -l app.kubernetes.io/instanc
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
 ```
 
-Create a fake local set of hypervisors, so `oneinfra` can schedule
-cluster control plane components somewhere.
+Create a local set of fake hypervisors, so `oneinfra` can schedule
+cluster control plane components somewhere. You can [also define your
+own set of
+hypervisors](https://github.com/oneinfra/oneinfra/blob/master/docs/hypervisors.md)
+if you prefer.
 
 ```
 $ oi-local-cluster cluster create --remote | kubectl apply -f -

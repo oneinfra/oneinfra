@@ -59,7 +59,7 @@ will take place:
     * VPN address and peers
     * Kubelet kubeconfig contents
     * Kubelet config contents
-    * Kubelet server certificate
+    * Kubelet server certificate and private key
 
   * Set the `issued` condition on the `NodeJoinRequest` `status` field.
 

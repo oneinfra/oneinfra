@@ -2,6 +2,8 @@
 
 `oneinfra` is a Kubernetes as a Service platform.
 
+![Architecture diagram](docs/architecture.png)
+
 You can [read more about its design here](docs/DESIGN.md).
 
 | Go Report                                                                                                                                      | Travis                                                                                                             | CircleCI                                                                                                             | Azure Test                                                                                                                                                                                    | Azure Release                                                                                                                                                                                       | License                                                                                                                              |

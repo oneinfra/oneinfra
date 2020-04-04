@@ -75,8 +75,8 @@ $ kubectl wait --for=condition=Available deployment -l app.kubernetes.io/instanc
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
 ```
 
-Create a fake local set of hypervisors, so we can schedule clusters
-control plane components somewhere.
+Create a fake local set of hypervisors, so `oneinfra` can schedule
+cluster control plane components somewhere.
 
 ```
 $ oi-local-cluster cluster create --remote | kubectl apply -f -
@@ -126,6 +126,11 @@ And access it:
 $ kubectl cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
+
+In this mode it's very important to understand that `oi` will read
+manifests from `stdin` and output them into `stdout`, make sure you
+keep a file up to date with the latest reconciled resources -- this is
+why this model is not suitable for production.
 
 
 ## Joining worker nodes to a cluster

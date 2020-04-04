@@ -18,7 +18,10 @@ package controllers
 
 import (
 	"context"
+	"errors"
+	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -50,17 +53,31 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	if err := r.refreshClusterReconciler(ctx, req); err != nil {
 		klog.Errorf("could not refresh cluster reconciler: %v", err)
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
+
+	if r.clusterReconciler == nil {
+		return ctrl.Result{}, nil
+	}
+
+	res := ctrl.Result{}
 
 	if err := r.clusterReconciler.Reconcile(); err != nil {
-		klog.Errorf("failed to reconcile clusters: %v", err)
+		klog.Errorf("failed to reconcile cluster %q: %v", req, err)
+		res = ctrl.Result{Requeue: true}
 	}
 
-	r.updateHypervisors(ctx)
-	r.updateClusters(ctx)
-	r.updateComponents(ctx)
+	if err := r.updateHypervisors(ctx); err != nil {
+		res = ctrl.Result{Requeue: true}
+	}
+	if err := r.updateClusters(ctx); err != nil {
+		res = ctrl.Result{Requeue: true}
+	}
+	if err := r.updateComponents(ctx); err != nil {
+		res = ctrl.Result{Requeue: true}
+	}
 
-	return ctrl.Result{}, nil
+	return res, nil
 }
 
 func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ctrl.Request) error {
@@ -71,6 +88,10 @@ func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ct
 	}
 	cluster, err := getCluster(ctx, r, req)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.clusterReconciler = nil
+			return nil
+		}
 		klog.Error(err, "could not get cluster %q", req)
 		return err
 	}
@@ -87,7 +108,8 @@ func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ct
 	return nil
 }
 
-func (r *ClusterReconciler) updateHypervisors(ctx context.Context) {
+func (r *ClusterReconciler) updateHypervisors(ctx context.Context) error {
+	someError := false
 	for _, hypervisor := range r.clusterReconciler.HypervisorMap {
 		isDirty, err := hypervisor.IsDirty()
 		if err != nil {
@@ -96,13 +118,19 @@ func (r *ClusterReconciler) updateHypervisors(ctx context.Context) {
 		}
 		if isDirty {
 			if err := r.Status().Update(ctx, hypervisor.Export()); err != nil {
+				someError = true
 				klog.Errorf("could not update hypervisor %q status: %v", hypervisor.Name, err)
 			}
 		}
 	}
+	if someError {
+		return errors.New("could not update all hypervisors")
+	}
+	return nil
 }
 
-func (r *ClusterReconciler) updateClusters(ctx context.Context) {
+func (r *ClusterReconciler) updateClusters(ctx context.Context) error {
+	someError := false
 	for _, cluster := range r.clusterReconciler.ClusterMap {
 		isDirty, err := cluster.IsDirty()
 		if err != nil {
@@ -111,13 +139,19 @@ func (r *ClusterReconciler) updateClusters(ctx context.Context) {
 		}
 		if isDirty {
 			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
+				someError = true
 				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
 			}
 		}
 	}
+	if someError {
+		return errors.New("could not update all clusters")
+	}
+	return nil
 }
 
-func (r *ClusterReconciler) updateComponents(ctx context.Context) {
+func (r *ClusterReconciler) updateComponents(ctx context.Context) error {
+	someError := false
 	for _, component := range r.clusterReconciler.ComponentList {
 		isDirty, err := component.IsDirty()
 		if err != nil {
@@ -126,10 +160,15 @@ func (r *ClusterReconciler) updateComponents(ctx context.Context) {
 		}
 		if isDirty {
 			if err := r.Status().Update(ctx, component.Export()); err != nil {
+				someError = true
 				klog.Errorf("could not update component %q status: %v", component.Name, err)
 			}
 		}
 	}
+	if someError {
+		return errors.New("could not update all components")
+	}
+	return nil
 }
 
 // SetupWithManager sets up the cluster reconciler with mgr manager

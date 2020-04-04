@@ -76,6 +76,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 	for clusterName, cluster := range clusterReconciler.ClusterMap {
 		if !clusterReconciler.IsClusterFullyScheduled(clusterName) {
 			klog.Infof("cluster %q is not fully scheduled; skipping", clusterName)
+			reconcileErrors.addClusterError(cluster.Name, errors.New("cluster is not fully scheduled"))
 			continue
 		}
 		cluster.Conditions.SetCondition(

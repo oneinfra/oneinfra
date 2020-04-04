@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
@@ -63,11 +64,13 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	r.hypervisorMap, err = listHypervisors(ctx, r)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Minute}, err
 	}
 
 	privateHypervisors := r.hypervisorMap.PrivateList()
 	publicHypervisors := r.hypervisorMap.PublicList()
+
+	res := ctrl.Result{}
 
 	var hypervisorList infra.HypervisorList
 	for _, versionedComponent := range unscheduledComponentList {
@@ -84,16 +87,20 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		scheduledHypervisor, err := hypervisorList.Sample()
 		if err != nil {
+			if component.Name == req.Name && component.Namespace == req.Namespace {
+				res = ctrl.Result{RequeueAfter: time.Minute}
+			}
 			klog.Errorf("could not assign an hypervisor to component %q", component.Name)
 			continue
 		}
 		component.HypervisorName = scheduledHypervisor.Name
 		if err := r.Update(ctx, component.Export()); err != nil {
+			res = ctrl.Result{Requeue: true}
 			klog.Errorf("could not update component %q spec: %v", component.Name, err)
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return res, nil
 }
 
 // SetupWithManager sets up the component reconciler with mgr manager

@@ -42,6 +42,16 @@ This should have installed the following binaries:
 
 ## Quick start
 
+For the quick start you can either leverage Kubernetes as a
+managementn cluster, or you can go with the standalone approach if you
+don't want to use Kubernetes just to try `oneinfra`.
+
+* [With Kubernetes as a management
+  cluster](#with-kubernetes-as-a-management-cluster)
+* [Without Kubernetes (for testing purposes
+  only)](#without-kubernetes-for-testing-purposes-only)
+
+
 ### With Kubernetes as a management cluster
 
 * Requirements

@@ -24,13 +24,20 @@ import (
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	KubernetesVersion      string                  `json:"kubernetesVersion,omitempty"`
+	// +optional
+	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+	// +optional
 	CertificateAuthorities *CertificateAuthorities `json:"certificateAuthorities,omitempty"`
-	EtcdServer             *EtcdServer             `json:"etcdServer,omitempty"`
-	APIServer              *KubeAPIServer          `json:"apiServer,omitempty"`
-	VPNCIDR                string                  `json:"vpnCIDR,omitempty"`
-	JoinKey                *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
-	JoinTokens             []string                `json:"joinTokens,omitempty"`
+	// +optional
+	EtcdServer *EtcdServer `json:"etcdServer,omitempty"`
+	// +optional
+	APIServer *KubeAPIServer `json:"apiServer,omitempty"`
+	// +optional
+	VPNCIDR string `json:"vpnCIDR,omitempty"`
+	// +optional
+	JoinKey *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
+	// +optional
+	JoinTokens []string `json:"joinTokens,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
@@ -53,22 +60,31 @@ type VPNPeer struct {
 
 // CertificateAuthorities represents a set of Certificate Authorities
 type CertificateAuthorities struct {
-	APIServerClient   *commonv1alpha1.Certificate `json:"apiServerClient,omitempty"`
+	// +optional
+	APIServerClient *commonv1alpha1.Certificate `json:"apiServerClient,omitempty"`
+	// +optional
 	CertificateSigner *commonv1alpha1.Certificate `json:"certificateSigner,omitempty"`
-	Kubelet           *commonv1alpha1.Certificate `json:"kubelet,omitempty"`
-	EtcdClient        *commonv1alpha1.Certificate `json:"etcdClient,omitempty"`
-	EtcdPeer          *commonv1alpha1.Certificate `json:"etcdPeer,omitempty"`
+	// +optional
+	Kubelet *commonv1alpha1.Certificate `json:"kubelet,omitempty"`
+	// +optional
+	EtcdClient *commonv1alpha1.Certificate `json:"etcdClient,omitempty"`
+	// +optional
+	EtcdPeer *commonv1alpha1.Certificate `json:"etcdPeer,omitempty"`
 }
 
 // KubeAPIServer represents a kube apiserver
 type KubeAPIServer struct {
-	CA             *commonv1alpha1.Certificate `json:"ca,omitempty"`
-	ServiceAccount *commonv1alpha1.KeyPair     `json:"serviceAccount,omitempty"`
-	ExtraSANs      []string                    `json:"extraSANs,omitempty"`
+	// +optional
+	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
+	// +optional
+	ServiceAccount *commonv1alpha1.KeyPair `json:"serviceAccount,omitempty"`
+	// +optional
+	ExtraSANs []string `json:"extraSANs,omitempty"`
 }
 
 // EtcdServer represents an etcd server
 type EtcdServer struct {
+	// +optional
 	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
 }
 

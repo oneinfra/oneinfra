@@ -34,6 +34,7 @@ const (
 
 // ComponentSpec defines the desired state of Component
 type ComponentSpec struct {
+	// +optional
 	Hypervisor string `json:"hypervisor,omitempty"`
 	Cluster    string `json:"cluster,omitempty"`
 	Role       Role   `json:"role,omitempty"`

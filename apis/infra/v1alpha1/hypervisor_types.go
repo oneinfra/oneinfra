@@ -24,22 +24,43 @@ import (
 
 // HypervisorSpec defines the desired state of Hypervisor
 type HypervisorSpec struct {
-	LocalCRIEndpoint  *LocalHypervisorCRIEndpoint  `json:"localCRIEndpoint,omitempty"`
+	// LocalCRIEndpoint is the unix socket where this hypervisor is
+	// reachable. This is only intended for development and testing
+	// purposes. On production environments RemoteCRIEndpoint should be
+	// used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
+	// provided.  +optional
+	LocalCRIEndpoint *LocalHypervisorCRIEndpoint `json:"localCRIEndpoint,omitempty"`
+	// RemoteCRIEndpoint is the TCP address where this hypervisor is
+	// reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
+	// to be provided.  +optional
 	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
-	Public            bool                         `json:"public"`
-	IPAddress         string                       `json:"ipAddress,omitempty"`
-	PortRange         HypervisorPortRange          `json:"portRange,omitempty"`
+	// Public hypervisors will be scheduled cluster ingress components,
+	// whereas private hypervisors will be scheduled the control plane
+	// components themselves.
+	Public bool `json:"public"`
+	// IPAddress of this hypervisor. Public hypervisors must have a
+	// publicly reachable IP address.
+	IPAddress string `json:"ipAddress,omitempty"`
+	// PortRange is the port range to be used for allocating exposed
+	// components.
+	PortRange HypervisorPortRange `json:"portRange,omitempty"`
 }
 
 // LocalHypervisorCRIEndpoint represents a local hypervisor CRI endpoint (unix socket)
 type LocalHypervisorCRIEndpoint struct {
+	// CRIEndpoint is the unix socket path
 	CRIEndpoint string `json:"criEndpointPath,omitempty"`
 }
 
 // RemoteHypervisorCRIEndpoint represents a remote hypervisor CRI endpoint (tcp with client certificate authentication)
 type RemoteHypervisorCRIEndpoint struct {
-	CRIEndpoint       string                      `json:"criEndpointURI,omitempty"`
-	CACertificate     string                      `json:"caCertificate,omitempty"`
+	// CRIEndpoint is the address where this CRI endpoint is listening
+	CRIEndpoint string `json:"criEndpointURI,omitempty"`
+	// CACertificate is the CA certificate to validate the connection
+	// against
+	CACertificate string `json:"caCertificate,omitempty"`
+	// ClientCertificate is the client certificate that will be used to
+	// authenticate requests
 	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`
 }
 

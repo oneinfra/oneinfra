@@ -26,11 +26,13 @@ package azure
 // structs. The final textual YAML file will be post processed to
 // remove the underscores.
 
+// Pipeline represents an Azure pipeline
 type Pipeline struct {
 	Variables map[string]string `json:"variables,omitempty"`
 	Jobs      []Job             `json:"jobs,omitempty"`
 }
 
+// Job represents an Azure job
 type Job struct {
 	Job         string `json:"_job,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`
@@ -38,10 +40,12 @@ type Job struct {
 	Steps       []Step `json:"steps,omitempty"`
 }
 
+// Pool represents an Azure pool
 type Pool struct {
 	VMImage string `json:"vmImage,omitempty"`
 }
 
+// Step represents an Azure step
 type Step struct {
 	Bash        string            `json:"_bash,omitempty"`
 	DisplayName string            `json:"displayName,omitempty"`

@@ -26,6 +26,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
+// BuildContainerImages builds the container images to be published
 func BuildContainerImages(kubernetesVersions []constants.KubernetesVersion, containerImages []string) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -47,6 +48,7 @@ func BuildContainerImages(kubernetesVersions []constants.KubernetesVersion, cont
 	}
 }
 
+// PublishContainerImages publishes the container images
 func PublishContainerImages(kubernetesVersions []constants.KubernetesVersion, containerImages []string) {
 	cwd, err := os.Getwd()
 	if err != nil {

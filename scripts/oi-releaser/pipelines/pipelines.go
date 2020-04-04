@@ -30,6 +30,7 @@ var (
 	defaultPool = azure.Pool{VMImage: "ubuntu-18.04"}
 )
 
+// AzureTest build the Azure test pipeline
 func AzureTest(kubernetesVersions []constants.KubernetesVersion) error {
 	pipeline := azure.Pipeline{
 		Variables: map[string]string{

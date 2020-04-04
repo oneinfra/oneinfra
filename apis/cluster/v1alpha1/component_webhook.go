@@ -41,6 +41,10 @@ var _ webhook.Defaulter = &Component{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Component) Default() {
 	componentlog.Info("default", "name", r.Name)
+	if r.Labels == nil {
+		r.Labels = map[string]string{}
+	}
+	r.Labels["oneinfra/cluster-name"] = r.Spec.Cluster
 }
 
 // +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-component,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=components,versions=v1alpha1,name=vcomponent.kb.io

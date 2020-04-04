@@ -37,16 +37,22 @@ spec:
           description: HypervisorSpec defines the desired state of Hypervisor
           properties:
             ipAddress:
+              description: IPAddress of this hypervisor. Public hypervisors must have
+                a publicly reachable IP address.
               type: string
             localCRIEndpoint:
-              description: LocalHypervisorCRIEndpoint represents a local hypervisor
-                CRI endpoint (unix socket)
+              description: LocalCRIEndpoint is the unix socket where this hypervisor
+                is reachable. This is only intended for development and testing purposes.
+                On production environments RemoteCRIEndpoint should be used. Either
+                a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
               properties:
                 criEndpointPath:
+                  description: CRIEndpoint is the unix socket path
                   type: string
               type: object
             portRange:
-              description: HypervisorPortRange represents a port range
+              description: PortRange is the port range to be used for allocating exposed
+                components.
               properties:
                 high:
                   type: integer
@@ -54,15 +60,22 @@ spec:
                   type: integer
               type: object
             public:
+              description: Public hypervisors will be scheduled cluster ingress components,
+                whereas private hypervisors will be scheduled the control plane components
+                themselves.
               type: boolean
             remoteCRIEndpoint:
-              description: RemoteHypervisorCRIEndpoint represents a remote hypervisor
-                CRI endpoint (tcp with client certificate authentication)
+              description: RemoteCRIEndpoint is the TCP address where this hypervisor
+                is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
+                to be provided.
               properties:
                 caCertificate:
+                  description: CACertificate is the CA certificate to validate the
+                    connection against
                   type: string
                 clientCertificate:
-                  description: Certificate represents a Certificate
+                  description: ClientCertificate is the client certificate that will
+                    be used to authenticate requests
                   properties:
                     certificate:
                       type: string
@@ -70,6 +83,8 @@ spec:
                       type: string
                   type: object
                 criEndpointURI:
+                  description: CRIEndpoint is the address where this CRI endpoint
+                    is listening
                   type: string
               type: object
           required:

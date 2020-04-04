@@ -24,15 +24,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	"github.com/oneinfra/oneinfra/controllers"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
+	"github.com/oneinfra/oneinfra/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -75,6 +77,7 @@ func main() {
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
 		Port:               9443,
+		NewClient:          rawClient,
 	})
 	if err != nil {
 		klog.Error("could not set up controller manager")
@@ -109,4 +112,8 @@ func main() {
 		klog.Error("error starting controller manager")
 		os.Exit(1)
 	}
+}
+
+func rawClient(_ cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
+	return client.New(config, options)
 }

@@ -64,13 +64,13 @@ func (conditionList ConditionList) IsCondition(conditionType ConditionType, cond
 }
 
 // GetObjectKind partially implements the runtime.Object interface for
-// condition
+// Condition
 func (condition *Condition) GetObjectKind() schema.ObjectKind {
 	return schema.EmptyObjectKind
 }
 
 // GetObjectKind partially implements the runtime.Object interface for
-// condition
+// ConditionList
 func (conditionList ConditionList) GetObjectKind() schema.ObjectKind {
 	return schema.EmptyObjectKind
 }

@@ -21,6 +21,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/component/components"
+	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
 
@@ -34,5 +35,21 @@ func Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	case component.ControlPlaneIngressRole:
 		componentObj = &components.ControlPlaneIngress{}
 	}
-	return componentObj.Reconcile(inquirer)
+	inquirer.Component().Conditions.SetCondition(
+		component.ReconcileStarted,
+		conditions.ConditionTrue,
+	)
+	res := componentObj.Reconcile(inquirer)
+	if res == nil {
+		inquirer.Component().Conditions.SetCondition(
+			component.ReconcileSucceeded,
+			conditions.ConditionTrue,
+		)
+	} else {
+		inquirer.Component().Conditions.SetCondition(
+			component.ReconcileSucceeded,
+			conditions.ConditionFalse,
+		)
+	}
+	return res
 }

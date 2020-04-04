@@ -11,9 +11,6 @@ You can [read more about its design here](docs/DESIGN.md).
 
 ## Managed Kubernetes versions
 
-When you create a Kubernetes cluster using `oneinfra` you can choose
-what Kubernetes version you want to deploy.
-
 | Kubernetes version | Deployable with  | Default in       |                                                                                                                                                                            |                                                                                                                                                                             |
 |--------------------|------------------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `1.15.11`          | `20.04.0-alpha1` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20local%20CRI%20endpoints)        | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20remote%20CRI%20endpoints)        |
@@ -21,9 +18,6 @@ what Kubernetes version you want to deploy.
 | `1.17.4`           | `20.04.0-alpha1` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.4)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.4)%20with%20remote%20CRI%20endpoints)         |
 | `1.18.0`           | `20.04.0-alpha1` | `20.04.0-alpha1` | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.0)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.0)%20with%20remote%20CRI%20endpoints)         |
 | `1.19.0-alpha.1`   | `20.04.0-alpha1` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.1)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.1)%20with%20remote%20CRI%20endpoints) |
-
-You can find a detailed description of the supported versions [in the
-RELEASE file](https://github.com/oneinfra/oneinfra/blob/master/RELEASE).
 
 
 ## Go install
@@ -50,18 +44,34 @@ This should have installed the following binaries:
 
 ### With Kubernetes as a management cluster
 
-Install `kind` in order to try `oneinfra` easily. You can apply the
-same concepts to any other conformant Kubernetes cluster.
+* Requirements
+  * A Kubernetes cluster (will be our management cluster)
+  * Docker (for creating fake local hypervisors)
+
+Install `kind` in order to try `oneinfra` easily. If you already have
+a Kubernetes cluster you can use, you can skip this step.
 
 ```
 $ kind create cluster
+```
+
+Deploy `cert-manager` and `oneinfra`.
+
+```
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
-$ kubectl wait --for=condition=available deployment -l app.kubernetes.io/instance=cert-manager -n cert-manager
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
+$ kubectl wait --for=condition=Available deployment -l app.kubernetes.io/instance=cert-manager -n cert-manager
+$ kubectl apply -f
+https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
+```
+
+Create a fake local set of hypervisors, so we can schedule clusters
+control plane components somewhere.
+
+```
 $ oi-local-cluster cluster create --remote | kubectl apply -f -
 ```
 
-Now, create a cluster:
+Now, create a managed cluster:
 
 ```
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/samples/simple-cluster.yaml
@@ -78,6 +88,9 @@ Kubernetes master is running at https://172.17.0.5:30000
 
 
 ### Without Kubernetes (for testing purposes only)
+
+* Requirements
+  * Docker
 
 If you don't want to deploy Kubernetes to test `oneinfra`, you can try
 the `oi` CLI tool that will allow you to test the reconciliation

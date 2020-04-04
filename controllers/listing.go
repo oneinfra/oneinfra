@@ -18,7 +18,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	clientapi "sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,7 +41,7 @@ func listHypervisors(ctx context.Context, client clientapi.Client) (infra.Hyperv
 	for _, hypervisor := range hypervisorList.Items {
 		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor)
 		if err != nil {
-			klog.Error(err, "could not convert hypervisor to internal type")
+			klog.Errorf("could not convert hypervisor to internal type: %v", err)
 			continue
 		}
 		res[internalHypervisor.Name] = internalHypervisor
@@ -93,7 +95,16 @@ func listComponents(ctx context.Context, client clientapi.Client) (componentapi.
 
 func listClusterComponents(ctx context.Context, client clientapi.Client, clusterName string) (componentapi.List, error) {
 	var componentList clusterv1alpha1.ComponentList
-	if err := client.List(ctx, &componentList, clientapi.MatchingField(".spec.cluster", clusterName)); err != nil {
+	err := client.List(
+		ctx,
+		&componentList,
+		&clientapi.ListOptions{
+			Raw: &metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("oneinfra/cluster-name=%s", clusterName),
+			},
+		},
+	)
+	if err != nil {
 		return componentapi.List{}, err
 	}
 	res := componentapi.List{}

@@ -27,7 +27,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
@@ -83,7 +82,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ctrl.Request) error {
 	hypervisorMap, err := listHypervisors(ctx, r)
 	if err != nil {
-		klog.Error(err, "could not list hypervisors")
+		klog.Errorf("could not list hypervisors: %v", err)
 		return err
 	}
 	cluster, err := getCluster(ctx, r, req)
@@ -92,12 +91,12 @@ func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ct
 			r.clusterReconciler = nil
 			return nil
 		}
-		klog.Error(err, "could not get cluster %q", req)
+		klog.Errorf("could not get cluster %q: %v", req, err)
 		return err
 	}
 	componentList, err := listClusterComponents(ctx, r, cluster.Name)
 	if err != nil {
-		klog.Error(err, "could not list components")
+		klog.Errorf("could not list components: %v", err)
 		return err
 	}
 	r.clusterReconciler = reconciler.NewClusterReconciler(
@@ -173,19 +172,6 @@ func (r *ClusterReconciler) updateComponents(ctx context.Context) error {
 
 // SetupWithManager sets up the cluster reconciler with mgr manager
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	err := mgr.GetFieldIndexer().IndexField(&v1alpha1.Component{}, ".spec.cluster", func(rawObj runtime.Object) []string {
-		component, ok := rawObj.(*v1alpha1.Component)
-		if !ok {
-			return nil
-		}
-		if component.APIVersion != clusterv1alpha1.GroupVersion.String() || component.Kind != "Component" {
-			return nil
-		}
-		return []string{component.Spec.Cluster}
-	})
-	if err != nil {
-		return err
-	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&clusterv1alpha1.Cluster{}).
 		Complete(r)

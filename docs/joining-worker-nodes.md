@@ -64,7 +64,8 @@ will take place:
     * Kubelet config contents
     * Kubelet server certificate and private key
 
-  * Set the `issued` condition on the `NodeJoinRequest` `status` field.
+  * Set the `Issued` condition to `True` on the `NodeJoinRequest`
+    `status` field.
 
 * `oi` on the worker node detects the `issued` condition, and so it
   will perform the following actions:

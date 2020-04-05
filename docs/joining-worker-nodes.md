@@ -31,8 +31,9 @@ will take place:
   the API server using the provided join token, having a very locked
   down set of permissions.
 
-* `oi` will download the join public key from the cluster, present in
-  the `oneinfra-public` ConfigMap, inside the `kube-public` namespace.
+* `oi` will download the join public key from the cluster present in
+  the `oneinfra-join` ConfigMap, inside the `oneinfra-system`
+  namespace.
 
 * `oi` will generate a symmetric key, ciphering it with the join
   public key.
@@ -43,8 +44,8 @@ will take place:
   endpoint and the image service endpoint.
 
 * `oi` will perform an active wait on the created `NodeJoinRequest`
-  resource, waiting for the `issued` `condition` in its `status`
-  field.
+  resource, waiting for the `Issued` `condition` to become `True` in
+  its `status` field.
 
 * During this time, `oneinfra` on the management cluster will perform
   the following actions:

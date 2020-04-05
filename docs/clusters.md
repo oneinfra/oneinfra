@@ -1,7 +1,9 @@
 # Clusters
 
-Clusters are the main component that will be used to define new
-clusters in your infrastructure.
+Clusters are the main component that will be used to glue all the
+required components that conform a single cluster. They contain the
+authoritative information that every component that belongs to this
+cluster will use (e.g. certificate authorities, certificates...).
 
 A minimal example is:
 

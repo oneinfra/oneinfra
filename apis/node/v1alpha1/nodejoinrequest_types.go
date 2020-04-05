@@ -29,19 +29,19 @@ const (
 
 // NodeJoinRequestSpec defines the desired state of NodeJoinRequest
 type NodeJoinRequestSpec struct {
-	// Generated symmetric key, used by `oneinfra` management cluster to
-	// cipher joining information. This key must be ciphered with the
-	// join public key of the cluster to be joined, and encoded in
-	// base64 format.
+	// Base64 encoded symmetric key, used by `oneinfra` management
+	// cluster to cipher joining information. This key must be ciphered
+	// with the join public key of the cluster to be joined, and encoded
+	// in base64.
 	SymmetricKey string `json:"symmetricKey,omitempty"`
 	// The API Server endpoint for what this join request is for.
 	APIServerEndpoint string `json:"apiServerEndpoint,omitempty"`
-	// The local node container runtime endpoint (e.g. containerd,
-	// cri-o unix socket...)
+	// The local node container runtime endpoint
+	// (e.g. unix:///run/containerd/containerd.sock)
 	ContainerRuntimeEndpoint string `json:"containerRuntimeEndpoint,omitempty"`
 	// The local node image service endpoint (e.g. containerd, cri-o
 	// unix socket...). It's usually the same as the
-	// ContainerRuntimeEndpoint.
+	// container runtime endpoint.
 	ImageServiceEndpoint string `json:"imageServiceEndpoint,omitempty"`
 }
 

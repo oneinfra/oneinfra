@@ -13,50 +13,50 @@ Requirements on the worker node to be joined:
 Running the command `oi node join` allows you to join this node to a
 cluster, these are the arguments you will need:
 
-| Argument                       | Description                                                                                                     |
-|--------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| `--nodename`                   | The name that this node will use to join the Kubernetes cluster                                                 |
-| `--container-runtime-endpoint` | The CRI endpoint for the container runtime service in this worker node                                          |
-| `--image-service-endpoint`     | The CRI endpoint for the image service in this worker node (usually the same as `--container-runtime-endpoint`) |
-| `--apiserver-endpoint`         | The API server endpoint of the cluster that this node will join                                                 |
-| `--apiserver-ca-cert-file`     | The file containing the CA certificate to validate the API server endpoint                                      |
-| `--join-token`                 | The join token that will be used for joining the existing cluster                                               |
+| Argument                       | Description                                                                                                            |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `--nodename`                   | The name that this node will use to join the Kubernetes cluster                                                        |
+| `--container-runtime-endpoint` | The CRI endpoint for the container runtime service in this worker node (e.g. `unix:///run/containerd/containerd.sock`) |
+| `--image-service-endpoint`     | The CRI endpoint for the image service in this worker node (usually the same as `--container-runtime-endpoint`)        |
+| `--apiserver-endpoint`         | The API server endpoint of the cluster that this node will join                                                        |
+| `--apiserver-ca-cert-file`     | The file containing the CA certificate to validate the API server endpoint connection                                  |
+| `--join-token`                 | The join token that will be used for the joining process                                                               |
 
-When you execute this command, this is the sequence of actions that
-will take place:
+When you execute the `oi node join` command, this is the sequence of
+actions that will take place:
 
-* `oi` will create a Kubernetes client pointing to the
+* `oi` creates a Kubernetes client pointing to the
   `--apiserver-endpoint`, validating its identity with
   `--apiserver-ca-cert-file`. This client will authenticate against
-  the API server using the provided join token, having a very locked
-  down set of permissions.
+  the API server using the provided join token, which has a very
+  locked down set of permissions.
 
-* `oi` will download the join public key from the cluster present in
-  the `oneinfra-join` ConfigMap, inside the `oneinfra-system`
-  namespace.
+* `oi` downloads the join public key from the cluster present in the
+  `oneinfra-join` ConfigMap, inside the `oneinfra-system` namespace.
 
-* `oi` will generate a symmetric key, ciphering it with the join
-  public key.
+* `oi` generates a symmetric key, ciphering it with the join public
+  key.
 
-* `oi` will create a [`NodeJoinRequest`
+* `oi` creates a [`NodeJoinRequest`
   resource](https://github.com/oneinfra/oneinfra/blob/master/apis/node/v1alpha1/nodejoinrequest_types.go)
   with the nodename, the ciphered symmetric key, the container runtime
   endpoint and the image service endpoint.
 
-* `oi` will perform an active wait on the created `NodeJoinRequest`
+* `oi` performs an active wait on the created `NodeJoinRequest`
   resource, waiting for the `Issued` `condition` to become `True` in
   its `status` field.
 
 * During this time, `oneinfra` on the management cluster will perform
   the following actions:
 
-  * Discover the `NodeJoinRequest` in the target cluster.
+  * Discover the `NodeJoinRequest` resource in the target cluster.
 
   * Decipher the symmetric key with the join private key, known to
-    `oneinfra`.
+    `oneinfra` in the management cluster.
 
   * Fill the following information on the `NodeJoinRequest` `status`
-    object, ciphered with the worker generated symmetric key:
+    object, ciphering all fields with the `NodeJoinRequest` provided
+    symmetric key in the spec:
 
     * Kubernetes version
     * VPN address and peers
@@ -67,8 +67,8 @@ will take place:
   * Set the `Issued` condition to `True` on the `NodeJoinRequest`
     `status` field.
 
-* `oi` on the worker node detects the `issued` condition, and so it
-  will perform the following actions:
+* `oi` on the worker node detects the `Issued` condition became
+  `True`, and so it performs the following actions:
 
   * Decipher the kubeconfig file, and write it to disk.
   * Decipher the kubelet config file, and write it to disk.

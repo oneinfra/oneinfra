@@ -25,6 +25,12 @@ const (
 	DefaultKeyBitSize = 1024
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
+	// OneInfraJoinConfigMap is the name of the ConfigMap used to
+	// store join information
+	OneInfraJoinConfigMap = "oneinfra-join"
+	// OneInfraJoinConfigMapJoinKey is the name of the key that holds
+	// the join key inside the join ConfigMap
+	OneInfraJoinConfigMapJoinKey = "joinKey"
 	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
 	// extra groups used to identify oneinfra bootstrap tokens
 	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"

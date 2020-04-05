@@ -92,6 +92,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 		clusterReconciler.reconcilePermissions(cluster, &reconcileErrors)
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
 		clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
+		clusterReconciler.reconcileJoinPublicKeyConfigMap(cluster, &reconcileErrors)
 
 		if reconcileErrors.IsClusterErrorFree(clusterName) {
 			cluster.Conditions.SetCondition(
@@ -180,6 +181,13 @@ func (clusterReconciler *ClusterReconciler) reconcileNodeJoinRequests(cluster *c
 	if err := cluster.ReconcileNodeJoinRequests(); err != nil {
 		klog.Errorf("failed to reconcile node join requests for cluster %q: %v", cluster.Name, err)
 		reconcileErrors.addClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile node join requests"))
+	}
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileJoinPublicKeyConfigMap(cluster *clusterapi.Cluster, reconcileErrors *ReconcileErrors) {
+	if err := cluster.ReconcileJoinPublicKeyConfigMap(); err != nil {
+		klog.Errorf("failed to reconcile join public key ConfigMap for cluster %q: %v", cluster.Name, err)
+		reconcileErrors.addClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile join public key ConfigMap"))
 	}
 }
 

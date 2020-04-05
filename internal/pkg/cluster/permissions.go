@@ -46,10 +46,16 @@ func (cluster *Cluster) ReconcilePermissions() error {
 				Resources: []string{"nodejoinrequests"},
 				Verbs:     []string{"get", "create"},
 			},
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"configmaps"},
+				ResourceNames: []string{constants.OneInfraJoinConfigMap},
+				Verbs:         []string{"get"},
+			},
 		},
 	})
-	if err != nil && apierrors.IsAlreadyExists(err) {
-		return nil
+	if err != nil && !apierrors.IsAlreadyExists(err) {
+		return err
 	}
 	_, err = client.RbacV1().RoleBindings(constants.OneInfraNamespace).Create(&rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{

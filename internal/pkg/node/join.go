@@ -22,7 +22,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -31,9 +30,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	clientset "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/klog"
 
@@ -48,14 +49,30 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token string, joinPublicKey *crypto.PublicKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token string, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+	symmetricKey, err := readOrGenerateSymmetricKey()
+	if err != nil {
+		return err
+	}
 	client, err := createClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
 	}
-	symmetricKey, err := readOrGenerateSymmetricKey()
+	kubernetesClient, err := createKubernetesClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return err
+	}
+	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(constants.OneInfraJoinConfigMap, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	joinPublicKeyPEM, exists := oneinfraPublicConfigMap.Data[constants.OneInfraJoinConfigMapJoinKey]
+	if !exists {
+		return errors.Errorf("could not find field %q in ConfigMap %q (in namespace %q)", constants.OneInfraJoinConfigMapJoinKey, constants.OneInfraJoinConfigMap, metav1.NamespacePublic)
+	}
+	joinPublicKey, err := crypto.NewPublicKeyFromString(joinPublicKeyPEM)
+	if err != nil {
+		return errors.New("could not read a public key")
 	}
 	cryptedSymmetricKey, err := joinPublicKey.Encrypt(symmetricKey)
 	if err != nil {
@@ -104,6 +121,14 @@ func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.R
 		return nil, err
 	}
 	return client, nil
+}
+
+func createKubernetesClient(apiServerEndpoint, caCertificate, token string) (clientset.Interface, error) {
+	kubeConfig, err := cluster.KubeConfigWithToken("cluster", apiServerEndpoint, caCertificate, token)
+	if err != nil {
+		return nil, err
+	}
+	return cluster.KubernetesClientFromKubeConfig(kubeConfig)
 }
 
 func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {

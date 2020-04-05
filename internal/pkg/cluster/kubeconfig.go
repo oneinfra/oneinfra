@@ -45,6 +45,15 @@ func RESTClientFromKubeConfig(kubeConfig string, groupVersion *schema.GroupVersi
 	return restclient.RESTClientFor(restConfig)
 }
 
+// KubernetesClientFromKubeConfig returns a kubernetes clientset from a kubeconfig file
+func KubernetesClientFromKubeConfig(kubeConfig string) (clientset.Interface, error) {
+	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
+	if err != nil {
+		return nil, err
+	}
+	return clientset.NewForConfig(restConfig)
+}
+
 // KubeConfigWithToken returns a kubeconfig with token auth
 func KubeConfigWithToken(clusterName, apiServerEndpoint, caCertificate, token string) (string, error) {
 	kubeConfig := kubeConfigObjectWithToken(clusterName, apiServerEndpoint, caCertificate, token)
@@ -86,11 +95,11 @@ func (cluster *Cluster) KubernetesExtensionsClient() (apiextensionsclientset.Int
 	if err != nil {
 		return nil, err
 	}
-	restClient, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
+	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
 	if err != nil {
 		return nil, err
 	}
-	clientSet, err := apiextensionsclientset.NewForConfig(restClient)
+	clientSet, err := apiextensionsclientset.NewForConfig(restConfig)
 	if err != nil {
 		return nil, err
 	}

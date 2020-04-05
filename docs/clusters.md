@@ -45,7 +45,7 @@ components attached to this cluster.
 
 Depending on how many components you define, you will be creating a
 single control plane instance, or an HA control plane. For example, if
-you also define a `control-plane` role component with a
+you define a `control-plane` role component along with a
 `control-plane-ingress` component:
 
 ```yaml
@@ -95,3 +95,11 @@ spec:
 
 Then, `oneinfra` will reconcile a 3 control plane instances HA
 cluster, with a single control plane ingress.
+
+---
+
+**Note**: at the moment **only one ingress component** is allowed per
+cluster, what means that the system has a single point of
+failure. This will be ammended soon.
+
+---

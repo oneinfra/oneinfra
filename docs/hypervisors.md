@@ -71,9 +71,6 @@ An Hypervisor has different attributes that you need to specify:
 
 ## Setting up an hypervisor
 
-**Note**: in the near future `oneinfra` will allow you to set up
-hypervisors in an easier way.
-
 For setting an hypervisor up, you will need a service that implements
 the Container Runtime Interface set up (e.g. containerd, cri-o...).
 
@@ -92,6 +89,13 @@ type RemoteHypervisorCRIEndpoint struct {
 	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`
 }
 ```
+
+---
+
+**Note**: in the near future `oneinfra` will allow you to set up
+hypervisors in an easier way.
+
+---
 
 You will need to set up an authentication proxy on the hypervisor. The
 test environment uses `haproxy`, so it is listening in a TCP port,

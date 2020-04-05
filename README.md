@@ -55,6 +55,9 @@ to use Kubernetes.
 * [Without Kubernetes (for testing purposes
   only)](#without-kubernetes-for-testing-purposes-only)
 
+You can also [read documentation on how to define
+clusters](https://github.com/oneinfra/oneinfra/blob/master/docs/clusters.md)
+once you have set up `oneinfra`.
 
 ### With Kubernetes as a management cluster
 

@@ -67,3 +67,76 @@ An Hypervisor has different attributes that you need to specify:
   * Every service, either public or private is going to be allocated a
     port on the scheduled hypervisor, so `oneinfra` needs to know what
     port range is safe to use.
+
+
+## Setting up an hypervisor
+
+**Note**: in the near future `oneinfra` will allow you to set up
+hypervisors in an easier way.
+
+For setting an hypervisor up, you will need a service that implements
+the Container Runtime Interface set up (e.g. containerd, cri-o...).
+
+The specification looks as follows:
+
+```go
+// RemoteHypervisorCRIEndpoint represents a remote hypervisor CRI endpoint (tcp with client certificate authentication)
+type RemoteHypervisorCRIEndpoint struct {
+	// CRIEndpoint is the address where this CRI endpoint is listening
+	CRIEndpoint string `json:"criEndpointURI,omitempty"`
+	// CACertificate is the CA certificate to validate the connection
+	// against
+	CACertificate string `json:"caCertificate,omitempty"`
+	// ClientCertificate is the client certificate that will be used to
+	// authenticate requests
+	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`
+}
+```
+
+You will need to set up an authentication proxy on the hypervisor. The
+test environment uses `haproxy`, so it is listening in a TCP port,
+performing client certificate authentication, and forwarding those
+requests to a local UNIX socket (where `containerd`, or `cri-o` are
+listening).
+
+An example of an `haproxy` configuration is as follows:
+
+```
+global
+  chroot /var/lib/haproxy
+  daemon
+defaults
+  log global
+  mode tcp
+  timeout connect 10s
+  timeout client  60s
+  timeout server  60s
+frontend cri_frontend
+  bind *:<HAProxy port> ssl crt <HAProxy cert bundle path> ca-file <HAProxy CA client cert path> verify required
+  default_backend cri_backend
+backend cri_backend
+  server cri unix@containerd.sock
+```
+
+In this example, the `containerd.sock` is placed inside the chrooted
+environment `/var/lib/haproxy`.
+
+You can inspect the testing environment `oneinfra` creates in this
+setup by executing `oi-local-cluster cluster create --remote`.
+
+Also, since `oneinfra` will authenticate against the hypervisor using
+a client certificate, you will need several certificates:
+
+* HAProxy cert bundle path: refers to the bundle of the endpoint
+  certificate and private key, this is the server certificate of this
+  CRI endpoint. It will be used by `oneinfra` client to validate the
+  server connection. The CA used to create this certificate will be
+  placed in the `RemoteHypervisorCRIEndpoint` `CACertificate` field,
+  PEM encoded.
+
+* HAProxy CA client cert path: is the CA used by `haproxy` to validate
+  the `oneinfra` client certificate, authenticating requests. The
+  client certificate used by `oneinfra` to authenticate against the
+  CRI endpoint will be placed in the `RemoteHypervisorCRIEndpoint`
+  `ClientCertificate` field, which consists in a `Certificate` and
+  `PrivateKey`, both PEM encoded.

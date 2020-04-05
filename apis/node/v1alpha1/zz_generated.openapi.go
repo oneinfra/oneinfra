@@ -42,17 +42,16 @@ properties:
         description: The API Server endpoint for what this join request is for.
         type: string
       containerRuntimeEndpoint:
-        description: The local node container runtime endpoint (e.g. containerd, cri-o
-          unix socket...)
+        description: The local node container runtime endpoint (e.g. unix:///run/containerd/containerd.sock)
         type: string
       imageServiceEndpoint:
         description: The local node image service endpoint (e.g. containerd, cri-o
-          unix socket...). It's usually the same as the ContainerRuntimeEndpoint.
+          unix socket...). It's usually the same as the container runtime endpoint.
         type: string
       symmetricKey:
-        description: Generated symmetric key, used by "oneinfra" management cluster
+        description: Base64 encoded symmetric key, used by "oneinfra" management cluster
           to cipher joining information. This key must be ciphered with the join public
-          key of the cluster to be joined, and encoded in base64 format.
+          key of the cluster to be joined, and encoded in base64.
         type: string
     type: object
   status:

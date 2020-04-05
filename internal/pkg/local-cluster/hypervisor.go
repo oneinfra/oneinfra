@@ -87,6 +87,13 @@ func (hypervisor *Hypervisor) Create() error {
 	if err != nil {
 		return err
 	}
+	if err := exec.Command("docker", "inspect", hypervisor.HypervisorCluster.NodeImage).Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "pulling image %q; this can take a while, please wait...\n", hypervisor.HypervisorCluster.NodeImage)
+		if err := exec.Command("docker", "pull", hypervisor.HypervisorCluster.NodeImage).Run(); err != nil {
+			return err
+		}
+	}
+	fmt.Fprintf(os.Stderr, "running fake hypervisor with name %q\n", hypervisor.fullName())
 	return exec.Command("docker", []string{
 		"run", "-d", "--privileged",
 		"--name", hypervisor.fullName(),

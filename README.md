@@ -80,7 +80,7 @@ Deploy `cert-manager` and `oneinfra`.
 ```
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
 $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager --all
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/generated/all.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/generated/all.yaml
 ```
 
 Create a local set of fake hypervisors, so `oneinfra` can schedule
@@ -96,7 +96,7 @@ $ oi-local-cluster cluster create --remote | kubectl apply -f -
 Now, create a managed cluster:
 
 ```
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/master/config/samples/simple-cluster.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/simple-cluster.yaml
 $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
 $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
 ```

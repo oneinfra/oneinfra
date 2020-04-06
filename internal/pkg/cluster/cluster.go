@@ -146,7 +146,6 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		JoinKey:                joinKey,
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
-		JoinChallenge:          cluster.Spec.JoinChallenge,
 		Conditions:             conditions.NewConditionListFromv1alpha1(cluster.Status.Conditions),
 	}
 	if err := res.RefreshCachedSpecs(); err != nil {
@@ -173,7 +172,6 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			VPNCIDR:                cluster.VPNCIDR.String(),
 			JoinKey:                cluster.JoinKey.Export(),
 			JoinTokens:             cluster.DesiredJoinTokens,
-			JoinChallenge:          cluster.JoinChallenge,
 		},
 		Status: clusterv1alpha1.ClusterStatus{
 			StorageClientEndpoints: cluster.StorageClientEndpoints,

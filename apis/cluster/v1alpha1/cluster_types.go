@@ -44,12 +44,6 @@ type ClusterSpec struct {
 
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
-
-	// JoinChallenge is an arbitrary string used as a challenge when
-	// joining an existing cluster.
-	//
-	// +optional
-	JoinChallenge string `json:"joinChallenge,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

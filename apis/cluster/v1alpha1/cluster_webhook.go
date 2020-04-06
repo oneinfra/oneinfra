@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/moby/moby/pkg/namesgenerator"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -46,7 +45,6 @@ func (cluster *Cluster) Default() {
 	clusterlog.Info("default", "name", cluster.Name)
 	cluster.defaultKubernetesVersion()
 	cluster.defaultVPNCIDR()
-	cluster.defaultJoinChallenge()
 }
 
 func (cluster *Cluster) defaultKubernetesVersion() {
@@ -58,12 +56,6 @@ func (cluster *Cluster) defaultKubernetesVersion() {
 func (cluster *Cluster) defaultVPNCIDR() {
 	if cluster.Spec.VPNCIDR == "" {
 		cluster.Spec.VPNCIDR = "10.0.0.0/8"
-	}
-}
-
-func (cluster *Cluster) defaultJoinChallenge() {
-	if cluster.Spec.JoinChallenge == "" {
-		cluster.Spec.JoinChallenge = namesgenerator.GetRandomName(0)
 	}
 }
 

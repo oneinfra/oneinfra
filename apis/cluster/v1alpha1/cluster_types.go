@@ -49,7 +49,7 @@ type ClusterSpec struct {
 	// joining an existing cluster.
 	//
 	// +optional
-	JoinChallenge string `json:"joinSecret,omitempty"`
+	JoinChallenge string `json:"joinChallenge,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

@@ -22,7 +22,7 @@ import (
 
 const (
 	// DefaultKeyBitSize is the default key bit size
-	DefaultKeyBitSize = 1024
+	DefaultKeyBitSize = 4096
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
 	// OneInfraJoinConfigMap is the name of the ConfigMap used to
@@ -31,13 +31,19 @@ const (
 	// OneInfraJoinConfigMapJoinKey is the name of the key that holds
 	// the join key inside the join ConfigMap
 	OneInfraJoinConfigMapJoinKey = "joinKey"
+	// OneInfraJoinConfigMapChallengeKey is the name of the key that holds
+	// the join challenge inside the join ConfigMap
+	OneInfraJoinConfigMapChallengeKey = "join-challenge"
 	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
 	// extra groups used to identify oneinfra bootstrap tokens
 	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"
 	// OneInfraConfigDir represents the configuration directory for oneinfra
 	OneInfraConfigDir = "/etc/oneinfra"
-	// OneInfraControlPlaneIngressVPNPeerName represents the control plane
-	// ingress peer VPN name
+	// OneInfraClusterNameLabelName is the name of the label for the
+	// cluster name
+	OneInfraClusterNameLabelName = "oneinfra/cluster-name"
+	// OneInfraControlPlaneIngressVPNPeerName represents the control
+	// plane ingress peer VPN name
 	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
 	// KubeletDir is the kubelet configuration dir
 	KubeletDir = "/var/lib/kubelet"

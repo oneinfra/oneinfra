@@ -24,6 +24,7 @@ const (
 	// ReconcileStarted represents a condition type signaling whether a
 	// reconcile has been started
 	ReconcileStarted commonv1alpha1.ConditionType = "ReconcileStarted"
+
 	// ReconcileSucceeded represents a condition type signaling that a
 	// reconcile has succeeded
 	ReconcileSucceeded commonv1alpha1.ConditionType = "ReconcileSucceeded"

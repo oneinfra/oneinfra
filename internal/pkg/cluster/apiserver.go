@@ -17,6 +17,7 @@ limitations under the License.
 package cluster
 
 import (
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
@@ -24,10 +25,9 @@ import (
 
 // KubeAPIServer represents the kube-apiserver component
 type KubeAPIServer struct {
-	CA                       *certificates.Certificate
-	ServiceAccountPublicKey  string
-	ServiceAccountPrivateKey string
-	ExtraSANs                []string
+	CA             *certificates.Certificate
+	ServiceAccount *crypto.KeyPair
+	ExtraSANs      []string
 }
 
 func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
@@ -43,7 +43,18 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	kubeAPIServer.ServiceAccountPublicKey = serviceAccountKey.PublicKey
-	kubeAPIServer.ServiceAccountPrivateKey = serviceAccountKey.PrivateKey
+	kubeAPIServer.ServiceAccount = serviceAccountKey
 	return &kubeAPIServer, nil
+}
+
+// Export exports this kube-apiserver to a versioned kube-apiserver
+func (kubeAPIServer *KubeAPIServer) Export() *clusterv1alpha1.KubeAPIServer {
+	if kubeAPIServer == nil {
+		return nil
+	}
+	return &clusterv1alpha1.KubeAPIServer{
+		CA:             kubeAPIServer.CA.Export(),
+		ServiceAccount: kubeAPIServer.ServiceAccount.Export(),
+		ExtraSANs:      kubeAPIServer.ExtraSANs,
+	}
 }

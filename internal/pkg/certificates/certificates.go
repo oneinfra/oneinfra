@@ -93,6 +93,9 @@ func NewCertificateAuthority(authorityName string) (*Certificate, error) {
 
 // NewCertificateFromv1alpha1 returns a certificate from a versioned certificate
 func NewCertificateFromv1alpha1(certificate *commonv1alpha1.Certificate) *Certificate {
+	if certificate == nil {
+		return nil
+	}
 	res := &Certificate{
 		Certificate: certificate.Certificate,
 		PrivateKey:  certificate.PrivateKey,
@@ -105,6 +108,9 @@ func NewCertificateFromv1alpha1(certificate *commonv1alpha1.Certificate) *Certif
 
 // Export exports the certificate to a versioned certificate
 func (certificate *Certificate) Export() *commonv1alpha1.Certificate {
+	if certificate == nil {
+		return nil
+	}
 	return &commonv1alpha1.Certificate{
 		Certificate: certificate.Certificate,
 		PrivateKey:  certificate.PrivateKey,

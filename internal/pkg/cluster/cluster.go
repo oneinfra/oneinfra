@@ -32,10 +32,8 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
@@ -53,6 +51,8 @@ type Cluster struct {
 	Name                   string
 	Namespace              string
 	ResourceVersion        string
+	Labels                 map[string]string
+	Annotations            map[string]string
 	KubernetesVersion      string
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
@@ -65,6 +65,7 @@ type Cluster struct {
 	JoinKey                *crypto.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
+	JoinChallenge          string
 	Conditions             conditions.ConditionList
 	clientSet              clientset.Interface
 	extensionsClientSet    apiextensionsclientset.Interface
@@ -80,19 +81,16 @@ func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSA
 	if err != nil {
 		return nil, err
 	}
-	joinKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
-	if err != nil {
-		return nil, err
-	}
 	res := Cluster{
 		Name:              clusterName,
 		KubernetesVersion: kubernetesVersion,
 		VPNCIDR:           vpnCIDRNet,
 		VPNPeers:          VPNPeerMap{},
-		JoinKey:           joinKey,
 	}
-	if err := res.generateCertificateAuthorities(apiServerExtraSANs); err != nil {
-		return nil, err
+	if len(apiServerExtraSANs) > 0 {
+		res.APIServer = &KubeAPIServer{
+			ExtraSANs: apiServerExtraSANs,
+		}
 	}
 	return &res, nil
 }
@@ -103,10 +101,27 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 	if err != nil {
 		return nil, err
 	}
+	if cluster.Spec.CertificateAuthorities == nil {
+		cluster.Spec.CertificateAuthorities = &clusterv1alpha1.CertificateAuthorities{}
+	}
+	if cluster.Spec.APIServer == nil {
+		cluster.Spec.APIServer = &clusterv1alpha1.KubeAPIServer{}
+	}
+	if cluster.Spec.EtcdServer == nil {
+		cluster.Spec.EtcdServer = &clusterv1alpha1.EtcdServer{}
+	}
+	apiServerServiceAccountKey, err := crypto.NewKeyPairFromv1alpha1(
+		cluster.Spec.APIServer.ServiceAccount,
+	)
+	if err != nil {
+		return nil, err
+	}
 	res := Cluster{
 		Name:              cluster.Name,
 		Namespace:         cluster.Namespace,
 		ResourceVersion:   cluster.ResourceVersion,
+		Labels:            cluster.Labels,
+		Annotations:       cluster.Annotations,
 		KubernetesVersion: cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: &CertificateAuthorities{
 			APIServerClient:   certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.APIServerClient),
@@ -116,10 +131,9 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 			EtcdPeer:          certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.EtcdPeer),
 		},
 		APIServer: &KubeAPIServer{
-			CA:                       certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
-			ServiceAccountPublicKey:  cluster.Spec.APIServer.ServiceAccount.PublicKey,
-			ServiceAccountPrivateKey: cluster.Spec.APIServer.ServiceAccount.PrivateKey,
-			ExtraSANs:                cluster.Spec.APIServer.ExtraSANs,
+			CA:             certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
+			ServiceAccount: apiServerServiceAccountKey,
+			ExtraSANs:      cluster.Spec.APIServer.ExtraSANs,
 		},
 		EtcdServer: &EtcdServer{
 			CA: certificates.NewCertificateFromv1alpha1(cluster.Spec.EtcdServer.CA),
@@ -132,6 +146,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		JoinKey:                joinKey,
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
+		JoinChallenge:          cluster.Spec.JoinChallenge,
 		Conditions:             conditions.NewConditionListFromv1alpha1(cluster.Status.Conditions),
 	}
 	if err := res.RefreshCachedSpecs(); err != nil {
@@ -147,30 +162,18 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			Name:            cluster.Name,
 			Namespace:       cluster.Namespace,
 			ResourceVersion: cluster.ResourceVersion,
+			Labels:          cluster.Labels,
+			Annotations:     cluster.Annotations,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion:      cluster.KubernetesVersion,
 			CertificateAuthorities: cluster.CertificateAuthorities.Export(),
-			APIServer: &clusterv1alpha1.KubeAPIServer{
-				CA: &commonv1alpha1.Certificate{
-					Certificate: cluster.APIServer.CA.Certificate,
-					PrivateKey:  cluster.APIServer.CA.PrivateKey,
-				},
-				ServiceAccount: &commonv1alpha1.KeyPair{
-					PublicKey:  cluster.APIServer.ServiceAccountPublicKey,
-					PrivateKey: cluster.APIServer.ServiceAccountPrivateKey,
-				},
-				ExtraSANs: cluster.APIServer.ExtraSANs,
-			},
-			EtcdServer: &clusterv1alpha1.EtcdServer{
-				CA: &commonv1alpha1.Certificate{
-					Certificate: cluster.EtcdServer.CA.Certificate,
-					PrivateKey:  cluster.EtcdServer.CA.PrivateKey,
-				},
-			},
-			VPNCIDR:    cluster.VPNCIDR.String(),
-			JoinKey:    cluster.JoinKey.Export(),
-			JoinTokens: cluster.DesiredJoinTokens,
+			APIServer:              cluster.APIServer.Export(),
+			EtcdServer:             cluster.EtcdServer.Export(),
+			VPNCIDR:                cluster.VPNCIDR.String(),
+			JoinKey:                cluster.JoinKey.Export(),
+			JoinTokens:             cluster.DesiredJoinTokens,
+			JoinChallenge:          cluster.JoinChallenge,
 		},
 		Status: clusterv1alpha1.ClusterStatus{
 			StorageClientEndpoints: cluster.StorageClientEndpoints,
@@ -217,25 +220,6 @@ func (cluster *Cluster) Specs() (string, error) {
 		return string(encodedCluster), nil
 	}
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)
-}
-
-func (cluster *Cluster) generateCertificateAuthorities(apiServerExtraSANs []string) error {
-	certificateAuthorities, err := newCertificateAuthorities()
-	if err != nil {
-		return err
-	}
-	cluster.CertificateAuthorities = certificateAuthorities
-	etcdServer, err := newEtcdServer()
-	if err != nil {
-		return err
-	}
-	cluster.EtcdServer = etcdServer
-	kubeAPIServer, err := newKubeAPIServer(apiServerExtraSANs)
-	if err != nil {
-		return err
-	}
-	cluster.APIServer = kubeAPIServer
-	return nil
 }
 
 // GenerateVPNPeer generates a new VPN peer with name peerName

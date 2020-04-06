@@ -30,38 +30,11 @@ type CertificateAuthorities struct {
 	EtcdPeer          *certificates.Certificate
 }
 
-func newCertificateAuthorities() (*CertificateAuthorities, error) {
-	apiserverClientAuthority, err := certificates.NewCertificateAuthority("apiserver-client-authority")
-	if err != nil {
-		return nil, err
-	}
-	certificateSignerAuthority, err := certificates.NewCertificateAuthority("certificate-signer-authority")
-	if err != nil {
-		return nil, err
-	}
-	kubeletAuthority, err := certificates.NewCertificateAuthority("kubelet-authority")
-	if err != nil {
-		return nil, err
-	}
-	etcdClientAuthority, err := certificates.NewCertificateAuthority("etcd-client-authority")
-	if err != nil {
-		return nil, err
-	}
-	etcdPeerAuthority, err := certificates.NewCertificateAuthority("etcd-peer-authority")
-	if err != nil {
-		return nil, err
-	}
-	return &CertificateAuthorities{
-		APIServerClient:   apiserverClientAuthority,
-		CertificateSigner: certificateSignerAuthority,
-		Kubelet:           kubeletAuthority,
-		EtcdClient:        etcdClientAuthority,
-		EtcdPeer:          etcdPeerAuthority,
-	}, nil
-}
-
 // Export exports these set of certificate authorities to a versioned certificate authority set
 func (certificateAuthorities *CertificateAuthorities) Export() *clusterv1alpha1.CertificateAuthorities {
+	if certificateAuthorities == nil {
+		return nil
+	}
 	return &clusterv1alpha1.CertificateAuthorities{
 		APIServerClient:   certificateAuthorities.APIServerClient.Export(),
 		CertificateSigner: certificateAuthorities.CertificateSigner.Export(),

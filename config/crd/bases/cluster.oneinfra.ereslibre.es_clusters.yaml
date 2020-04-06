@@ -143,6 +143,10 @@ spec:
                   description: PublicKey is a PEM encoded public key
                   type: string
               type: object
+            joinSecret:
+              description: JoinChallenge is an arbitrary string used as a challenge
+                when joining an existing cluster.
+              type: string
             joinTokens:
               items:
                 type: string

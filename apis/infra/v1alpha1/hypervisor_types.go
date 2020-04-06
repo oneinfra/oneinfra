@@ -29,20 +29,26 @@ type HypervisorSpec struct {
 	// purposes. On production environments RemoteCRIEndpoint should be
 	// used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
 	// provided.
+	//
 	// +optional
 	LocalCRIEndpoint *LocalHypervisorCRIEndpoint `json:"localCRIEndpoint,omitempty"`
+
 	// RemoteCRIEndpoint is the TCP address where this hypervisor is
 	// reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
 	// to be provided.
+	//
 	// +optional
 	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
+
 	// Public hypervisors will be scheduled cluster ingress components,
 	// whereas private hypervisors will be scheduled the control plane
 	// components themselves.
 	Public bool `json:"public"`
+
 	// IPAddress of this hypervisor. Public hypervisors must have a
 	// publicly reachable IP address.
 	IPAddress string `json:"ipAddress,omitempty"`
+
 	// PortRange is the port range to be used for allocating exposed
 	// components.
 	PortRange HypervisorPortRange `json:"portRange,omitempty"`
@@ -58,9 +64,11 @@ type LocalHypervisorCRIEndpoint struct {
 type RemoteHypervisorCRIEndpoint struct {
 	// CRIEndpoint is the address where this CRI endpoint is listening
 	CRIEndpoint string `json:"criEndpointURI,omitempty"`
+
 	// CACertificate is the CA certificate to validate the connection
 	// against
 	CACertificate string `json:"caCertificate,omitempty"`
+
 	// ClientCertificate is the client certificate that will be used to
 	// authenticate requests
 	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`

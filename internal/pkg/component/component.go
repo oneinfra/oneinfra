@@ -58,6 +58,8 @@ type Component struct {
 	Name               string
 	Namespace          string
 	ResourceVersion    string
+	Labels             map[string]string
+	Annotations        map[string]string
 	Role               Role
 	HypervisorName     string
 	ClusterName        string
@@ -91,6 +93,8 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 		Name:            component.Name,
 		Namespace:       component.Namespace,
 		ResourceVersion: component.ResourceVersion,
+		Labels:          component.Labels,
+		Annotations:     component.Annotations,
 		HypervisorName:  component.Spec.Hypervisor,
 		ClusterName:     component.Spec.Cluster,
 		Conditions:      conditions.NewConditionListFromv1alpha1(component.Status.Conditions),
@@ -194,6 +198,8 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 			Name:            component.Name,
 			Namespace:       component.Namespace,
 			ResourceVersion: component.ResourceVersion,
+			Labels:          component.Labels,
+			Annotations:     component.Annotations,
 		},
 		Spec: clusterv1alpha1.ComponentSpec{
 			Hypervisor: component.HypervisorName,

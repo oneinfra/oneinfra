@@ -49,62 +49,17 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertificate, token string, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	symmetricKey, err := readOrGenerateSymmetricKey()
 	if err != nil {
 		return err
 	}
-	client, err := createClient(apiServerEndpoint, caCertificate, token)
+	nodeJoinRequest, err := createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint, symmetricKey)
 	if err != nil {
-		return err
-	}
-	kubernetesClient, err := createKubernetesClient(apiServerEndpoint, caCertificate, token)
-	if err != nil {
-		return err
-	}
-	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(constants.OneInfraJoinConfigMap, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	joinPublicKeyPEM, exists := oneinfraPublicConfigMap.Data[constants.OneInfraJoinConfigMapJoinKey]
-	if !exists {
-		return errors.Errorf("could not find field %q in ConfigMap %q (in namespace %q)", constants.OneInfraJoinConfigMapJoinKey, constants.OneInfraJoinConfigMap, metav1.NamespacePublic)
-	}
-	joinPublicKey, err := crypto.NewPublicKeyFromString(joinPublicKeyPEM)
-	if err != nil {
-		return errors.New("could not read a public key")
-	}
-	cryptedSymmetricKey, err := joinPublicKey.Encrypt(symmetricKey)
-	if err != nil {
-		return err
-	}
-	if err := createJoinRequest(client, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
-		return err
-	}
-	nodeJoinRequest, err := waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
-	if err != nil {
-		return err
-	}
-	if err := writeKubeConfig(nodeJoinRequest, symmetricKey); err != nil {
-		return err
-	}
-	if err := writeKubeletConfig(nodeJoinRequest, symmetricKey); err != nil {
-		return err
-	}
-	if err := writeKubeletCertificate(nodeJoinRequest, symmetricKey); err != nil {
-		return err
-	}
-	if err := installKubelet(nodeJoinRequest, symmetricKey); err != nil {
-		return err
-	}
-	if err := setupSystemd(nodeJoinRequest); err != nil {
-		return err
-	}
-	if err := startKubelet(); err != nil {
 		return err
 	}
 	// TODO: set up wireguard
-	return nil
+	return setupKubelet(nodeJoinRequest, symmetricKey)
 }
 
 func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.RESTClient, error) {
@@ -307,6 +262,56 @@ func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 
 func startKubelet() error {
 	return exec.Command("systemctl", "enable", "--now", "kubelet").Run()
+}
+
+func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint, symmetricKey string) (*nodejoinrequests.NodeJoinRequest, error) {
+	client, err := createClient(apiServerEndpoint, caCertificate, token)
+	if err != nil {
+		return nil, err
+	}
+	kubernetesClient, err := createKubernetesClient(apiServerEndpoint, caCertificate, token)
+	if err != nil {
+		return nil, err
+	}
+	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(constants.OneInfraJoinConfigMap, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	joinPublicKeyPEM, exists := oneinfraPublicConfigMap.Data[constants.OneInfraJoinConfigMapJoinKey]
+	if !exists {
+		return nil, errors.Errorf("could not find field %q in ConfigMap %q (in namespace %q)", constants.OneInfraJoinConfigMapJoinKey, constants.OneInfraJoinConfigMap, metav1.NamespacePublic)
+	}
+	joinPublicKey, err := crypto.NewPublicKeyFromString(joinPublicKeyPEM)
+	if err != nil {
+		return nil, errors.New("could not read a public key")
+	}
+	cryptedSymmetricKey, err := joinPublicKey.Encrypt(symmetricKey)
+	if err != nil {
+		return nil, err
+	}
+	if err := createJoinRequest(client, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
+		return nil, err
+	}
+	return waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
+}
+
+func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	if err := writeKubeConfig(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
+	if err := writeKubeletConfig(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
+	if err := writeKubeletCertificate(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
+	if err := installKubelet(nodeJoinRequest, symmetricKey); err != nil {
+		return err
+	}
+	if err := setupSystemd(nodeJoinRequest); err != nil {
+		return err
+	}
+	return startKubelet()
 }
 
 func decrypt(symmetricKey string, base64Data string) (string, error) {

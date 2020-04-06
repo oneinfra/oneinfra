@@ -79,11 +79,13 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 			reconcileErrors.addClusterError(cluster.Name, errors.New("cluster is not fully scheduled"))
 			continue
 		}
+
 		cluster.Conditions.SetCondition(
 			clusterapi.ReconcileStarted,
 			conditions.ConditionTrue,
 		)
 
+		clusterReconciler.reconcileCertificatesAndKeys()
 		clusterReconciler.reconcileMinimalVPNPeers(cluster, &reconcileErrors)
 		clusterReconciler.reconcileControlPlaneComponents(clusterName, &reconcileErrors)
 		clusterReconciler.reconcileControlPlaneIngressComponents(clusterName, &reconcileErrors)
@@ -104,6 +106,33 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 				clusterapi.ReconcileSucceeded,
 				conditions.ConditionFalse,
 			)
+		}
+	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileCertificatesAndKeys() ReconcileErrors {
+	klog.V(2).Info("generating missing certificates and keys")
+	reconcileErrors := ReconcileErrors{}
+	for clusterName, cluster := range clusterReconciler.ClusterMap {
+		if err := cluster.ReconcileCertificateAuthorities(); err != nil {
+			klog.Errorf("failed to reconcile certificate authorities for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile certificate authorities"))
+		}
+		if err := cluster.ReconcileEtcdServerCertificateAuthority(); err != nil {
+			klog.Errorf("failed to reconcile etcd server certificate authority for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile etcd server certificate authority"))
+		}
+		if err := cluster.ReconcileAPIServerCertificateAuthority(); err != nil {
+			klog.Errorf("failed to reconcile api server certificate authority for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile api server certificate authority"))
+		}
+		if err := cluster.ReconcileJoinKey(); err != nil {
+			klog.Errorf("failed to reconcile join key for cluster %q: %v", clusterName, err)
+			reconcileErrors.addClusterError(clusterName, errors.Wrap(err, "failed to reconcile join key"))
 		}
 	}
 	if len(reconcileErrors) == 0 {

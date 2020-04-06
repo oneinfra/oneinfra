@@ -137,6 +137,15 @@ func (r *ClusterReconciler) updateClusters(ctx context.Context) error {
 			continue
 		}
 		if isDirty {
+			// TODO: optimize this spec update: this is done if certificates
+			// and keys had to be initialized during a reconcile pass. This
+			// should be switched to a label inserted by the mutation
+			// webhook and only act upon that label existence, removing it
+			// on this very update
+			if err := r.Update(ctx, cluster.Export()); err != nil {
+				someError = true
+				klog.Errorf("could not update cluster %q spec: %v", cluster.Name, err)
+			}
 			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
 				someError = true
 				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)

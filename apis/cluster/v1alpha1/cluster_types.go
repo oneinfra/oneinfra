@@ -26,18 +26,30 @@ import (
 type ClusterSpec struct {
 	// +optional
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+
 	// +optional
 	CertificateAuthorities *CertificateAuthorities `json:"certificateAuthorities,omitempty"`
+
 	// +optional
 	EtcdServer *EtcdServer `json:"etcdServer,omitempty"`
+
 	// +optional
 	APIServer *KubeAPIServer `json:"apiServer,omitempty"`
+
 	// +optional
 	VPNCIDR string `json:"vpnCIDR,omitempty"`
+
 	// +optional
 	JoinKey *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
+
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
+
+	// JoinChallenge is an arbitrary string used as a challenge when
+	// joining an existing cluster.
+	//
+	// +optional
+	JoinChallenge string `json:"joinSecret,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

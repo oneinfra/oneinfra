@@ -28,6 +28,7 @@ type Role string
 const (
 	// ControlPlaneRole is the role used for a Control Plane instance
 	ControlPlaneRole Role = "control-plane"
+
 	// ControlPlaneIngressRole is the role used for Control Plane ingress
 	ControlPlaneIngressRole Role = "control-plane-ingress"
 )

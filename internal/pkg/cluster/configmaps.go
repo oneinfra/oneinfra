@@ -37,7 +37,8 @@ func (cluster *Cluster) ReconcileJoinPublicKeyConfigMap() error {
 			Namespace: constants.OneInfraNamespace,
 		},
 		Data: map[string]string{
-			constants.OneInfraJoinConfigMapJoinKey: cluster.JoinKey.PublicKey,
+			constants.OneInfraJoinConfigMapJoinKey:      cluster.JoinKey.PublicKey,
+			constants.OneInfraJoinConfigMapChallengeKey: cluster.JoinChallenge,
 		},
 	})
 	if err != nil && apierrors.IsAlreadyExists(err) {

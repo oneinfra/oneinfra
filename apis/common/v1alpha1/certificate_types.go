@@ -20,6 +20,7 @@ package v1alpha1
 type Certificate struct {
 	// Certificate is a PEM encoded certificate
 	Certificate string `json:"certificate,omitempty"`
+
 	// PrivateKey is a PEM encoded private key
 	PrivateKey string `json:"privateKey,omitempty"`
 }
@@ -28,6 +29,7 @@ type Certificate struct {
 type KeyPair struct {
 	// PublicKey is a PEM encoded public key
 	PublicKey string `json:"publicKey,omitempty"`
+
 	// PrivateKey is a PEM encoded private key
 	PrivateKey string `json:"privateKey,omitempty"`
 }

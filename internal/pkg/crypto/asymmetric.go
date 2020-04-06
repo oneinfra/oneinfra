@@ -145,6 +145,9 @@ func NewKeyPairFromString(privateKeyPEM string) (*KeyPair, error) {
 
 // NewKeyPairFromv1alpha1 returns a key pair from a versioned key pair
 func NewKeyPairFromv1alpha1(keyPair *commonv1alpha1.KeyPair) (*KeyPair, error) {
+	if keyPair == nil {
+		return nil, nil
+	}
 	res, err := NewKeyPairFromString(keyPair.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -154,6 +157,9 @@ func NewKeyPairFromv1alpha1(keyPair *commonv1alpha1.KeyPair) (*KeyPair, error) {
 
 // Export exports the key pair to a versioned key pair
 func (keyPair *KeyPair) Export() *commonv1alpha1.KeyPair {
+	if keyPair == nil {
+		return nil
+	}
 	return &commonv1alpha1.KeyPair{
 		PublicKey:  keyPair.PublicKey,
 		PrivateKey: keyPair.PrivateKey,

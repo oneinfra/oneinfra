@@ -49,6 +49,8 @@ type Hypervisor struct {
 	Name               string
 	Namespace          string
 	ResourceVersion    string
+	Labels             map[string]string
+	Annotations        map[string]string
 	Public             bool
 	IPAddress          string
 	Files              map[string]string
@@ -77,6 +79,8 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		Name:            hypervisor.Name,
 		Namespace:       hypervisor.Namespace,
 		ResourceVersion: hypervisor.ResourceVersion,
+		Labels:          hypervisor.Labels,
+		Annotations:     hypervisor.Annotations,
 		Public:          hypervisor.Spec.Public,
 		IPAddress:       hypervisor.Spec.IPAddress,
 		Files:           hypervisorFiles,
@@ -136,7 +140,7 @@ func (hypervisor *Hypervisor) EnsureImage(image string) error {
 	if err != nil {
 		return err
 	}
-	imageStatus, err := criImage.ImageStatus(context.Background(), &criapi.ImageStatusRequest{
+	imageStatus, err := criImage.ImageStatus(context.TODO(), &criapi.ImageStatusRequest{
 		Image: &criapi.ImageSpec{
 			Image: image,
 		},
@@ -145,7 +149,7 @@ func (hypervisor *Hypervisor) EnsureImage(image string) error {
 		return err
 	}
 	if imageStatus.Image == nil {
-		_, err = criImage.PullImage(context.Background(), &criapi.PullImageRequest{
+		_, err = criImage.PullImage(context.TODO(), &criapi.PullImageRequest{
 			Image: &criapi.ImageSpec{
 				Image: image,
 			},
@@ -221,7 +225,7 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (bool, string, error)
 	}
 	klog.V(2).Infof("checking if a pod %q in hypervisor %q is running", pod.Name, hypervisor.Name)
 	podSandboxList, err := criRuntime.ListPodSandbox(
-		context.Background(),
+		context.TODO(),
 		&criapi.ListPodSandboxRequest{
 			Filter: &criapi.PodSandboxFilter{
 				LabelSelector: map[string]string{
@@ -245,7 +249,7 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (bool, string, error)
 	}
 	klog.V(2).Infof("checking if all containers within pod %q in hypervisor %q are running", pod.Name, hypervisor.Name)
 	containerList, err := criRuntime.ListContainers(
-		context.Background(),
+		context.TODO(),
 		&criapi.ListContainersRequest{
 			Filter: &criapi.ContainerFilter{
 				PodSandboxId: podSandboxID,
@@ -257,7 +261,7 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (bool, string, error)
 	}
 	for _, container := range containerList.Containers {
 		containerStatus, err := criRuntime.ContainerStatus(
-			context.Background(),
+			context.TODO(),
 			&criapi.ContainerStatusRequest{
 				ContainerId: container.Id,
 			},
@@ -296,7 +300,7 @@ func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod p
 		return "", err
 	}
 	podSandboxResponse, err := criRuntime.RunPodSandbox(
-		context.Background(),
+		context.TODO(),
 		&criapi.RunPodSandboxRequest{
 			Config: &podSandboxConfig,
 		},
@@ -341,7 +345,7 @@ func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod p
 			}
 		}
 		containerResponse, err := criRuntime.CreateContainer(
-			context.Background(),
+			context.TODO(),
 			&createContainerRequest,
 		)
 		if err != nil {
@@ -351,7 +355,7 @@ func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod p
 	}
 	for _, containerID := range containerIds {
 		_, err = criRuntime.StartContainer(
-			context.Background(),
+			context.TODO(),
 			&criapi.StartContainerRequest{
 				ContainerId: containerID,
 			},
@@ -372,7 +376,7 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 	}
 	for {
 		containerList, err := criRuntime.ListContainers(
-			context.Background(),
+			context.TODO(),
 			&criapi.ListContainersRequest{
 				Filter: &criapi.ContainerFilter{
 					PodSandboxId: podSandboxID,
@@ -404,7 +408,7 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 		return err
 	}
 	_, err = criRuntime.StopPodSandbox(
-		context.Background(),
+		context.TODO(),
 		&criapi.StopPodSandboxRequest{
 			PodSandboxId: podSandboxID,
 		},
@@ -413,7 +417,7 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 		return err
 	}
 	_, err = criRuntime.RemovePodSandbox(
-		context.Background(),
+		context.TODO(),
 		&criapi.RemovePodSandboxRequest{
 			PodSandboxId: podSandboxID,
 		},
@@ -535,6 +539,8 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 			Name:            hypervisor.Name,
 			Namespace:       hypervisor.Namespace,
 			ResourceVersion: hypervisor.ResourceVersion,
+			Labels:          hypervisor.Labels,
+			Annotations:     hypervisor.Annotations,
 		},
 		Spec: infrav1alpha1.HypervisorSpec{
 			Public:    hypervisor.Public,

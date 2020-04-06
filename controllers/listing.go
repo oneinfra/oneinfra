@@ -29,6 +29,7 @@ import (
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
@@ -100,7 +101,7 @@ func listClusterComponents(ctx context.Context, client clientapi.Client, cluster
 		&componentList,
 		&clientapi.ListOptions{
 			Raw: &metav1.ListOptions{
-				LabelSelector: fmt.Sprintf("oneinfra/cluster-name=%s", clusterName),
+				LabelSelector: fmt.Sprintf("%s=%s", constants.OneInfraClusterNameLabelName, clusterName),
 			},
 		},
 	)

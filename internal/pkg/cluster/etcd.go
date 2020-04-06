@@ -17,6 +17,7 @@ limitations under the License.
 package cluster
 
 import (
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 )
 
@@ -33,4 +34,14 @@ func newEtcdServer() (*EtcdServer, error) {
 	return &EtcdServer{
 		CA: certificateAuthority,
 	}, nil
+}
+
+// Export exports this etcd server into a versioned etcd server
+func (etcdServer *EtcdServer) Export() *clusterv1alpha1.EtcdServer {
+	if etcdServer == nil {
+		return nil
+	}
+	return &clusterv1alpha1.EtcdServer{
+		CA: etcdServer.CA.Export(),
+	}
 }

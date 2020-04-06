@@ -1,17 +1,15 @@
 # Goals
 
-`oneinfra`'s goal is to provide a Kubernetes as a Service platform. It
-allows you to manage a number of Kubernetes Control Planes in a set of
-hypervisors sitting in your infrastructure, on premises or in the
+`oneinfra`'s goal is to provide a Kubernetes as a Service platform.
+
+It's a managed Kubernetes service, under your control.
+
+It allows you to manage a number of Kubernetes Control Planes in a set
+of hypervisors sitting in your infrastructure, on premises or in the
 public cloud.
 
 * Easily create isolated Kubernetes control planes
 * Manage control planes with a well defined API
-* Edge ready (TODO)
-  * Allow to safely join worker nodes, regardless of where they are
-    located networking-wise with respect to control plane components
-    (e.g. workers behind several NAT levels), or among them
-  * CNI overlay will be set on top of the VPN tunnel
 * Provide both a CLI and a set of controllers to drive the
   reconciliation process
   * Both CLI and these set of controllers should rely on the same
@@ -20,14 +18,21 @@ public cloud.
     information from resources sitting on your management Kubernetes
     cluster.
 * Operating System agnostic
+* Edge ready (TODO)
+  * Allow to safely join worker nodes, regardless of where they are
+    located networking-wise with respect to control plane components
+    (e.g. workers behind several NAT levels), or among them
+  * CNI overlay will be set on top of the VPN tunnel
 
 # Non-goals
 
 * Create or manage infrastructure in any way
+  * `oneinfra` has a hands-off approach of infrastructure. Bring your
+    own machines.
 * Upgrade clusters
 * Perform any kind of worker node management
-  * The only exception is the joining process for setting up the VPN
-    client
+  * The only exception is the joining process -- it's a oneinfra goal
+    to make worker join process as easy and secure as possible
 
 # Components
 

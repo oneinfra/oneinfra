@@ -53,12 +53,7 @@ func (r *ClusterInitializer) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
-	klog.Info(cluster.Labels)
-
 	delete(cluster.Labels, constants.OneInfraClusterUninitializedCertificates)
-
-	klog.Info(cluster.Labels)
-	klog.Info(cluster.Export())
 
 	if err := r.Update(ctx, cluster.Export()); err != nil {
 		klog.Errorf("could not update cluster %q spec: %v", cluster.Name, err)

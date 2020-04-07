@@ -19,13 +19,10 @@ package v1alpha1
 import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
-
-// log is for logging in this package.
-var componentlog = logf.Log.WithName("component-resource")
 
 // SetupWebhookWithManager registers this web hook on the given
 // manager instance
@@ -41,7 +38,7 @@ var _ webhook.Defaulter = &Component{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (component *Component) Default() {
-	componentlog.Info("default", "name", component.Name)
+	klog.Info("default", "name", component.Name)
 	if component.Labels == nil {
 		component.Labels = map[string]string{}
 	}
@@ -54,18 +51,18 @@ var _ webhook.Validator = &Component{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (component *Component) ValidateCreate() error {
-	componentlog.Info("validate create", "name", component.Name)
+	klog.Info("validate create", "name", component.Name)
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (component *Component) ValidateUpdate(old runtime.Object) error {
-	componentlog.Info("validate update", "name", component.Name)
+	klog.Info("validate update", "name", component.Name)
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (component *Component) ValidateDelete() error {
-	componentlog.Info("validate delete", "name", component.Name)
+	klog.Info("validate delete", "name", component.Name)
 	return nil
 }

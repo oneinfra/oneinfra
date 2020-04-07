@@ -18,15 +18,12 @@ package v1alpha1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
-
-// log is for logging in this package.
-var clusterlog = logf.Log.WithName("cluster-resource")
 
 // SetupWebhookWithManager registers this web hook on the given
 // manager instance
@@ -42,7 +39,7 @@ var _ webhook.Defaulter = &Cluster{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (cluster *Cluster) Default() {
-	clusterlog.Info("default", "name", cluster.Name)
+	klog.Info("default", "name", cluster.Name)
 	cluster.defaultKubernetesVersion()
 	cluster.defaultVPNCIDR()
 }
@@ -65,18 +62,18 @@ var _ webhook.Validator = &Cluster{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (cluster *Cluster) ValidateCreate() error {
-	clusterlog.Info("validate create", "name", cluster.Name)
+	klog.Info("validate create", "name", cluster.Name)
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (cluster *Cluster) ValidateUpdate(old runtime.Object) error {
-	clusterlog.Info("validate update", "name", cluster.Name)
+	klog.Info("validate update", "name", cluster.Name)
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (cluster *Cluster) ValidateDelete() error {
-	clusterlog.Info("validate delete", "name", cluster.Name)
+	klog.Info("validate delete", "name", cluster.Name)
 	return nil
 }

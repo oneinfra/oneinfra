@@ -29,7 +29,7 @@ You can [read more about its design here](docs/DESIGN.md).
 Build has been tested with go versions 1.13 and 1.14.
 
 ```
-$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@master
+$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha1
 ```
 
 This should have installed the following binaries:

@@ -1,6 +1,6 @@
 # Components
 
-
+* [Documentation](https://pkg.go.dev/github.com/oneinfra/oneinfra/apis/cluster/v1alpha1?tab=doc#Component)
 
 Depending on how many components you define, you will be creating a
 single instance control plane, or an HA control plane. For example, if

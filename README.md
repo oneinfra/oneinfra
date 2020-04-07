@@ -75,7 +75,7 @@ step.
 $ kind create cluster
 ```
 
-Deploy `cert-manager` and `oneinfra`.
+1. Deploy `cert-manager` and `oneinfra`.
 
 ```
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
@@ -83,7 +83,7 @@ $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/generated/all.yaml
 ```
 
-Create a local set of fake hypervisors, so `oneinfra` can schedule
+2. Create a local set of fake hypervisors, so `oneinfra` can schedule
 cluster control plane components somewhere. You can [also define your
 own set of
 hypervisors](https://github.com/oneinfra/oneinfra/blob/master/docs/hypervisors.md)
@@ -93,7 +93,7 @@ if you prefer.
 $ oi-local-cluster cluster create --remote | kubectl apply -f -
 ```
 
-Now, create a managed cluster:
+3. Now, create a managed cluster:
 
 ```
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/simple-cluster.yaml
@@ -101,15 +101,15 @@ $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cl
 $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
 ```
 
-And access it:
+4. And access it:
 
 ```
 $ kubectl --kubeconfig=simple-cluster.conf cluster-info
 Kubernetes master is running at https://172.17.0.5:30000
 ```
 
-You can then create a second managed cluster, this one comprised by
-three control plane instances:
+5. (optional) You can then create a second managed cluster, this one
+comprised by three control plane instances:
 
 ```
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/ha-cluster.yaml
@@ -117,7 +117,7 @@ $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluste
 $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster.conf
 ```
 
-And access it:
+6. And access it:
 
 ```
 $ kubectl --kubeconfig=ha-cluster.conf cluster-info

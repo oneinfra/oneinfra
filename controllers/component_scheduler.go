@@ -106,6 +106,7 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 // SetupWithManager sets up the component reconciler with mgr manager
 func (r *ComponentScheduler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
+		Named("component-scheduler").
 		For(&clusterv1alpha1.Component{}).
 		Complete(r)
 }

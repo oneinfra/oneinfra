@@ -39,6 +39,9 @@ const (
 	// OneInfraClusterNameLabelName is the name of the label for the
 	// cluster name
 	OneInfraClusterNameLabelName = "oneinfra/cluster-name"
+	// OneInfraClusterUninitializedCertificates is the name of the label
+	// when a cluster needs certificates or keys to be initialized
+	OneInfraClusterUninitializedCertificates = "oneinfra/uninitialized-certificates"
 	// OneInfraControlPlaneIngressVPNPeerName represents the control
 	// plane ingress peer VPN name
 	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"

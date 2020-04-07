@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 )
@@ -50,13 +51,22 @@ type ClusterReconciler struct {
 func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
-	if err := r.refreshClusterReconciler(ctx, req); err != nil {
-		klog.Errorf("could not refresh cluster reconciler: %v", err)
+	cluster, err := getCluster(ctx, r, req)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		klog.Errorf("could not get cluster %q: %v", req, err)
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
-	if r.clusterReconciler == nil {
-		return ctrl.Result{}, nil
+	if cluster.HasUninitializedCertificates() {
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	if err := r.refreshClusterReconciler(ctx, cluster); err != nil {
+		klog.Errorf("could not refresh cluster reconciler: %v", err)
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	res := ctrl.Result{}
@@ -79,19 +89,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return res, nil
 }
 
-func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, req ctrl.Request) error {
+func (r *ClusterReconciler) refreshClusterReconciler(ctx context.Context, cluster *cluster.Cluster) error {
 	hypervisorMap, err := listHypervisors(ctx, r)
 	if err != nil {
 		klog.Errorf("could not list hypervisors: %v", err)
-		return err
-	}
-	cluster, err := getCluster(ctx, r, req)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			r.clusterReconciler = nil
-			return nil
-		}
-		klog.Errorf("could not get cluster %q: %v", req, err)
 		return err
 	}
 	componentList, err := listClusterComponents(ctx, r, cluster.Name)
@@ -137,15 +138,6 @@ func (r *ClusterReconciler) updateClusters(ctx context.Context) error {
 			continue
 		}
 		if isDirty {
-			// TODO: optimize this spec update: this is done if certificates
-			// and keys had to be initialized during a reconcile pass. This
-			// should be switched to a label inserted by the mutation
-			// webhook and only act upon that label existence, removing it
-			// on this very update
-			if err := r.Update(ctx, cluster.Export()); err != nil {
-				someError = true
-				klog.Errorf("could not update cluster %q spec: %v", cluster.Name, err)
-			}
 			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
 				someError = true
 				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
@@ -182,6 +174,7 @@ func (r *ClusterReconciler) updateComponents(ctx context.Context) error {
 // SetupWithManager sets up the cluster reconciler with mgr manager
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
+		Named("cluster-controller").
 		For(&clusterv1alpha1.Cluster{}).
 		Complete(r)
 }

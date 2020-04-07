@@ -30,6 +30,16 @@ type CertificateAuthorities struct {
 	EtcdPeer          *certificates.Certificate
 }
 
+func newCertificateAuthoritiesFromv1alpha1(certificateAuthorities *clusterv1alpha1.CertificateAuthorities) *CertificateAuthorities {
+	return &CertificateAuthorities{
+		APIServerClient:   certificates.NewCertificateFromv1alpha1(certificateAuthorities.APIServerClient),
+		CertificateSigner: certificates.NewCertificateFromv1alpha1(certificateAuthorities.CertificateSigner),
+		Kubelet:           certificates.NewCertificateFromv1alpha1(certificateAuthorities.Kubelet),
+		EtcdClient:        certificates.NewCertificateFromv1alpha1(certificateAuthorities.EtcdClient),
+		EtcdPeer:          certificates.NewCertificateFromv1alpha1(certificateAuthorities.EtcdPeer),
+	}
+}
+
 // Export exports these set of certificate authorities to a versioned certificate authority set
 func (certificateAuthorities *CertificateAuthorities) Export() *clusterv1alpha1.CertificateAuthorities {
 	if certificateAuthorities == nil {

@@ -32,8 +32,8 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
@@ -86,6 +86,9 @@ func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSA
 		VPNCIDR:           vpnCIDRNet,
 		VPNPeers:          VPNPeerMap{},
 	}
+	if err := res.InitializeCertificatesAndKeys(); err != nil {
+		return nil, err
+	}
 	if len(apiServerExtraSANs) > 0 {
 		res.APIServer = &KubeAPIServer{
 			ExtraSANs: apiServerExtraSANs,
@@ -103,40 +106,26 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 	if cluster.Spec.CertificateAuthorities == nil {
 		cluster.Spec.CertificateAuthorities = &clusterv1alpha1.CertificateAuthorities{}
 	}
-	if cluster.Spec.APIServer == nil {
-		cluster.Spec.APIServer = &clusterv1alpha1.KubeAPIServer{}
-	}
 	if cluster.Spec.EtcdServer == nil {
 		cluster.Spec.EtcdServer = &clusterv1alpha1.EtcdServer{}
 	}
-	apiServerServiceAccountKey, err := crypto.NewKeyPairFromv1alpha1(
-		cluster.Spec.APIServer.ServiceAccount,
-	)
+	if cluster.Spec.APIServer == nil {
+		cluster.Spec.APIServer = &clusterv1alpha1.KubeAPIServer{}
+	}
+	kubeAPIServer, err := newKubeAPIServerFromv1alpha1(cluster.Spec.APIServer)
 	if err != nil {
 		return nil, err
 	}
 	res := Cluster{
-		Name:              cluster.Name,
-		Namespace:         cluster.Namespace,
-		ResourceVersion:   cluster.ResourceVersion,
-		Labels:            cluster.Labels,
-		Annotations:       cluster.Annotations,
-		KubernetesVersion: cluster.Spec.KubernetesVersion,
-		CertificateAuthorities: &CertificateAuthorities{
-			APIServerClient:   certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.APIServerClient),
-			CertificateSigner: certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.CertificateSigner),
-			Kubelet:           certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.Kubelet),
-			EtcdClient:        certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.EtcdClient),
-			EtcdPeer:          certificates.NewCertificateFromv1alpha1(cluster.Spec.CertificateAuthorities.EtcdPeer),
-		},
-		APIServer: &KubeAPIServer{
-			CA:             certificates.NewCertificateFromv1alpha1(cluster.Spec.APIServer.CA),
-			ServiceAccount: apiServerServiceAccountKey,
-			ExtraSANs:      cluster.Spec.APIServer.ExtraSANs,
-		},
-		EtcdServer: &EtcdServer{
-			CA: certificates.NewCertificateFromv1alpha1(cluster.Spec.EtcdServer.CA),
-		},
+		Name:                   cluster.Name,
+		Namespace:              cluster.Namespace,
+		ResourceVersion:        cluster.ResourceVersion,
+		Labels:                 cluster.Labels,
+		Annotations:            cluster.Annotations,
+		KubernetesVersion:      cluster.Spec.KubernetesVersion,
+		CertificateAuthorities: newCertificateAuthoritiesFromv1alpha1(cluster.Spec.CertificateAuthorities),
+		EtcdServer:             newEtcdServerFromv1alpha1(cluster.Spec.EtcdServer),
+		APIServer:              kubeAPIServer,
 		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
 		VPNCIDR:                newVPNCIDRFromv1alpha1(cluster.Spec.VPNCIDR),
@@ -166,8 +155,8 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion:      cluster.KubernetesVersion,
 			CertificateAuthorities: cluster.CertificateAuthorities.Export(),
-			APIServer:              cluster.APIServer.Export(),
 			EtcdServer:             cluster.EtcdServer.Export(),
+			APIServer:              cluster.APIServer.Export(),
 			VPNCIDR:                cluster.VPNCIDR.String(),
 			JoinKey:                cluster.JoinKey.Export(),
 			JoinTokens:             cluster.DesiredJoinTokens,
@@ -255,6 +244,13 @@ func (cluster *Cluster) VPNPeer(name string) (*VPNPeer, error) {
 		return vpnPeer, nil
 	}
 	return nil, errors.Errorf("vpn peer %q not found", name)
+}
+
+// HasUninitializedCertificates returns whether this cluster has
+// uninitialized certificates
+func (cluster *Cluster) HasUninitializedCertificates() bool {
+	_, hasUninitializedCertificates := cluster.Labels[constants.OneInfraClusterUninitializedCertificates]
+	return hasUninitializedCertificates
 }
 
 // requestVPNIP requests a VPN from the VPN CIDR

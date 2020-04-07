@@ -22,9 +22,22 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 )
 
-// ReconcileCertificateAuthorities reconciles certificate authorities
-// in this cluster, generating those missing
-func (cluster *Cluster) ReconcileCertificateAuthorities() error {
+// InitializeCertificatesAndKeys initializes those certificates and
+// keys that are not set in this cluster
+func (cluster *Cluster) InitializeCertificatesAndKeys() error {
+	if err := cluster.initializeCertificateAuthorities(); err != nil {
+		return err
+	}
+	if err := cluster.initializeEtcdServerCertificateAuthority(); err != nil {
+		return err
+	}
+	if err := cluster.initializeAPIServerCertificateAuthority(); err != nil {
+		return err
+	}
+	return cluster.initializeJoinKey()
+}
+
+func (cluster *Cluster) initializeCertificateAuthorities() error {
 	if cluster.CertificateAuthorities == nil {
 		cluster.CertificateAuthorities = &CertificateAuthorities{}
 	}
@@ -66,9 +79,7 @@ func (cluster *Cluster) ReconcileCertificateAuthorities() error {
 	return nil
 }
 
-// ReconcileEtcdServerCertificateAuthority reconciles this cluster
-// etcd server authority
-func (cluster *Cluster) ReconcileEtcdServerCertificateAuthority() error {
+func (cluster *Cluster) initializeEtcdServerCertificateAuthority() error {
 	if cluster.EtcdServer == nil {
 		cluster.EtcdServer = &EtcdServer{}
 	}
@@ -82,9 +93,7 @@ func (cluster *Cluster) ReconcileEtcdServerCertificateAuthority() error {
 	return nil
 }
 
-// ReconcileAPIServerCertificateAuthority reconciles this cluster API
-// Server certificate authority
-func (cluster *Cluster) ReconcileAPIServerCertificateAuthority() error {
+func (cluster *Cluster) initializeAPIServerCertificateAuthority() error {
 	if cluster.APIServer == nil {
 		cluster.APIServer = &KubeAPIServer{}
 	}
@@ -105,8 +114,7 @@ func (cluster *Cluster) ReconcileAPIServerCertificateAuthority() error {
 	return nil
 }
 
-// ReconcileJoinKey reconciles this cluster join key
-func (cluster *Cluster) ReconcileJoinKey() error {
+func (cluster *Cluster) initializeJoinKey() error {
 	if cluster.JoinKey == nil {
 		joinKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
 		if err != nil {

@@ -47,6 +47,20 @@ func newKubeAPIServer(apiServerExtraSANs []string) (*KubeAPIServer, error) {
 	return &kubeAPIServer, nil
 }
 
+func newKubeAPIServerFromv1alpha1(kubeAPIServer *clusterv1alpha1.KubeAPIServer) (*KubeAPIServer, error) {
+	apiServerServiceAccountKey, err := crypto.NewKeyPairFromv1alpha1(
+		kubeAPIServer.ServiceAccount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &KubeAPIServer{
+		CA:             certificates.NewCertificateFromv1alpha1(kubeAPIServer.CA),
+		ServiceAccount: apiServerServiceAccountKey,
+		ExtraSANs:      kubeAPIServer.ExtraSANs,
+	}, nil
+}
+
 // Export exports this kube-apiserver to a versioned kube-apiserver
 func (kubeAPIServer *KubeAPIServer) Export() *clusterv1alpha1.KubeAPIServer {
 	if kubeAPIServer == nil {

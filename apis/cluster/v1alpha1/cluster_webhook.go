@@ -42,6 +42,7 @@ func (cluster *Cluster) Default() {
 	klog.Info("default", "name", cluster.Name)
 	cluster.defaultKubernetesVersion()
 	cluster.defaultVPNCIDR()
+	cluster.defaultUninitializedCertificatesLabel()
 }
 
 func (cluster *Cluster) defaultKubernetesVersion() {
@@ -54,6 +55,35 @@ func (cluster *Cluster) defaultVPNCIDR() {
 	if cluster.Spec.VPNCIDR == "" {
 		cluster.Spec.VPNCIDR = "10.0.0.0/8"
 	}
+}
+
+func (cluster *Cluster) defaultUninitializedCertificatesLabel() {
+	if cluster.needsCertificateInitialization() {
+		if cluster.Labels == nil {
+			cluster.Labels = map[string]string{}
+		}
+		cluster.Labels[constants.OneInfraClusterUninitializedCertificates] = ""
+	}
+}
+
+func (cluster *Cluster) needsCertificateInitialization() bool {
+	if cluster.Spec.CertificateAuthorities == nil ||
+		cluster.Spec.CertificateAuthorities.APIServerClient == nil ||
+		cluster.Spec.CertificateAuthorities.CertificateSigner == nil ||
+		cluster.Spec.CertificateAuthorities.Kubelet == nil ||
+		cluster.Spec.CertificateAuthorities.EtcdClient == nil ||
+		cluster.Spec.CertificateAuthorities.EtcdPeer == nil {
+		return true
+	}
+	if cluster.Spec.EtcdServer == nil || cluster.Spec.EtcdServer.CA == nil {
+		return true
+	}
+	if cluster.Spec.APIServer == nil ||
+		cluster.Spec.APIServer.CA == nil ||
+		cluster.Spec.APIServer.ServiceAccount == nil {
+		return true
+	}
+	return cluster.Spec.JoinKey == nil
 }
 
 // +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=clusters,versions=v1alpha1,name=vcluster.kb.io

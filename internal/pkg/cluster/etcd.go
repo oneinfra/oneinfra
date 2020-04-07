@@ -36,6 +36,12 @@ func newEtcdServer() (*EtcdServer, error) {
 	}, nil
 }
 
+func newEtcdServerFromv1alpha1(etcdServer *clusterv1alpha1.EtcdServer) *EtcdServer {
+	return &EtcdServer{
+		CA: certificates.NewCertificateFromv1alpha1(etcdServer.CA),
+	}
+}
+
 // Export exports this etcd server into a versioned etcd server
 func (etcdServer *EtcdServer) Export() *clusterv1alpha1.EtcdServer {
 	if etcdServer == nil {

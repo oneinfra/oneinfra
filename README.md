@@ -108,6 +108,22 @@ $ kubectl --kubeconfig=simple-cluster.conf cluster-info
 Kubernetes master is running at https://172.17.0.5:30000
 ```
 
+You can then create a second managed cluster, this one comprised by
+three control plane instances:
+
+```
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/ha-cluster.yaml
+$ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
+$ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster.conf
+```
+
+And access it:
+
+```
+$ kubectl --kubeconfig=ha-cluster.conf cluster-info
+Kubernetes master is running at https://172.17.0.5:30002
+```
+
 
 ### Without Kubernetes (for testing purposes only)
 
@@ -127,7 +143,7 @@ $ oi-local-cluster cluster create | \
     oi component inject --name controlplane3 --role control-plane | \
     oi component inject --name loadbalancer --role control-plane-ingress | \
     oi reconcile | \
-    tee simple-cluster.conf |  # so you can inspect the simple-cluster.conf afterwards :-) \
+    tee ha-cluster.conf | \
     oi cluster admin-kubeconfig > ~/.kube/config
 ```
 

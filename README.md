@@ -117,12 +117,12 @@ comprised by three control plane instances:
     $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster.conf
     ```
 
-  1. And access it:
+    1. And access it:
 
-      ```
-      $ kubectl --kubeconfig=ha-cluster.conf cluster-info
-      Kubernetes master is running at https://172.17.0.5:30002
-      ```
+        ```
+        $ kubectl --kubeconfig=ha-cluster.conf cluster-info
+        Kubernetes master is running at https://172.17.0.5:30002
+        ```
 
 
 ### Without Kubernetes (for testing purposes only)

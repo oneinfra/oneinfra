@@ -38,8 +38,8 @@ public cloud.
 
 ## Hypervisor
 
-An hypervisor is a physical or virtual machine where `oneinfra` will
-create the control plane components.
+An [hypervisor](hypervisors.md) is a physical or virtual machine where
+`oneinfra` will create the control plane components.
 
 Hypervisors are user provided in the form of a CRI endpoint to connect
 to.
@@ -69,15 +69,15 @@ private hypervisors.
 
 ## Cluster
 
-A cluster is the abstraction of a whole Kubernetes cluster -- with
-control plane and control plane ingresses. It has all the certificate
-authorities and shared information required by the different components
-that are part of the same cluster.
+A [cluster](clusters.md) is the abstraction of a whole Kubernetes
+cluster -- with control plane and control plane ingresses. It has all
+the certificate authorities and shared information required by the
+different components that are part of the same cluster.
 
 ## Component
 
-A component represents a schedulable unit. A component belongs both to a
-cluster, and to an hypervisor.
+A [component](components.md) represents a schedulable unit. A
+component belongs both to a cluster, and to an hypervisor.
 
 Two types of components exist at the moment:
 

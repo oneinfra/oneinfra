@@ -70,11 +70,8 @@ spec:
 ```
 
 Creating a cluster resource by itself won't do anything. You have to
-define
-[components](https://github.com/oneinfra/oneinfra/blob/master/docs/components.md)
-attached to a given cluster, so `oneinfra` will reconcile these
-components taking into account the cluster they belong to.
+define [components](components.md) attached to a given cluster, so
+`oneinfra` will reconcile these components taking into account the
+cluster they belong to.
 
-You can read the
-[DESIGN.md](https://github.com/oneinfra/oneinfra/blob/master/docs/DESIGN.md)
-document for a broad overview.
+You can read the [DESIGN.md](DESIGN.md) document for a broad overview.

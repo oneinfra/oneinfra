@@ -63,6 +63,4 @@ failure. This will be ammended soon.
 
 ---
 
-You can read the
-[DESIGN.md](https://github.com/oneinfra/oneinfra/blob/master/docs/DESIGN.md)
-document for a broad overview.
+You can read the [DESIGN.md](DESIGN.md) document for a broad overview.

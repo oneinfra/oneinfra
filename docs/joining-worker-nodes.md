@@ -38,9 +38,9 @@ actions that will take place:
   key.
 
 * `oi` creates a [`NodeJoinRequest`
-  resource](https://github.com/oneinfra/oneinfra/blob/master/apis/node/v1alpha1/nodejoinrequest_types.go)
-  with the nodename, the ciphered symmetric key, the container runtime
-  endpoint and the image service endpoint.
+  resource](../apis/node/v1alpha1/nodejoinrequest_types.go) with the
+  nodename, the ciphered symmetric key, the container runtime endpoint
+  and the image service endpoint.
 
 * `oi` performs an active wait on the created `NodeJoinRequest`
   resource, waiting for the `Issued` `condition` to become `True` in

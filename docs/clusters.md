@@ -1,11 +1,14 @@
 # Clusters
 
-Clusters are the main component that will be used to glue all the
-required components that conform a single cluster. They contain the
+Clusters are the main resource kind that will be used to glue all
+components that conform a cluster. The cluster resource contains the
 authoritative information that every component that belongs to this
-cluster will use (e.g. certificate authorities, certificates...).
+cluster will use (e.g. certificate authorities, certificates, join
+tokens...).
 
-A minimal example is:
+* [Documentation](https://pkg.go.dev/github.com/oneinfra/oneinfra/apis/cluster/v1alpha1?tab=doc#Cluster)
+
+A minimal example of a cluster resource is:
 
 ```yaml
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
@@ -16,92 +19,62 @@ metadata:
 
 There are many things you can configure on a cluster, but by default
 if any of the fields are empty, `oneinfra` will default them to sane
-defaults. For completeness, this is everything you can configure at
-the moment:
+defaults.
+
+The specification of a cluster looks as follows:
 
 ```go
-// ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
 	// +optional
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+
 	// +optional
 	CertificateAuthorities *CertificateAuthorities `json:"certificateAuthorities,omitempty"`
+
 	// +optional
 	EtcdServer *EtcdServer `json:"etcdServer,omitempty"`
+
 	// +optional
 	APIServer *KubeAPIServer `json:"apiServer,omitempty"`
+
 	// +optional
 	VPNCIDR string `json:"vpnCIDR,omitempty"`
+
 	// +optional
 	JoinKey *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
+
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
 }
 ```
 
-Creating a cluster by itself won't do anything. You need to define
-components attached to this cluster.
-
-
-# Components
-
-Depending on how many components you define, you will be creating a
-single control plane instance, or an HA control plane. For example, if
-you define a `control-plane` role component along with a
-`control-plane-ingress` component:
+So, for example, we can create two different clusters with two
+different supported managed versions, by defining two different
+resources:
 
 ```yaml
 ---
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
+kind: Cluster
 metadata:
-  name: my-control-plane-1
+  name: my-1-17-cluster
 spec:
-  cluster: my-cluster
-  role: control-plane
+  kubernetesVersion: 1.17.4
 ---
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
+kind: Cluster
 metadata:
-  name: my-control-plane-ingress
+  name: my-1-18-cluster
 spec:
-  cluster: my-cluster
-  role: control-plane-ingress
+  kubernetesVersion: 1.18.0
 ```
 
-Then `oneinfra` will start reconciliating the control plane instance
-and the control plane ingress. This will be a single control plane
-instance cluster.
+Creating a cluster resource by itself won't do anything. You have to
+define
+[components](https://github.com/oneinfra/oneinfra/blob/master/docs/components.md)
+attached to a given cluster, so `oneinfra` will reconcile these
+components taking into account the cluster they belong to.
 
-If you add two more resources:
-
-```yaml
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: my-control-plane-2
-spec:
-  cluster: my-cluster
-  role: control-plane
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: my-control-plane-3
-spec:
-  cluster: my-cluster
-  role: control-plane
----
-```
-
-Then, `oneinfra` will reconcile a 3 control plane instances HA
-cluster, with a single control plane ingress.
-
----
-
-**Note**: at the moment **only one ingress component** is allowed per
-cluster, what means that the system has a single point of
-failure. This will be ammended soon.
-
----
+You can read the
+[DESIGN.md](https://github.com/oneinfra/oneinfra/blob/master/docs/DESIGN.md)
+document for a broad overview.

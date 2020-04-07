@@ -35,7 +35,7 @@ $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha1
 This should have installed the following binaries:
 
 * `oi-local-cluster`: allows you to test `oneinfra` locally in your
-  machine, creating Docker containers as hypervisors.
+  machine, creating hypervisors as Docker containers.
 
 * `oi`: CLI tool that allows you to test `oneinfra` locally in a
   standalone way, without requiring Kubernetes to store manifests.
@@ -54,10 +54,6 @@ to use Kubernetes.
   only)](#without-kubernetes-for-testing-purposes-only)
 * [With Kubernetes as a management
   cluster](#with-kubernetes-as-a-management-cluster)
-
-You can also [read documentation on how to define
-clusters](https://github.com/oneinfra/oneinfra/blob/master/docs/clusters.md)
-once you have set up `oneinfra`.
 
 
 ### Without Kubernetes (for testing purposes only)
@@ -121,9 +117,7 @@ step.
 
 3. Create a local set of fake hypervisors, so `oneinfra` can schedule
 cluster control plane components somewhere. You can [also define your
-own set of
-hypervisors](https://github.com/oneinfra/oneinfra/blob/master/docs/hypervisors.md)
-if you prefer.
+own set of hypervisors](docs/hypervisors.md) if you prefer.
 
     ```
     $ oi-local-cluster cluster create --remote | kubectl apply -f -
@@ -161,10 +155,16 @@ comprised by three control plane instances:
         ```
 
 
+## Defining clusters
+
+You can have a more detailed [read at the documentation on how to
+define clusters](docs/clusters.md) once you have set up `oneinfra`.
+
+
 ## Joining worker nodes to a cluster
 
 You can read more details about the [worker joining process
-here](https://github.com/oneinfra/oneinfra/blob/master/docs/joining-worker-nodes.md).
+here](docs/joining-worker-nodes.md).
 
 
 ## License

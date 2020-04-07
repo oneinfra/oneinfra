@@ -3,39 +3,9 @@
 Hypervisors is where `oneinfra` will run the control plane components
 for all managed clusters.
 
-* [Documentation](https://pkg.go.dev/github.com/oneinfra/oneinfra/apis/infra/v1alpha1?tab=doc)
+* [Documentation](https://pkg.go.dev/github.com/oneinfra/oneinfra/apis/infra/v1alpha1?tab=doc#Hypervisor)
 
-The specification looks as follows:
-
-```go
-// HypervisorSpec defines the desired state of Hypervisor
-type HypervisorSpec struct {
-	// LocalCRIEndpoint is the unix socket where this hypervisor is
-	// reachable. This is only intended for development and testing
-	// purposes. On production environments RemoteCRIEndpoint should be
-	// used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
-	// provided.
-	// +optional
-	LocalCRIEndpoint *LocalHypervisorCRIEndpoint `json:"localCRIEndpoint,omitempty"`
-	// RemoteCRIEndpoint is the TCP address where this hypervisor is
-	// reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
-	// to be provided.
-	// +optional
-	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
-	// Public hypervisors will be scheduled cluster ingress components,
-	// whereas private hypervisors will be scheduled the control plane
-	// components themselves.
-	Public bool `json:"public"`
-	// IPAddress of this hypervisor. Public hypervisors must have a
-	// publicly reachable IP address.
-	IPAddress string `json:"ipAddress,omitempty"`
-	// PortRange is the port range to be used for allocating exposed
-	// components.
-	PortRange HypervisorPortRange `json:"portRange,omitempty"`
-}
-```
-
-An Hypervisor has different attributes that you need to specify:
+An Hypervisor has different attributes that you can specify:
 
 * A way for `oneinfra` to run processes on hypervisors
   * `LocalCRIEndpoint`: A CRI socket is exposed in the local
@@ -63,7 +33,7 @@ An Hypervisor has different attributes that you need to specify:
     to each other, and `Public` hypervisors can route traffic to
     `Private` ones.
 
-* Port range allocation
+* Port ranges
   * Every service, either public or private is going to be allocated a
     port on the scheduled hypervisor, so `oneinfra` needs to know what
     port range is safe to use.
@@ -74,21 +44,63 @@ An Hypervisor has different attributes that you need to specify:
 For setting an hypervisor up, you will need a service that implements
 the Container Runtime Interface set up (e.g. containerd, cri-o...).
 
-The specification looks as follows:
+The hypervisor spec looks as follows:
 
 ```go
-// RemoteHypervisorCRIEndpoint represents a remote hypervisor CRI endpoint (tcp with client certificate authentication)
+type HypervisorSpec struct {
+	// LocalCRIEndpoint is the unix socket where this hypervisor is
+	// reachable. This is only intended for development and testing
+	// purposes. On production environments RemoteCRIEndpoint should be
+	// used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
+	// provided.
+	//
+	// +optional
+	LocalCRIEndpoint *LocalHypervisorCRIEndpoint `json:"localCRIEndpoint,omitempty"`
+
+	// RemoteCRIEndpoint is the TCP address where this hypervisor is
+	// reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
+	// to be provided.
+	//
+	// +optional
+	RemoteCRIEndpoint *RemoteHypervisorCRIEndpoint `json:"remoteCRIEndpoint,omitempty"`
+
+	// Public hypervisors will be scheduled cluster ingress components,
+	// whereas private hypervisors will be scheduled the control plane
+	// components themselves.
+	Public bool `json:"public"`
+
+	// IPAddress of this hypervisor. Public hypervisors must have a
+	// publicly reachable IP address.
+	IPAddress string `json:"ipAddress,omitempty"`
+
+	// PortRange is the port range to be used for allocating exposed
+	// components.
+	PortRange HypervisorPortRange `json:"portRange,omitempty"`
+}
+```
+
+Ideally, for production targeted hypervisors, you will use the
+`RemoteCRIEndpoint`, whose specification looks like the following:
+
+```
 type RemoteHypervisorCRIEndpoint struct {
 	// CRIEndpoint is the address where this CRI endpoint is listening
 	CRIEndpoint string `json:"criEndpointURI,omitempty"`
+
 	// CACertificate is the CA certificate to validate the connection
 	// against
 	CACertificate string `json:"caCertificate,omitempty"`
+
 	// ClientCertificate is the client certificate that will be used to
 	// authenticate requests
 	ClientCertificate *commonv1alpha1.Certificate `json:"clientCertificate,omitempty"`
 }
 ```
+
+And so, when `oneinfra` connects to this hypervisor using a remote CRI
+endpoint, it will validate the server presented certificate with the
+`CACertificate` and will present the server the client certificate and
+key provided in `ClientCertificate`.
 
 ---
 
@@ -144,3 +156,6 @@ a client certificate, you will need several certificates:
   CRI endpoint will be placed in the `RemoteHypervisorCRIEndpoint`
   `ClientCertificate` field, which consists in a `Certificate` and
   `PrivateKey`, both PEM encoded.
+
+You can read the [DESIGN.md](DESIGN.md) document for a broad
+overview.

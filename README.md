@@ -66,7 +66,7 @@ once you have set up `oneinfra`.
   * The management cluster needs to reach the hypervisors you create
   * Docker, for creating fake local hypervisors
 
-[Install
+1. [Install
 `kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage). If
 you already have a Kubernetes cluster you can use, you can skip this
 step.
@@ -75,7 +75,7 @@ step.
 $ kind create cluster
 ```
 
-1. Deploy `cert-manager` and `oneinfra`.
+2. Deploy `cert-manager` and `oneinfra`.
 
 ```
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
@@ -83,7 +83,7 @@ $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/generated/all.yaml
 ```
 
-2. Create a local set of fake hypervisors, so `oneinfra` can schedule
+3. Create a local set of fake hypervisors, so `oneinfra` can schedule
 cluster control plane components somewhere. You can [also define your
 own set of
 hypervisors](https://github.com/oneinfra/oneinfra/blob/master/docs/hypervisors.md)
@@ -93,7 +93,7 @@ if you prefer.
 $ oi-local-cluster cluster create --remote | kubectl apply -f -
 ```
 
-3. Now, create a managed cluster:
+4. Now, create a managed cluster:
 
 ```
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/simple-cluster.yaml
@@ -101,14 +101,14 @@ $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cl
 $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
 ```
 
-4. And access it:
+5. And access it:
 
 ```
 $ kubectl --kubeconfig=simple-cluster.conf cluster-info
 Kubernetes master is running at https://172.17.0.5:30000
 ```
 
-5. (optional) You can then create a second managed cluster, this one
+6. (optional) You can then create a second managed cluster, this one
 comprised by three control plane instances:
 
 ```
@@ -117,12 +117,12 @@ $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluste
 $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster.conf
 ```
 
-6. And access it:
+  1. And access it:
 
-```
-$ kubectl --kubeconfig=ha-cluster.conf cluster-info
-Kubernetes master is running at https://172.17.0.5:30002
-```
+  ```
+  $ kubectl --kubeconfig=ha-cluster.conf cluster-info
+  Kubernetes master is running at https://172.17.0.5:30002
+  ```
 
 
 ### Without Kubernetes (for testing purposes only)

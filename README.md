@@ -50,14 +50,50 @@ For the quick start you can either leverage Kubernetes as a management
 cluster, or you can go with the standalone approach if you don't want
 to use Kubernetes.
 
-* [With Kubernetes as a management
-  cluster](#with-kubernetes-as-a-management-cluster)
 * [Without Kubernetes (for testing purposes
   only)](#without-kubernetes-for-testing-purposes-only)
+* [With Kubernetes as a management
+  cluster](#with-kubernetes-as-a-management-cluster)
 
 You can also [read documentation on how to define
 clusters](https://github.com/oneinfra/oneinfra/blob/master/docs/clusters.md)
 once you have set up `oneinfra`.
+
+
+### Without Kubernetes (for testing purposes only)
+
+* Requirements
+  * Docker
+
+If you don't want to deploy Kubernetes to test `oneinfra`, you can use
+the `oi` CLI tool that will allow you to test the reconciliation
+processes of `oneinfra` without the need of a Kubernetes cluster.
+
+```
+$ mkdir ~/.kube
+$ oi-local-cluster cluster create | \
+    oi cluster inject --name simple-cluster | \
+    oi component inject --name controlplane1 --role control-plane | \
+    oi component inject --name controlplane2 --role control-plane | \
+    oi component inject --name controlplane3 --role control-plane | \
+    oi component inject --name loadbalancer --role control-plane-ingress | \
+    oi reconcile | \
+    tee ha-cluster.conf | \
+    oi cluster admin-kubeconfig > ~/.kube/config
+```
+
+And access it:
+
+```
+$ kubectl cluster-info
+Kubernetes master is running at https://172.17.0.4:30000
+```
+
+In this mode it's very important to understand that `oi` will read
+manifests from `stdin` and output them into `stdout`, make sure you
+keep a file up to date with the latest reconciled resources -- this is
+why this model is not suitable for production.
+
 
 ### With Kubernetes as a management cluster
 
@@ -123,41 +159,6 @@ comprised by three control plane instances:
         $ kubectl --kubeconfig=ha-cluster.conf cluster-info
         Kubernetes master is running at https://172.17.0.5:30002
         ```
-
-
-### Without Kubernetes (for testing purposes only)
-
-* Requirements
-  * Docker
-
-If you don't want to deploy Kubernetes to test `oneinfra`, you can try
-the `oi` CLI tool that will allow you to test the reconciliation
-processes of `oneinfra` without the need of a Kubernetes cluster.
-
-```
-$ mkdir ~/.kube
-$ oi-local-cluster cluster create | \
-    oi cluster inject --name simple-cluster | \
-    oi component inject --name controlplane1 --role control-plane | \
-    oi component inject --name controlplane2 --role control-plane | \
-    oi component inject --name controlplane3 --role control-plane | \
-    oi component inject --name loadbalancer --role control-plane-ingress | \
-    oi reconcile | \
-    tee ha-cluster.conf | \
-    oi cluster admin-kubeconfig > ~/.kube/config
-```
-
-And access it:
-
-```
-$ kubectl cluster-info
-Kubernetes master is running at https://172.17.0.4:30000
-```
-
-In this mode it's very important to understand that `oi` will read
-manifests from `stdin` and output them into `stdout`, make sure you
-keep a file up to date with the latest reconciled resources -- this is
-why this model is not suitable for production.
 
 
 ## Joining worker nodes to a cluster

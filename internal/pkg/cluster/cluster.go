@@ -65,7 +65,6 @@ type Cluster struct {
 	JoinKey                *crypto.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
-	JoinChallenge          string
 	Conditions             conditions.ConditionList
 	clientSet              clientset.Interface
 	extensionsClientSet    apiextensionsclientset.Interface

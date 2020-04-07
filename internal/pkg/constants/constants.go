@@ -31,9 +31,6 @@ const (
 	// OneInfraJoinConfigMapJoinKey is the name of the key that holds
 	// the join key inside the join ConfigMap
 	OneInfraJoinConfigMapJoinKey = "joinKey"
-	// OneInfraJoinConfigMapChallengeKey is the name of the key that holds
-	// the join challenge inside the join ConfigMap
-	OneInfraJoinConfigMapChallengeKey = "join-challenge"
 	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
 	// extra groups used to identify oneinfra bootstrap tokens
 	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"

@@ -187,8 +187,7 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 		if err != nil {
 			return err
 		}
-		_, err = etcdClient.MemberPromote(ctx, newMemberID)
-		if err == nil {
+		if _, err = etcdClient.MemberPromote(ctx, newMemberID); err == nil {
 			break
 		}
 		// TODO: retry timeout

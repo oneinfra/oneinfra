@@ -66,7 +66,7 @@ kind: Cluster
 metadata:
   name: my-1-18-cluster
 spec:
-  kubernetesVersion: 1.18.1
+  kubernetesVersion: 1.18.0
 ```
 
 Creating a cluster resource by itself won't do anything. You have to

@@ -21,7 +21,7 @@ package constants
 const (
 	// RawReleaseData represents the supported versions for this release
 	RawReleaseData = `version: 20.04.0-alpha1
-defaultKubernetesVersion: 1.18.1
+defaultKubernetesVersion: 1.18.0
 kubernetesVersions:
 - kubernetesVersion: 1.15.11
   criToolsVersion: 1.17.0
@@ -41,7 +41,7 @@ kubernetesVersions:
   cniPluginsVersion: 0.8.5
   etcdVersion: 3.4.3
   pauseVersion: 3.1
-- kubernetesVersion: 1.18.1
+- kubernetesVersion: 1.18.0
   criToolsVersion: 1.17.0
   containerdVersion: 1.3.3
   cniPluginsVersion: 0.8.5

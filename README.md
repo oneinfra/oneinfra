@@ -28,7 +28,7 @@ You can [read more about its design here](docs/DESIGN.md).
 
 Build has been tested with go versions 1.13 and 1.14.
 
-```
+```console
 $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha1
 ```
 
@@ -65,8 +65,7 @@ If you don't want to deploy Kubernetes to test `oneinfra`, you can use
 the `oi` CLI tool that will allow you to test the reconciliation
 processes of `oneinfra` without the need of a Kubernetes cluster.
 
-```
-$ mkdir ~/.kube
+```console
 $ oi-local-cluster cluster create | \
     oi cluster inject --name simple-cluster | \
     oi component inject --name controlplane1 --role control-plane | \
@@ -74,14 +73,14 @@ $ oi-local-cluster cluster create | \
     oi component inject --name controlplane3 --role control-plane | \
     oi component inject --name loadbalancer --role control-plane-ingress | \
     oi reconcile | \
-    tee ha-cluster.conf | \
-    oi cluster admin-kubeconfig > ~/.kube/config
+    tee ha-cluster-manifests.conf | \
+    oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
 ```
 
 And access it:
 
-```
-$ kubectl cluster-info
+```console
+$ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
 
@@ -103,13 +102,13 @@ why this model is not suitable for production.
 you already have a Kubernetes cluster you can use, you can skip this
 step.
 
-    ```
+    ```console
     $ kind create cluster
     ```
 
 2. Deploy `cert-manager` and `oneinfra`.
 
-    ```
+    ```console
     $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
     $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager --all
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/generated/all.yaml
@@ -119,38 +118,38 @@ step.
 cluster control plane components somewhere. You can [also define your
 own set of hypervisors](docs/hypervisors.md) if you prefer.
 
-    ```
+    ```console
     $ oi-local-cluster cluster create --remote | kubectl apply -f -
     ```
 
 4. Now, create a managed cluster:
 
-    ```
+    ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/simple-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
-    $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster.conf
+    $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster-kubeconfig.conf
     ```
 
 5. And access it:
 
-    ```
-    $ kubectl --kubeconfig=simple-cluster.conf cluster-info
+    ```console
+    $ kubectl --kubeconfig=simple-cluster-kubeconfig.conf cluster-info
     Kubernetes master is running at https://172.17.0.5:30000
     ```
 
 6. (optional) You can then create a second managed cluster, this one
 comprised by three control plane instances:
 
-    ```
+    ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/ha-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
-    $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster.conf
+    $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
     ```
 
     1. And access it:
 
-        ```
-        $ kubectl --kubeconfig=ha-cluster.conf cluster-info
+        ```console
+        $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
         Kubernetes master is running at https://172.17.0.5:30002
         ```
 

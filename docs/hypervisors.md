@@ -82,7 +82,7 @@ type HypervisorSpec struct {
 Ideally, for production targeted hypervisors, you will use the
 `RemoteCRIEndpoint`, whose specification looks like the following:
 
-```
+```go
 type RemoteHypervisorCRIEndpoint struct {
 	// CRIEndpoint is the address where this CRI endpoint is listening
 	CRIEndpoint string `json:"criEndpointURI,omitempty"`

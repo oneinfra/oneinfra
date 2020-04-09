@@ -50,7 +50,7 @@ func BuildContainerImages(chosenContainerImages ContainerImageMapWithTags) {
 }
 
 func shouldBuildImage(containerImage ContainerImage, containerVersion string) bool {
-	return exec.Command("docker", "inspect", fmt.Sprintf("%s:%s", containerImage, containerVersion)).Run() != nil
+	return exec.Command("docker", "inspect", fmt.Sprintf("%s/%s:%s", namespace, containerImage, containerVersion)).Run() != nil
 }
 
 func buildImage(containerImage ContainerImage, containerVersion string) *exec.Cmd {

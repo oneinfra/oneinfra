@@ -49,7 +49,7 @@ func AzureRelease() error {
 	for kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("hyperkube:%s", kubernetesVersion)),
+			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion)),
 			publishContainerJob(fmt.Sprintf("kubelet-installer:%s", kubernetesVersion)),
 		)
 	}

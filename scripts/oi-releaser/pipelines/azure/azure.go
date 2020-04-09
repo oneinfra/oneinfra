@@ -28,8 +28,8 @@ package azure
 
 // Pipeline represents an Azure pipeline
 type Pipeline struct {
-	Variables map[string]string `json:"variables,omitempty"`
-	Trigger   *Trigger          `json:"trigger,omitempty"`
+	Variables map[string]string `json:"_variables,omitempty"`
+	Trigger   *Trigger          `json:"_trigger,omitempty"`
 	Jobs      []Job             `json:"jobs,omitempty"`
 }
 

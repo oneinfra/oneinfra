@@ -297,8 +297,8 @@ func main() {
 							if c.Bool("default") {
 								fmt.Println(constants.ReleaseData.DefaultKubernetesVersion)
 							} else {
-								for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-									fmt.Println(kubernetesVersion.KubernetesVersion)
+								for kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+									fmt.Println(kubernetesVersion)
 								}
 							}
 							return nil

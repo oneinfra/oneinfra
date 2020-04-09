@@ -41,7 +41,8 @@ oi-releaser: oi
 	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
 
 pipelines: oi-releaser
-	oi-releaser test-pipeline dump > .azure-pipelines/test.yml
+	oi-releaser pipelines test dump > .azure-pipelines/test.yml
+	oi-releaser pipelines release dump > .azure-pipelines/release.yml
 
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
@@ -155,9 +156,19 @@ kind: webhook-certs
 kind-delete:
 	kind delete cluster --name oi-test-cluster
 
+build-container-image: oi-releaser
+	./scripts/run-local.sh oi-releaser container-images build --image $(CONTAINER_IMAGE)
+
 build-container-images: oi-releaser
 	./scripts/run-local.sh oi-releaser container-images build
 
-publish-container-images: oi-releaser build-container-images
+publish-container-image:
+	./scripts/run-local.sh oi-releaser container-images publish --image $(CONTAINER_IMAGE)
+
+publish-container-image-ci: docker-login publish-container-image
+
+docker-login:
 	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin
+
+publish-container-images:
 	./scripts/run-local.sh oi-releaser container-images publish

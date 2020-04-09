@@ -4,6 +4,7 @@ github.com/cpuguy83/go-md2man/v2/md2man
 ## explicit
 github.com/oneinfra/oneinfra/internal/pkg/constants
 # github.com/pkg/errors v0.8.1
+## explicit
 github.com/pkg/errors
 # github.com/russross/blackfriday/v2 v2.0.1
 github.com/russross/blackfriday/v2
@@ -14,6 +15,9 @@ github.com/shurcooL/sanitized_anchor_name
 github.com/urfave/cli/v2
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
+# k8s.io/klog v1.0.0
+## explicit
+k8s.io/klog
 # sigs.k8s.io/yaml v1.1.0
 ## explicit
 sigs.k8s.io/yaml

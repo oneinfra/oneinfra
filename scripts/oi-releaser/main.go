@@ -17,25 +17,15 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v2"
+	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/images"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines"
-)
-
-var (
-	allContainerImages = []string{
-		"containerd",
-		"hypervisor",
-		"kubelet-installer",
-		"oi",
-		"oi-manager",
-	}
 )
 
 func main() {
@@ -52,13 +42,12 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "image",
-								Usage: fmt.Sprintf("images to build %v; can be provided several times, all if not provided", allContainerImages),
+								Usage: "images to build; can be provided several times in the form of image:version, all if not provided",
 							},
 						},
 						Action: func(c *cli.Context) error {
 							images.BuildContainerImages(
-								kubernetesVersions(),
-								chosenContainerImages(c.StringSlice("images")),
+								chosenContainerImages(c.StringSlice("image")),
 							)
 							return nil
 						},
@@ -69,13 +58,12 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "image",
-								Usage: fmt.Sprintf("images to publish %v; can be provided several times, all if not provided", allContainerImages),
+								Usage: "images to publish; can be provided several times in the form of image:version, all if not provided",
 							},
 						},
 						Action: func(c *cli.Context) error {
 							images.PublishContainerImages(
-								kubernetesVersions(),
-								chosenContainerImages(c.StringSlice("images")),
+								chosenContainerImages(c.StringSlice("image")),
 							)
 							return nil
 						},
@@ -83,16 +71,33 @@ func main() {
 				},
 			},
 			{
-				Name:  "test-pipeline",
-				Usage: "test pipeline operations",
+				Name:  "pipelines",
+				Usage: "pipeline operations",
 				Subcommands: []*cli.Command{
 					{
-						Name:  "dump",
-						Usage: "dump the test pipeline to stdout",
-						Action: func(c *cli.Context) error {
-							return pipelines.AzureTest(
-								kubernetesVersions(),
-							)
+						Name:  "test",
+						Usage: "test pipeline operations",
+						Subcommands: []*cli.Command{
+							{
+								Name:  "dump",
+								Usage: "dump the test pipeline to stdout",
+								Action: func(c *cli.Context) error {
+									return pipelines.AzureTest()
+								},
+							},
+						},
+					},
+					{
+						Name:  "release",
+						Usage: "release pipeline operations",
+						Subcommands: []*cli.Command{
+							{
+								Name:  "dump",
+								Usage: "dump the release pipeline to stdout",
+								Action: func(c *cli.Context) error {
+									return pipelines.AzureRelease()
+								},
+							},
 						},
 					},
 				},
@@ -105,23 +110,28 @@ func main() {
 	}
 }
 
-func kubernetesVersions() []constants.KubernetesVersion {
-	return constants.ReleaseData.KubernetesVersions
-}
-
-func chosenContainerImages(containerImages []string) []string {
-	if len(containerImages) == 0 {
-		return allContainerImages
-	}
-	chosenContainerImages := map[string]struct{}{}
+func chosenContainerImages(containerImages []string) images.ContainerImageMapWithTags {
+	chosenContainerImages := images.ContainerImageMapWithTags{}
+	// Used to avoid image:version duplicates
+	chosenContainerImageMap := map[string]map[string]struct{}{}
 	for _, chosenContainerImage := range containerImages {
-		chosenContainerImages[chosenContainerImage] = struct{}{}
-	}
-	res := []string{}
-	for _, containerImage := range allContainerImages {
-		if _, exists := chosenContainerImages[containerImage]; exists {
-			res = append(res, containerImage)
+		imageSplit := strings.Split(chosenContainerImage, ":")
+		if len(imageSplit) != 2 {
+			klog.Fatalf("could not parse %q as image:tag", chosenContainerImage)
 		}
+		imageName, imageVersion := imageSplit[0], imageSplit[1]
+		if chosenContainerImageMap[imageName] == nil {
+			chosenContainerImages[images.ContainerImage(imageName)] = []string{}
+			chosenContainerImageMap[imageName] = map[string]struct{}{}
+		}
+		if _, exists := chosenContainerImageMap[imageName][imageVersion]; exists {
+			continue
+		}
+		chosenContainerImages[images.ContainerImage(imageName)] = append(
+			chosenContainerImages[images.ContainerImage(imageName)],
+			imageVersion,
+		)
+		chosenContainerImageMap[imageName][imageVersion] = struct{}{}
 	}
-	return res
+	return chosenContainerImages
 }

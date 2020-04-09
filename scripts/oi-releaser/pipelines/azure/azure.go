@@ -29,7 +29,24 @@ package azure
 // Pipeline represents an Azure pipeline
 type Pipeline struct {
 	Variables map[string]string `json:"variables,omitempty"`
+	Trigger   *Trigger          `json:"trigger,omitempty"`
 	Jobs      []Job             `json:"jobs,omitempty"`
+}
+
+// Trigger represents a pipeline trigger
+type Trigger struct {
+	Branches *BranchesTrigger `json:"branches,omitempty"`
+	Paths    *PathsTrigger    `json:"paths,omitempty"`
+}
+
+// BranchesTrigger represents a branch trigger
+type BranchesTrigger struct {
+	Include []string `json:"include,omitempty"`
+}
+
+// PathsTrigger represents a path trigger
+type PathsTrigger struct {
+	Include []string `json:"include,omitempty"`
 }
 
 // Job represents an Azure job

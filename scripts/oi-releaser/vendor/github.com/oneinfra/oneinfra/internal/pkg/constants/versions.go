@@ -46,25 +46,28 @@ var (
 
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {
-	Version                  string              `json:"version"`
-	DefaultKubernetesVersion string              `json:"defaultKubernetesVersion"`
-	KubernetesVersions       []KubernetesVersion `json:"kubernetesVersions"`
+	Version                  string                       `json:"version"`
+	DefaultKubernetesVersion string                       `json:"defaultKubernetesVersion"`
+	ContainerdVersions       map[string]ContainerdVersion `json:"containerdVersions"`
+	KubernetesVersions       map[string]KubernetesVersion `json:"kubernetesVersions"`
+}
+
+// ContainerdVersion represents a supported containerd version for testing
+type ContainerdVersion struct {
+	CRIToolsVersion   string `json:"criToolsVersion"`
+	CNIPluginsVersion string `json:"cniPluginsVersion"`
 }
 
 // KubernetesVersion represents a supported Kubernetes version
 type KubernetesVersion struct {
-	KubernetesVersion string `json:"kubernetesVersion"`
-	CRIToolsVersion   string `json:"criToolsVersion"`
 	ContainerdVersion string `json:"containerdVersion"`
-	CNIPluginsVersion string `json:"cniPluginsVersion"`
 	EtcdVersion       string `json:"etcdVersion"`
 	PauseVersion      string `json:"pauseVersion"`
 }
 
 var (
 	// ReleaseData includes all release information
-	ReleaseData          *ReleaseInfo
-	kubernetesVersionMap map[string]KubernetesVersion
+	ReleaseData *ReleaseInfo
 )
 
 func init() {
@@ -73,16 +76,12 @@ func init() {
 		log.Fatalf("could not unmarshal RELEASE file contents: %v", err)
 	}
 	ReleaseData = &currReleaseData
-	kubernetesVersionMap = map[string]KubernetesVersion{}
-	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
-		kubernetesVersionMap[kubernetesVersion.KubernetesVersion] = kubernetesVersion
-	}
 }
 
 // KubernetesVersionBundle returns the KubernetesVersion for the
 // provided version
 func KubernetesVersionBundle(version string) (*KubernetesVersion, error) {
-	if kubernetesVersion, exists := kubernetesVersionMap[version]; exists {
+	if kubernetesVersion, exists := ReleaseData.KubernetesVersions[version]; exists {
 		return &kubernetesVersion, nil
 	}
 	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
@@ -97,11 +96,11 @@ func KubernetesComponentVersion(version string, component Component) (string, er
 	}
 	switch component {
 	case CRITools:
-		return kubernetesVersionBundle.CRIToolsVersion, nil
+		return ReleaseData.ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
 	case Containerd:
 		return kubernetesVersionBundle.ContainerdVersion, nil
 	case CNIPlugins:
-		return kubernetesVersionBundle.CNIPluginsVersion, nil
+		return ReleaseData.ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
 	case Etcd:
 		return kubernetesVersionBundle.EtcdVersion, nil
 	case Pause:

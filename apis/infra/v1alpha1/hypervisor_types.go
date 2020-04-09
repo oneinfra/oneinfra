@@ -76,8 +76,12 @@ type RemoteHypervisorCRIEndpoint struct {
 
 // HypervisorStatus defines the observed state of Hypervisor
 type HypervisorStatus struct {
+	// AllocatedPorts is a list of hypervisor allocated ports
 	AllocatedPorts []HypervisorPortAllocation `json:"allocatedPorts,omitempty"`
-	Files          map[string]string          `json:"files,omitempty"`
+	// FreedPorts is a list of ports available for usage, freed when
+	// components have been deleted
+	FreedPorts []int             `json:"freedPorts,omitempty"`
+	Files      map[string]string `json:"files,omitempty"`
 }
 
 // HypervisorPortRange represents a port range

@@ -59,6 +59,7 @@ type Hypervisor struct {
 	criImage           criapi.ImageServiceClient
 	portRangeLow       int
 	portRangeHigh      int
+	freedPorts         []int
 	allocatedPorts     HypervisorPortAllocationList
 	loadedContentsHash string
 }
@@ -86,6 +87,7 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		Files:           hypervisorFiles,
 		portRangeLow:    hypervisor.Spec.PortRange.Low,
 		portRangeHigh:   hypervisor.Spec.PortRange.High,
+		freedPorts:      hypervisor.Status.FreedPorts,
 		allocatedPorts:  NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
 	}
 	if err := setHypervisorEndpointFromv1alpha1(hypervisor, &res); err != nil {
@@ -519,9 +521,14 @@ func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (in
 	if hasPort, existingPort := hypervisor.HasPort(clusterName, componentName); hasPort {
 		return existingPort, nil
 	}
-	newPort := hypervisor.portRangeLow + len(hypervisor.allocatedPorts)
-	if newPort > hypervisor.portRangeHigh {
-		return 0, errors.Errorf("no available ports on hypervisor %q", hypervisor.Name)
+	var newPort int
+	if len(hypervisor.freedPorts) > 0 {
+		newPort, hypervisor.freedPorts = hypervisor.freedPorts[0], hypervisor.freedPorts[1:]
+	} else {
+		newPort = hypervisor.portRangeLow + len(hypervisor.allocatedPorts)
+		if newPort > hypervisor.portRangeHigh {
+			return 0, errors.Errorf("no available ports on hypervisor %q", hypervisor.Name)
+		}
 	}
 	hypervisor.allocatedPorts = append(hypervisor.allocatedPorts, HypervisorPortAllocation{
 		Cluster:   clusterName,
@@ -552,6 +559,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		},
 		Status: infrav1alpha1.HypervisorStatus{
 			AllocatedPorts: hypervisor.allocatedPorts.Export(),
+			FreedPorts:     hypervisor.freedPorts,
 			Files:          hypervisor.Files,
 		},
 	}

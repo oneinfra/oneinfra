@@ -84,7 +84,8 @@ func publishContainerJob(container string) azure.Job {
 				Bash:        "make publish-container-image-ci",
 				DisplayName: "Publish container image",
 				Env: map[string]string{
-					"CONTAINER_IMAGE": container,
+					"CONTAINER_IMAGE":  container,
+					"DOCKER_HUB_TOKEN": "$(DOCKER_HUB_TOKEN)",
 				},
 			},
 		},

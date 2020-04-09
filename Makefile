@@ -167,8 +167,8 @@ publish-container-image: oi-releaser
 
 publish-container-image-ci: docker-login publish-container-image
 
-docker-login:
-	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin
-
 publish-container-images: oi-releaser
 	./scripts/run-local.sh oi-releaser container-images publish
+
+docker-login:
+	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin

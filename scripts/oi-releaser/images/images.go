@@ -106,7 +106,11 @@ func executeForContainerImage(containerImage ContainerImage, containerVersion st
 	if err := os.Chdir(filepath.Join(cwd, "images", string(containerImage))); err != nil {
 		return errors.Errorf("could not change directory: %v", err)
 	}
-	return rawExecuteForContainerImage(containerImage, containerVersion, do)
+	res := rawExecuteForContainerImage(containerImage, containerVersion, do)
+	if err := os.Chdir(cwd); err != nil {
+		return errors.Errorf("could not change directory: %v", err)
+	}
+	return res
 }
 
 func rawExecuteForContainerImage(containerImage ContainerImage, containerVersion string, do func(ContainerImage, string) *exec.Cmd) error {

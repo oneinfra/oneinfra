@@ -40,9 +40,20 @@ var _ webhook.Defaulter = &Cluster{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (cluster *Cluster) Default() {
 	klog.Info("default", "name", cluster.Name)
+	cluster.addFinalizer()
 	cluster.defaultKubernetesVersion()
 	cluster.defaultVPNCIDR()
 	cluster.defaultUninitializedCertificatesLabel()
+}
+
+func (cluster *Cluster) addFinalizer() {
+	if cluster.Finalizers == nil {
+		cluster.Finalizers = []string{}
+	}
+	cluster.Finalizers = append(
+		cluster.Finalizers,
+		constants.OneInfraCleanupFinalizer,
+	)
 }
 
 func (cluster *Cluster) defaultKubernetesVersion() {

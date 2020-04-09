@@ -45,6 +45,8 @@ const (
 	// OneInfraControlPlaneIngressVPNPeerName represents the control
 	// plane ingress peer VPN name
 	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
+	// OneInfraCleanupFinalizer is a finalizer for cleaning up resources
+	OneInfraCleanupFinalizer = "oneinfra/cleanup"
 	// KubeletDir is the kubelet configuration dir
 	KubeletDir = "/var/lib/kubelet"
 )

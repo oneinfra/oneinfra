@@ -39,6 +39,21 @@ var _ webhook.Defaulter = &Component{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (component *Component) Default() {
 	klog.Info("default", "name", component.Name)
+	component.addFinalizer()
+	component.addClusterNameLabel()
+}
+
+func (component *Component) addFinalizer() {
+	if component.Finalizers == nil {
+		component.Finalizers = []string{}
+	}
+	component.Finalizers = append(
+		component.Finalizers,
+		constants.OneInfraCleanupFinalizer,
+	)
+}
+
+func (component *Component) addClusterNameLabel() {
 	if component.Labels == nil {
 		component.Labels = map[string]string{}
 	}

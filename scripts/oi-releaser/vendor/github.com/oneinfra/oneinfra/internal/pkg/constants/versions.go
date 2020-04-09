@@ -54,14 +54,14 @@ type ReleaseInfo struct {
 
 // ContainerdVersion represents a supported containerd version for testing
 type ContainerdVersion struct {
-	ContainerdVersion string `json:"containerdVersion"`
+	Version           string `json:"version"`
 	CRIToolsVersion   string `json:"criToolsVersion"`
 	CNIPluginsVersion string `json:"cniPluginsVersion"`
 }
 
 // KubernetesVersion represents a supported Kubernetes version
 type KubernetesVersion struct {
-	KubernetesVersion string `json:"kubernetesVersion"`
+	Version           string `json:"version"`
 	ContainerdVersion string `json:"containerdVersion"`
 	EtcdVersion       string `json:"etcdVersion"`
 	PauseVersion      string `json:"pauseVersion"`
@@ -84,11 +84,11 @@ func init() {
 	ReleaseData = &currReleaseData
 	ContainerdVersions = map[string]ContainerdVersion{}
 	for _, containerdVersion := range ReleaseData.ContainerdVersions {
-		ContainerdVersions[containerdVersion.ContainerdVersion] = containerdVersion
+		ContainerdVersions[containerdVersion.Version] = containerdVersion
 	}
 	KubernetesVersions = map[string]KubernetesVersion{}
 	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
-		KubernetesVersions[kubernetesVersion.KubernetesVersion] = kubernetesVersion
+		KubernetesVersions[kubernetesVersion.Version] = kubernetesVersion
 	}
 }
 

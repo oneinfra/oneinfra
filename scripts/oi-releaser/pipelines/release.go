@@ -46,14 +46,14 @@ func AzureRelease() error {
 	for _, containerdVersion := range constants.ReleaseData.ContainerdVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("containerd:%s", containerdVersion.ContainerdVersion)),
+			publishContainerJob(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
 		)
 	}
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion.KubernetesVersion)),
-			publishContainerJob(fmt.Sprintf("kubelet-installer:%s", kubernetesVersion.KubernetesVersion)),
+			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
+			publishContainerJob(fmt.Sprintf("kubelet-installer:%s", kubernetesVersion.Version)),
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)

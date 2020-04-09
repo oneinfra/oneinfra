@@ -36,7 +36,10 @@ func AzureRelease() error {
 				Include: []string{"master"},
 			},
 			Paths: &azure.PathsTrigger{
-				Include: []string{"RELEASE"},
+				Include: []string{
+					"RELEASE",
+					".azure-pipelines/release.yml",
+				},
 			},
 		},
 	}

@@ -29,7 +29,11 @@ import (
 	"k8s.io/klog"
 )
 
+// ContainerImage is a type representing a container image
 type ContainerImage string
+
+// ContainerImageMapWithTags is a map of container images and a list
+// of tags for each image
 type ContainerImageMapWithTags map[ContainerImage][]string
 
 const (
@@ -77,7 +81,7 @@ func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags) {
 		func(containerImage ContainerImage, containerVersion string) *exec.Cmd {
 			if shouldBuildImage(containerImage, containerVersion) {
 				if err := rawExecuteForContainerImage(containerImage, containerVersion, buildImage); err != nil {
-					klog.Warning("could not build image %q", fmt.Sprintf("%s:%s", containerImage, containerVersion))
+					klog.Warningf("could not build image %s", fmt.Sprintf("%s/%s:%s", namespace, containerImage, containerVersion))
 				}
 			}
 			return exec.Command("make", "publish")

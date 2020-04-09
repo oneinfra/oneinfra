@@ -25,13 +25,13 @@ func containerImagesFromChosen(chosenContainerImages ContainerImageMapWithTags) 
 		return chosenContainerImages
 	}
 	res := ContainerImageMapWithTags{}
-	for containerdVersion := range constants.ReleaseData.ContainerdVersions {
+	for containerdVersion := range constants.ContainerdVersions {
 		if res[containerd] == nil {
 			res[containerd] = []string{}
 		}
 		res[containerd] = append(res[containerd], containerdVersion)
 	}
-	for kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+	for kubernetesVersion := range constants.KubernetesVersions {
 		if res[hypervisor] == nil {
 			res[hypervisor] = []string{}
 			res[kubeletInstaller] = []string{}

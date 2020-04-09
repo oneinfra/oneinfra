@@ -69,10 +69,10 @@ func AzureTest() error {
 		pipeline.Jobs,
 		e2eTestsWithKubernetesVersion("default")...,
 	)
-	for kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion)...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.KubernetesVersion)...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)

@@ -46,20 +46,22 @@ var (
 
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {
-	Version                  string                       `json:"version"`
-	DefaultKubernetesVersion string                       `json:"defaultKubernetesVersion"`
-	ContainerdVersions       map[string]ContainerdVersion `json:"containerdVersions"`
-	KubernetesVersions       map[string]KubernetesVersion `json:"kubernetesVersions"`
+	Version                  string              `json:"version"`
+	DefaultKubernetesVersion string              `json:"defaultKubernetesVersion"`
+	ContainerdVersions       []ContainerdVersion `json:"containerdVersions"`
+	KubernetesVersions       []KubernetesVersion `json:"kubernetesVersions"`
 }
 
 // ContainerdVersion represents a supported containerd version for testing
 type ContainerdVersion struct {
+	ContainerdVersion string `json:"containerdVersion"`
 	CRIToolsVersion   string `json:"criToolsVersion"`
 	CNIPluginsVersion string `json:"cniPluginsVersion"`
 }
 
 // KubernetesVersion represents a supported Kubernetes version
 type KubernetesVersion struct {
+	KubernetesVersion string `json:"kubernetesVersion"`
 	ContainerdVersion string `json:"containerdVersion"`
 	EtcdVersion       string `json:"etcdVersion"`
 	PauseVersion      string `json:"pauseVersion"`
@@ -68,6 +70,10 @@ type KubernetesVersion struct {
 var (
 	// ReleaseData includes all release information
 	ReleaseData *ReleaseInfo
+	// ContainerdVersions has a map of the test containerd versions
+	ContainerdVersions map[string]ContainerdVersion
+	// KubernetesVersions has a map of the supported Kubernetes versions
+	KubernetesVersions map[string]KubernetesVersion
 )
 
 func init() {
@@ -76,12 +82,20 @@ func init() {
 		log.Fatalf("could not unmarshal RELEASE file contents: %v", err)
 	}
 	ReleaseData = &currReleaseData
+	ContainerdVersions = map[string]ContainerdVersion{}
+	for _, containerdVersion := range ReleaseData.ContainerdVersions {
+		ContainerdVersions[containerdVersion.ContainerdVersion] = containerdVersion
+	}
+	KubernetesVersions = map[string]KubernetesVersion{}
+	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
+		KubernetesVersions[kubernetesVersion.KubernetesVersion] = kubernetesVersion
+	}
 }
 
 // KubernetesVersionBundle returns the KubernetesVersion for the
 // provided version
 func KubernetesVersionBundle(version string) (*KubernetesVersion, error) {
-	if kubernetesVersion, exists := ReleaseData.KubernetesVersions[version]; exists {
+	if kubernetesVersion, exists := KubernetesVersions[version]; exists {
 		return &kubernetesVersion, nil
 	}
 	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
@@ -96,11 +110,11 @@ func KubernetesComponentVersion(version string, component Component) (string, er
 	}
 	switch component {
 	case CRITools:
-		return ReleaseData.ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
+		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
 	case Containerd:
 		return kubernetesVersionBundle.ContainerdVersion, nil
 	case CNIPlugins:
-		return ReleaseData.ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
+		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
 	case Etcd:
 		return kubernetesVersionBundle.EtcdVersion, nil
 	case Pause:

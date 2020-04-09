@@ -123,15 +123,15 @@ func setCmdEnv(cmd *exec.Cmd, containerImage ContainerImage, containerVersion st
 	case containerd:
 		cmd.Env = append(cmd.Env, []string{
 			fmt.Sprintf("CONTAINERD_VERSION=%s", containerVersion),
-			fmt.Sprintf("CRI_TOOLS_VERSION=%s", constants.ReleaseData.ContainerdVersions[containerVersion].CRIToolsVersion),
-			fmt.Sprintf("CNI_PLUGINS_VERSION=%s", constants.ReleaseData.ContainerdVersions[containerVersion].CNIPluginsVersion),
+			fmt.Sprintf("CRI_TOOLS_VERSION=%s", constants.ContainerdVersions[containerVersion].CRIToolsVersion),
+			fmt.Sprintf("CNI_PLUGINS_VERSION=%s", constants.ContainerdVersions[containerVersion].CNIPluginsVersion),
 		}...)
 	case hypervisor:
 		cmd.Env = append(cmd.Env, []string{
 			fmt.Sprintf("KUBERNETES_VERSION=%s", containerVersion),
-			fmt.Sprintf("CONTAINERD_VERSION=%s", constants.ReleaseData.KubernetesVersions[containerVersion].ContainerdVersion),
-			fmt.Sprintf("ETCD_VERSION=%s", constants.ReleaseData.KubernetesVersions[containerVersion].EtcdVersion),
-			fmt.Sprintf("PAUSE_VERSION=%s", constants.ReleaseData.KubernetesVersions[containerVersion].PauseVersion),
+			fmt.Sprintf("CONTAINERD_VERSION=%s", constants.KubernetesVersions[containerVersion].ContainerdVersion),
+			fmt.Sprintf("ETCD_VERSION=%s", constants.KubernetesVersions[containerVersion].EtcdVersion),
+			fmt.Sprintf("PAUSE_VERSION=%s", constants.KubernetesVersions[containerVersion].PauseVersion),
 		}...)
 	case kubeletInstaller:
 		cmd.Env = append(cmd.Env, []string{

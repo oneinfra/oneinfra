@@ -110,8 +110,8 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	err = hypervisor.UploadFile(
 		cluster.Name,
 		component.Name,
-		haProxyConfig,
 		secretsPathFile(cluster.Name, component.Name, "haproxy.cfg"),
+		haProxyConfig,
 	)
 	if err != nil {
 		return err

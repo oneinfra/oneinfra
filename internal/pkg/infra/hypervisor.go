@@ -446,7 +446,7 @@ func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, fil
 		return err
 	}
 	for fileLocation, fileContents := range files {
-		if err := hypervisor.uploadFile(clusterName, componentName, fileContents, fileLocation); err != nil {
+		if err := hypervisor.uploadFile(clusterName, componentName, fileLocation, fileContents); err != nil {
 			return err
 		}
 	}
@@ -455,16 +455,16 @@ func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, fil
 
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
-func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, fileContents, hostPath string) error {
+func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, hostPath, fileContents string) error {
 	if err := hypervisor.EnsureImage(toolingImage); err != nil {
 		return err
 	}
-	return hypervisor.uploadFile(clusterName, componentName, fileContents, hostPath)
+	return hypervisor.uploadFile(clusterName, componentName, hostPath, fileContents)
 }
 
 // FileUpToDate returns whether the given file contents match on the
 // host
-func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, fileContents, hostPath string) bool {
+func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, hostPath, fileContents string) bool {
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	if currentFileContentsSHA1, exists := hypervisor.Files[clusterName][componentName][hostPath]; exists {
 		if currentFileContentsSHA1 == fileContentsSHA1 {
@@ -474,8 +474,8 @@ func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, fileConte
 	return false
 }
 
-func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, fileContents, hostPath string) error {
-	if hypervisor.FileUpToDate(clusterName, componentName, fileContents, hostPath) {
+func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, hostPath, fileContents string) error {
+	if hypervisor.FileUpToDate(clusterName, componentName, hostPath, fileContents) {
 		klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
 		return nil
 	}

@@ -90,7 +90,7 @@ func NewSingleContainerPod(name, image string, command []string, args []string, 
 func (pod *Pod) SHA1Sum() (string, error) {
 	podManifest, err := yaml.Marshal(pod)
 	if err != nil {
-		return "", errors.Errorf("cannot marshal pod %q", pod.Name)
+		return "", errors.Errorf("cannot marshal pod %q: %v", pod.Name, err)
 	}
 	return fmt.Sprintf("%x", sha1.Sum(podManifest)), nil
 }

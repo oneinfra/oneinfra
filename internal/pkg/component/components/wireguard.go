@@ -107,15 +107,15 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 		return err
 	}
 	wireguardConfigPath := secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
-	if hypervisor.FileUpToDate(cluster.Name, component.Name, wireguardConfig, wireguardConfigPath) {
+	if hypervisor.FileUpToDate(cluster.Name, component.Name, wireguardConfigPath, wireguardConfig) {
 		klog.V(2).Info("skipping wireguard reconfiguration, since configuration is up to date")
 		return nil
 	}
 	err = hypervisor.UploadFile(
 		cluster.Name,
 		component.Name,
-		wireguardConfig,
 		wireguardConfigPath,
+		wireguardConfig,
 	)
 	if err != nil {
 		return err

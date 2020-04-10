@@ -14,24 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package components
+package reconciler
 
 import (
-	"path/filepath"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 )
 
-func clusterSecretsPath(clusterName string) string {
-	return filepath.Join("/etc/oneinfra/clusters", clusterName)
-}
-
-func secretsPath(clusterName, componentName string) string {
-	return filepath.Join(clusterSecretsPath(clusterName), componentName)
-}
-
-func storagePath(clusterName string) string {
-	return filepath.Join("/var/lib/oneinfra/clusters", clusterName)
-}
-
-func secretsPathFile(clusterName, componentName, file string) string {
-	return filepath.Join(secretsPath(clusterName, componentName), file)
+// ReconcileComponentsDeletion reconciles components deletion
+func (clusterReconciler *ClusterReconciler) ReconcileComponentsDeletion(reconcileErrors *ReconcileErrors, components ...*componentapi.Component) {
 }

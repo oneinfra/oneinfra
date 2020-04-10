@@ -23,6 +23,16 @@ import (
 // List represents a list of components
 type List []*Component
 
+// WithName returns a component matching the provided name
+func (list List) WithName(name string) *Component {
+	for _, component := range list {
+		if component.Name == name {
+			return component
+		}
+	}
+	return nil
+}
+
 // WithRole returns a subset of the current list matching the given
 // role.
 func (list List) WithRole(role Role) List {

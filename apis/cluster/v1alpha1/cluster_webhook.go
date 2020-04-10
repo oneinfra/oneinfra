@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 )
 
 // SetupWebhookWithManager registers this web hook on the given
@@ -47,10 +48,13 @@ func (cluster *Cluster) Default() {
 }
 
 func (cluster *Cluster) addFinalizer() {
+	if cluster.DeletionTimestamp != nil {
+		return
+	}
 	if cluster.Finalizers == nil {
 		cluster.Finalizers = []string{}
 	}
-	cluster.Finalizers = append(
+	cluster.Finalizers = utils.AddElementsToListIfNotExists(
 		cluster.Finalizers,
 		constants.OneInfraCleanupFinalizer,
 	)

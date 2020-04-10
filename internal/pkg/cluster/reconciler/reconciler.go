@@ -20,7 +20,7 @@ import (
 	"k8s.io/klog"
 
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -31,11 +31,11 @@ import (
 type ClusterReconciler struct {
 	HypervisorMap infra.HypervisorMap
 	ClusterMap    clusterapi.Map
-	ComponentList component.List
+	ComponentList componentapi.List
 }
 
 // NewClusterReconciler creates a cluster reconciler with the provided hypervisors, clusters and components
-func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap clusterapi.Map, componentList component.List) *ClusterReconciler {
+func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap clusterapi.Map, componentList componentapi.List) *ClusterReconciler {
 	return &ClusterReconciler{
 		HypervisorMap: hypervisorMap,
 		ClusterMap:    clusterMap,
@@ -45,7 +45,7 @@ func NewClusterReconciler(hypervisorMap infra.HypervisorMap, clusterMap clustera
 
 // IsComponentScheduled returns whether this component is scheduled to
 // an existing hypervisor
-func (clusterReconciler *ClusterReconciler) IsComponentScheduled(component *component.Component) bool {
+func (clusterReconciler *ClusterReconciler) IsComponentScheduled(component *componentapi.Component) bool {
 	if component.HypervisorName == "" {
 		return false
 	}
@@ -121,31 +121,31 @@ func (clusterReconciler *ClusterReconciler) reconcileMinimalVPNPeers(cluster *cl
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileControlPlaneComponents(clusterName string, reconcileErrors *ReconcileErrors) {
-	for _, componentObj := range clusterReconciler.ComponentList.WithCluster(clusterName).WithRole(component.ControlPlaneRole) {
+	for _, component := range clusterReconciler.ComponentList.WithCluster(clusterName).WithRole(componentapi.ControlPlaneRole) {
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
-				component:         componentObj,
+				component:         component,
 				clusterReconciler: clusterReconciler,
 			},
 		)
 		if err != nil {
-			klog.Errorf("failed to reconcile component %q: %v", componentObj.Name, err)
-			reconcileErrors.addComponentError(componentObj.ClusterName, componentObj.Name, err)
+			klog.Errorf("failed to reconcile component %q: %v", component.Name, err)
+			reconcileErrors.addComponentError(component.ClusterName, component.Name, err)
 		}
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileControlPlaneIngressComponents(clusterName string, reconcileErrors *ReconcileErrors) {
-	for _, componentObj := range clusterReconciler.ComponentList.WithCluster(clusterName).WithRole(component.ControlPlaneIngressRole) {
+	for _, component := range clusterReconciler.ComponentList.WithCluster(clusterName).WithRole(componentapi.ControlPlaneIngressRole) {
 		err := componentreconciler.Reconcile(
 			&ClusterReconcilerInquirer{
-				component:         componentObj,
+				component:         component,
 				clusterReconciler: clusterReconciler,
 			},
 		)
 		if err != nil {
-			klog.Errorf("failed to reconcile component %q: %v", componentObj.Name, err)
-			reconcileErrors.addComponentError(componentObj.ClusterName, componentObj.Name, err)
+			klog.Errorf("failed to reconcile component %q: %v", component.Name, err)
+			reconcileErrors.addComponentError(component.ClusterName, component.Name, err)
 		}
 	}
 }
@@ -190,6 +190,30 @@ func (clusterReconciler *ClusterReconciler) reconcileJoinPublicKeyConfigMap(clus
 		klog.Errorf("failed to reconcile join public key ConfigMap for cluster %q: %v", cluster.Name, err)
 		reconcileErrors.addClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile join public key ConfigMap"))
 	}
+}
+
+// ReconcileDeletions reconciles all to be deleted components known to
+// this cluster reconciler. If nothing failed, it will return nil,
+// otherwise a ReconcileErrors object will be returned specifying what
+// reconciliations failed
+func (clusterReconciler *ClusterReconciler) ReconcileDeletions(componentsToDelete ...*componentapi.Component) ReconcileErrors {
+	reconcileErrors := ReconcileErrors{}
+	for _, component := range componentsToDelete {
+		err := componentreconciler.ReconcileDeletion(
+			&ClusterReconcilerInquirer{
+				component:         component,
+				clusterReconciler: clusterReconciler,
+			},
+		)
+		if err != nil {
+			klog.Errorf("failed to reconcile component %q deletion: %v", component.Name, err)
+			reconcileErrors.addComponentError(component.ClusterName, component.Name, err)
+		}
+	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
 // Specs returns the versioned specs for all resources

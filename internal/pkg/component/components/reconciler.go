@@ -24,4 +24,5 @@ import (
 // interface to be reconciled
 type Component interface {
 	Reconcile(inquirer.ReconcilerInquirer) error
+	ReconcileDeletion(inquirer.ReconcilerInquirer) error
 }

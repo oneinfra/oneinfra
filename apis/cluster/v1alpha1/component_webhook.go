@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -44,10 +45,13 @@ func (component *Component) Default() {
 }
 
 func (component *Component) addFinalizer() {
+	if component.DeletionTimestamp != nil {
+		return
+	}
 	if component.Finalizers == nil {
 		component.Finalizers = []string{}
 	}
-	component.Finalizers = append(
+	component.Finalizers = utils.AddElementsToListIfNotExists(
 		component.Finalizers,
 		constants.OneInfraCleanupFinalizer,
 	)

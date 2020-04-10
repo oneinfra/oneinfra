@@ -17,39 +17,72 @@ limitations under the License.
 package reconciler
 
 import (
+	"github.com/pkg/errors"
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/component/components"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 )
 
 // Reconcile reconciles the component
 func Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	klog.V(1).Infof("reconciling component %q with role %q", inquirer.Component().Name, inquirer.Component().Role)
-	var componentObj components.Component
-	switch inquirer.Component().Role {
-	case component.ControlPlaneRole:
-		componentObj = &components.ControlPlane{}
-	case component.ControlPlaneIngressRole:
-		componentObj = &components.ControlPlaneIngress{}
+	component := retrieveComponent(inquirer)
+	if component == nil {
+		return errors.Errorf("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
 	}
 	inquirer.Component().Conditions.SetCondition(
-		component.ReconcileStarted,
+		componentapi.ReconcileStarted,
 		conditions.ConditionTrue,
 	)
-	res := componentObj.Reconcile(inquirer)
+	res := component.Reconcile(inquirer)
 	if res == nil {
 		inquirer.Component().Conditions.SetCondition(
-			component.ReconcileSucceeded,
+			componentapi.ReconcileSucceeded,
 			conditions.ConditionTrue,
 		)
 	} else {
 		inquirer.Component().Conditions.SetCondition(
-			component.ReconcileSucceeded,
+			componentapi.ReconcileSucceeded,
 			conditions.ConditionFalse,
 		)
 	}
 	return res
+}
+
+// ReconcileDeletion reconciles the component deletion
+func ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
+	klog.V(1).Infof("reconciling component %q with role %q deletion", inquirer.Component().Name, inquirer.Component().Role)
+	component := retrieveComponent(inquirer)
+	if component == nil {
+		return errors.Errorf("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
+	}
+	var res error
+	if inquirer.Component().HypervisorName != "" {
+		res = component.ReconcileDeletion(inquirer)
+	} else {
+		res = nil
+	}
+	if res == nil {
+		inquirer.Component().Finalizers = utils.RemoveElementsFromList(
+			inquirer.Component().Finalizers,
+			constants.OneInfraCleanupFinalizer,
+		)
+	}
+	return res
+}
+
+func retrieveComponent(inquirer inquirer.ReconcilerInquirer) components.Component {
+	switch inquirer.Component().Role {
+	case componentapi.ControlPlaneRole:
+		return &components.ControlPlane{}
+	case componentapi.ControlPlaneIngressRole:
+		return &components.ControlPlaneIngress{}
+	}
+	klog.V(1).Infof("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
+	return nil
 }

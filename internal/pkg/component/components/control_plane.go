@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path/filepath"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,7 @@ import (
 
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
@@ -35,6 +37,7 @@ const (
 	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v%s"
 	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v%s"
 	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v%s"
+	apiServerHostPortName      = "apiserver"
 )
 
 // ControlPlane represents a complete control plane instance,
@@ -131,14 +134,14 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	apiserverHostPort, err := component.RequestPort(hypervisor, "apiserver")
+	apiserverHostPort, err := component.RequestPort(hypervisor, apiServerHostPortName)
 	if err != nil {
 		return err
 	}
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
-	etcdClientHostPort, exists := component.AllocatedHostPorts["etcd-client"]
+	etcdClientHostPort, exists := component.AllocatedHostPorts[etcdClientHostPortName]
 	if !exists {
 		return errors.New("etcd client host port not found")
 	}
@@ -147,7 +150,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
-			fmt.Sprintf("control-plane-%s", cluster.Name),
+			controlPlane.controlPlanePodName(inquirer),
 			[]pod.Container{
 				{
 					Name:    "kube-apiserver",
@@ -210,4 +213,92 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		),
 	)
 	return err
+}
+
+func (controlPlane *ControlPlane) controlPlanePodName(inquirer inquirer.ReconcilerInquirer) string {
+	return fmt.Sprintf("control-plane-%s", inquirer.Cluster().Name)
+}
+
+func (controlPlane *ControlPlane) stopControlPlane(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	err := hypervisor.DeletePod(
+		inquirer.Cluster().Name,
+		component.Name,
+		controlPlane.controlPlanePodName(inquirer),
+	)
+	if err == nil {
+		if err := component.FreePort(hypervisor, apiServerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", apiServerHostPortName, hypervisor.Name)
+		}
+	}
+	return err
+}
+
+func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	res := hypervisor.RunAndWaitForPod(
+		cluster.Name,
+		component.Name,
+		pod.NewPod(
+			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
+			[]pod.Container{
+				{
+					Name:    "etcd-cleanup",
+					Image:   infra.ToolingImage,
+					Command: []string{"rm"},
+					Args: []string{
+						"-rf",
+						filepath.Join(storagePath(cluster.Name), "etcd", component.Name),
+					},
+					Mounts: map[string]string{
+						filepath.Join(storagePath(cluster.Name), "etcd"): filepath.Join(storagePath(cluster.Name), "etcd"),
+					},
+				},
+				{
+					Name:    "secrets-cleanup",
+					Image:   infra.ToolingImage,
+					Command: []string{"rm"},
+					Args: []string{
+						"-rf",
+						filepath.Join(clusterSecretsPath(cluster.Name), component.Name),
+					},
+					Mounts: map[string]string{
+						clusterSecretsPath(cluster.Name): clusterSecretsPath(cluster.Name),
+					},
+				},
+			},
+			map[int]int{},
+			pod.PrivilegesUnprivileged,
+		),
+	)
+	if res == nil {
+		if hypervisor.Files == nil {
+			return res
+		}
+		if hypervisor.Files[cluster.Name] == nil {
+			return res
+		}
+		delete(hypervisor.Files[cluster.Name], component.Name)
+	}
+	return res
+}
+
+// ReconcileDeletion reconciles the kube-apiserver deletion
+func (controlPlane *ControlPlane) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
+	if err := controlPlane.stopControlPlane(inquirer); err != nil {
+		return err
+	}
+	if err := controlPlane.removeEtcdMember(inquirer); err != nil {
+		return err
+	}
+	if err := controlPlane.stopEtcd(inquirer); err != nil {
+		return err
+	}
+	if err := controlPlane.hostCleanup(inquirer); err != nil {
+		return err
+	}
+	return nil
 }

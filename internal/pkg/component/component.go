@@ -132,12 +132,24 @@ func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name strin
 	if allocatedPort, exists := component.AllocatedHostPorts[name]; exists {
 		return allocatedPort, nil
 	}
-	allocatedPort, err := hypervisor.RequestPort(component.ClusterName, fmt.Sprintf("%s-%s", component.Name, name))
+	allocatedPort, err := hypervisor.RequestPort(component.ClusterName, component.WithSubcomponentName(name))
 	if err != nil {
 		return 0, err
 	}
 	component.AllocatedHostPorts[name] = allocatedPort
 	return allocatedPort, nil
+}
+
+// FreePort frees a port on the given hypervisor
+func (component *Component) FreePort(hypervisor *infra.Hypervisor, name string) error {
+	if _, exists := component.AllocatedHostPorts[name]; !exists {
+		return nil
+	}
+	if err := hypervisor.FreePort(component.ClusterName, component.WithSubcomponentName(name)); err != nil {
+		return errors.Wrapf(err, "could not free port %q on hypervisor %q", name, hypervisor.Name)
+	}
+	delete(component.AllocatedHostPorts, name)
+	return nil
 }
 
 // ClientCertificate returns a client certificate with the given name
@@ -261,6 +273,12 @@ func (component *Component) IsDirty() (bool, error) {
 	}
 	currentContentsHash := fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
 	return component.loadedContentsHash != currentContentsHash, nil
+}
+
+// WithSubcomponentName returns this component name, suffixed with the
+// given subcomponent name
+func (component *Component) WithSubcomponentName(subcomponentName string) string {
+	return fmt.Sprintf("%s-%s", component.Name, subcomponentName)
 }
 
 // Specs returns the versioned specs of this component

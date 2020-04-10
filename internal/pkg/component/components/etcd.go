@@ -38,12 +38,15 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 )
 
 const (
-	etcdDialTimeout = 5 * time.Second
-	etcdImage       = "oneinfra/etcd:%s"
-	etcdDataDir     = "/var/lib/etcd"
+	etcdDialTimeout        = 5 * time.Second
+	etcdImage              = "oneinfra/etcd:%s"
+	etcdDataDir            = "/var/lib/etcd"
+	etcdPeerHostPortName   = "etcd-peer"
+	etcdClientHostPortName = "etcd-client"
 )
 
 var (
@@ -59,6 +62,9 @@ func (controlPlane *ControlPlane) etcdClient(inquirer inquirer.ReconcilerInquire
 
 func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.ReconcilerInquirer, endpoints []string) (*clientv3.Client, error) {
 	cluster := inquirer.Cluster()
+	if cluster.HasUninitializedCertificates() {
+		return nil, errors.Errorf("cluster has some uninitialized certificates")
+	}
 	etcdServerCABlock, _ := pem.Decode([]byte(cluster.EtcdServer.CA.Certificate))
 	if etcdServerCABlock == nil {
 		return nil, errors.Errorf("cannot decode etcd server CA certificate")
@@ -114,7 +120,7 @@ func (controlPlane *ControlPlane) etcdPeerEndpoints(inquirer inquirer.Reconciler
 		endpointURL := strings.Split(endpoint, "=")
 		endpoints = append(endpoints, endpointURL[1])
 	}
-	if etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]; exists {
+	if etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]; exists {
 		endpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
 		endpoints = append(endpoints, endpointURL.String())
 	}
@@ -132,7 +138,7 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 	defer cancel()
 	for {
 		klog.V(2).Infof("adding etcd learner %q", component.Name)
-		etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]
+		etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]
 		if !exists {
 			return errors.Errorf("etcd peer host port not found for component %q", component.Name)
 		}
@@ -199,12 +205,11 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) (pod.Pod, error) {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
-	cluster := inquirer.Cluster()
-	etcdPeerHostPort, err := component.RequestPort(hypervisor, "etcd-peer")
+	etcdPeerHostPort, err := component.RequestPort(hypervisor, etcdPeerHostPortName)
 	if err != nil {
 		return pod.Pod{}, err
 	}
-	etcdClientHostPort, err := component.RequestPort(hypervisor, "etcd-client")
+	etcdClientHostPort, err := component.RequestPort(hypervisor, etcdClientHostPortName)
 	if err != nil {
 		return pod.Pod{}, err
 	}
@@ -213,7 +218,7 @@ func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) 
 		return pod.Pod{}, err
 	}
 	return pod.NewPod(
-		fmt.Sprintf("etcd-%s", cluster.Name),
+		controlPlane.etcdPodName(inquirer),
 		[]pod.Container{
 			etcdContainer,
 		},
@@ -226,29 +231,35 @@ func (controlPlane *ControlPlane) etcdPod(inquirer inquirer.ReconcilerInquirer) 
 }
 
 func (controlPlane *ControlPlane) hasEtcdMember(inquirer inquirer.ReconcilerInquirer) (bool, error) {
+	memberFound, _, err := controlPlane.etcdMemberID(inquirer)
+	return memberFound, err
+}
+
+// etcdMemberID returns whether this member was found and its ID
+func (controlPlane *ControlPlane) etcdMemberID(inquirer inquirer.ReconcilerInquirer) (bool, uint64, error) {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	etcdClient, err := controlPlane.etcdClient(inquirer)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancel()
-	etcdPeerHostPort, exists := component.AllocatedHostPorts["etcd-peer"]
+	etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]
 	if !exists {
-		return false, errors.Errorf("etcd peer host port not found for component %s", component.Name)
+		return false, 0, errors.Errorf("etcd peer host port not found for component %s", component.Name)
 	}
 	peerURLs := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
 	memberList, err := etcdClient.MemberList(ctx)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 	for _, member := range memberList.Members {
 		if reflect.DeepEqual([]string{peerURLs.String()}, member.PeerURLs) {
-			return true, nil
+			return true, member.ID, nil
 		}
 	}
-	return false, nil
+	return false, 0, nil
 }
 
 func (controlPlane *ControlPlane) reconcileCertificatesAndKeys(inquirer inquirer.ReconcilerInquirer) error {
@@ -300,13 +311,13 @@ func (controlPlane *ControlPlane) runEtcdLearnerAndPromote(inquirer inquirer.Rec
 			return err
 		}
 	}
-	etcdClientHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-client", component.Name))
+	etcdClientHostPort, err := component.RequestPort(hypervisor, etcdClientHostPortName)
 	if err != nil {
 		return err
 	}
 	cluster.StoragePeerEndpoints = append(
 		cluster.StoragePeerEndpoints,
-		fmt.Sprintf("%s=%s", component.Name, net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))),
+		etcdEndpoint(inquirer, etcdPeerHostPort),
 	)
 	etcdPod, err := controlPlane.etcdPod(inquirer)
 	if err != nil {
@@ -323,7 +334,7 @@ func (controlPlane *ControlPlane) runEtcdLearnerAndPromote(inquirer inquirer.Rec
 	}
 	cluster.StorageClientEndpoints = append(
 		cluster.StorageClientEndpoints,
-		fmt.Sprintf("%s=%s", component.Name, net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))),
+		etcdEndpoint(inquirer, etcdClientHostPort),
 	)
 	return nil
 }
@@ -331,7 +342,6 @@ func (controlPlane *ControlPlane) runEtcdLearnerAndPromote(inquirer inquirer.Rec
 func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
-	cluster := inquirer.Cluster()
 	etcdPod, err := controlPlane.etcdPod(inquirer)
 	if err != nil {
 		return err
@@ -346,7 +356,7 @@ func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) 
 	if err := controlPlane.reconcileCertificatesAndKeys(inquirer); err != nil {
 		return err
 	}
-	etcdPeerHostPort, err := hypervisor.RequestPort(cluster.Name, fmt.Sprintf("%s-etcd-peer", component.Name))
+	etcdPeerHostPort, err := component.RequestPort(hypervisor, etcdPeerHostPortName)
 	if err != nil {
 		return err
 	}
@@ -422,4 +432,65 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 		)
 	}
 	return etcdContainer, nil
+}
+
+func etcdEndpoint(inquirer inquirer.ReconcilerInquirer, hostPort int) string {
+	return fmt.Sprintf(
+		"%s=%s",
+		inquirer.Component().Name,
+		net.JoinHostPort(inquirer.Hypervisor().IPAddress, strconv.Itoa(hostPort)),
+	)
+}
+
+func (controlPlane *ControlPlane) removeEtcdMember(inquirer inquirer.ReconcilerInquirer) error {
+	if len(controlPlane.etcdClientEndpoints(inquirer)) == 0 {
+		return nil
+	}
+	memberFound, memberID, err := controlPlane.etcdMemberID(inquirer)
+	if err != nil || !memberFound {
+		return err
+	}
+	etcdClient, err := controlPlane.etcdClient(inquirer)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+	_, err = etcdClient.MemberRemove(ctx, memberID)
+	if err == nil {
+		component := inquirer.Component()
+		cluster := inquirer.Cluster()
+		hypervisor := inquirer.Hypervisor()
+		if etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]; exists {
+			cluster.StoragePeerEndpoints = utils.RemoveElementsFromList(
+				cluster.StoragePeerEndpoints,
+				etcdEndpoint(inquirer, etcdPeerHostPort),
+			)
+		}
+		if etcdClientHostPort, exists := component.AllocatedHostPorts[etcdClientHostPortName]; exists {
+			cluster.StorageClientEndpoints = utils.RemoveElementsFromList(
+				cluster.StorageClientEndpoints,
+				etcdEndpoint(inquirer, etcdClientHostPort),
+			)
+		}
+		if err := component.FreePort(hypervisor, etcdPeerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdPeerHostPortName, hypervisor.Name)
+		}
+		if err := component.FreePort(hypervisor, etcdClientHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdClientHostPortName, hypervisor.Name)
+		}
+	}
+	return errors.Wrap(err, "could not remove etcd member")
+}
+
+func (controlPlane *ControlPlane) etcdPodName(inquirer inquirer.ReconcilerInquirer) string {
+	return fmt.Sprintf("etcd-%s", inquirer.Cluster().Name)
+}
+
+func (controlPlane *ControlPlane) stopEtcd(inquirer inquirer.ReconcilerInquirer) error {
+	return inquirer.Hypervisor().DeletePod(
+		inquirer.Cluster().Name,
+		inquirer.Component().Name,
+		controlPlane.etcdPodName(inquirer),
+	)
 }

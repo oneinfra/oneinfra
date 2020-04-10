@@ -38,10 +38,15 @@ import (
 )
 
 const (
-	toolingImage           = "oneinfra/tooling:latest"
+	// ToolingImage is the tooling image repository and tag
+	ToolingImage = "oneinfra/tooling:latest"
+)
+
+const (
 	podSandboxSHA1SumLabel = "oneinfra/pod-sha1sum"
 	clusterNameLabel       = "oneinfra/cluster-name"
 	componentNameLabel     = "oneinfra/component-name"
+	podNameLabel           = "oneinfra/pod-name"
 )
 
 // Hypervisor represents an hypervisor
@@ -200,6 +205,7 @@ func (hypervisor *Hypervisor) PodSandboxConfig(clusterName, componentName string
 		Labels: map[string]string{
 			clusterNameLabel:       clusterName,
 			componentNameLabel:     componentName,
+			podNameLabel:           pod.Name,
 			podSandboxSHA1SumLabel: podSum,
 		},
 		PortMappings: portMappings,
@@ -406,8 +412,37 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 }
 
 // ListPods returns a list of pod sandbox ID's that belong to the
+// provided cluster, component and pod name
+func (hypervisor *Hypervisor) ListPods(clusterName, componentName, podName string) ([]string, error) {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return []string{}, err
+	}
+	podSandboxList, err := criRuntime.ListPodSandbox(
+		context.TODO(),
+		&criapi.ListPodSandboxRequest{
+			Filter: &criapi.PodSandboxFilter{
+				LabelSelector: map[string]string{
+					clusterNameLabel:   clusterName,
+					componentNameLabel: componentName,
+					podNameLabel:       podName,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return []string{}, errors.Errorf("could not list pods for cluster %q and component %q", clusterName, componentName)
+	}
+	res := []string{}
+	for _, podSandbox := range podSandboxList.Items {
+		res = append(res, podSandbox.Id)
+	}
+	return res, nil
+}
+
+// ListAllPods returns a list of pod sandbox ID's that belong to the
 // provided cluster and component
-func (hypervisor *Hypervisor) ListPods(clusterName, componentName string) ([]string, error) {
+func (hypervisor *Hypervisor) ListAllPods(clusterName, componentName string) ([]string, error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return []string{}, err
@@ -433,13 +468,43 @@ func (hypervisor *Hypervisor) ListPods(clusterName, componentName string) ([]str
 	return res, nil
 }
 
-// DeletePod deletes a pod on the current hypervisor
-func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
-	klog.V(2).Infof("deleting pod %q from hypervisor %q", podSandboxID, hypervisor.Name)
+// DeletePods deletes all pods matching the given cluster and component
+func (hypervisor *Hypervisor) DeletePods(clusterName, componentName string) error {
+	klog.V(2).Infof("deleting pods for cluster %q and component %q from hypervisor %q", clusterName, componentName, hypervisor.Name)
+	podList, err := hypervisor.ListAllPods(clusterName, componentName)
+	if err != nil {
+		return err
+	}
+	for _, pod := range podList {
+		if err := hypervisor.DeletePodWithID(pod); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeletePod deletes all pods matching the given cluster, component and pod name
+func (hypervisor *Hypervisor) DeletePod(clusterName, componentName, podName string) error {
+	klog.V(2).Infof("deleting pods for cluster %q and component %q from hypervisor %q", clusterName, componentName, hypervisor.Name)
+	podList, err := hypervisor.ListPods(clusterName, componentName, podName)
+	if err != nil {
+		return err
+	}
+	for _, pod := range podList {
+		if err := hypervisor.DeletePodWithID(pod); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeletePodWithID deletes a pod on the current hypervisor
+func (hypervisor *Hypervisor) DeletePodWithID(podSandboxID string) error {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return err
 	}
+	klog.V(2).Infof("deleting pod %q from hypervisor %q", podSandboxID, hypervisor.Name)
 	_, err = criRuntime.StopPodSandbox(
 		context.TODO(),
 		&criapi.StopPodSandboxRequest{
@@ -467,13 +532,13 @@ func (hypervisor *Hypervisor) RunAndWaitForPod(clusterName, componentName string
 	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
 		return err
 	}
-	return hypervisor.DeletePod(podSandboxID)
+	return hypervisor.DeletePodWithID(podSandboxID)
 }
 
 // UploadFiles uploads a map of files, with location as keys, and
 // contents as values
 func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, files map[string]string) error {
-	if err := hypervisor.EnsureImage(toolingImage); err != nil {
+	if err := hypervisor.EnsureImage(ToolingImage); err != nil {
 		return err
 	}
 	for fileLocation, fileContents := range files {
@@ -487,7 +552,7 @@ func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, fil
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, hostPath, fileContents string) error {
-	if err := hypervisor.EnsureImage(toolingImage); err != nil {
+	if err := hypervisor.EnsureImage(ToolingImage); err != nil {
 		return err
 	}
 	return hypervisor.uploadFile(clusterName, componentName, hostPath, fileContents)
@@ -514,7 +579,7 @@ func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, hostPath, f
 	hostPathDir := filepath.Dir(hostPath)
 	uploadFilePod := podapi.NewSingleContainerPod(
 		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
-		toolingImage,
+		ToolingImage,
 		[]string{"write-base64-file.sh"},
 		[]string{
 			base64.StdEncoding.EncodeToString([]byte(fileContents)),
@@ -540,7 +605,7 @@ func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, hostPath, f
 		}
 		hypervisor.Files[clusterName][componentName][hostPath] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	}
-	return hypervisor.DeletePod(podSandboxID)
+	return hypervisor.DeletePodWithID(podSandboxID)
 }
 
 // HasPort returns whether a port exists for the given clusterName and componentName
@@ -574,6 +639,32 @@ func (hypervisor *Hypervisor) RequestPort(clusterName, componentName string) (in
 	})
 	klog.V(2).Infof("port requested for hypervisor %q; assigned: %d", hypervisor.Name, newPort)
 	return newPort, nil
+}
+
+// FreePort frees a port on the given hypervisor
+func (hypervisor *Hypervisor) FreePort(clusterName, componentName string) error {
+	newAllocatedPorts := HypervisorPortAllocationList{}
+	var hypervisorPortAllocation *HypervisorPortAllocation
+	for _, portAllocation := range hypervisor.allocatedPorts {
+		if portAllocation.Cluster == clusterName && portAllocation.Component == componentName {
+			portAllocation := portAllocation
+			hypervisorPortAllocation = &portAllocation
+		} else {
+			newAllocatedPorts = append(newAllocatedPorts, portAllocation)
+		}
+	}
+	if hypervisorPortAllocation == nil {
+		return errors.Errorf("could not find port allocation for cluster %q and component %q", clusterName, componentName)
+	}
+	hypervisor.allocatedPorts = newAllocatedPorts
+	if hypervisor.freedPorts == nil {
+		hypervisor.freedPorts = []int{}
+	}
+	hypervisor.freedPorts = append(
+		hypervisor.freedPorts,
+		hypervisorPortAllocation.Port,
+	)
+	return nil
 }
 
 // Export exports the hypervisor to a versioned hypervisor

@@ -28,6 +28,7 @@ import (
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -66,6 +67,18 @@ func listClusters(ctx context.Context, client clientapi.Client) (clusterapi.Map,
 	return res, nil
 }
 
+func getComponent(ctx context.Context, client clientapi.Client, req ctrl.Request) (*component.Component, error) {
+	var component clusterv1alpha1.Component
+	if err := client.Get(ctx, req.NamespacedName, &component); err != nil {
+		return nil, err
+	}
+	internalComponent, err := componentapi.NewComponentFromv1alpha1(&component)
+	if err != nil {
+		return nil, err
+	}
+	return internalComponent, nil
+}
+
 func getCluster(ctx context.Context, client clientapi.Client, req ctrl.Request) (*clusterapi.Cluster, error) {
 	var cluster clusterv1alpha1.Cluster
 	if err := client.Get(ctx, req.NamespacedName, &cluster); err != nil {
@@ -94,13 +107,14 @@ func listComponents(ctx context.Context, client clientapi.Client) (componentapi.
 	return res, nil
 }
 
-func listClusterComponents(ctx context.Context, client clientapi.Client, clusterName string) (componentapi.List, error) {
+func listClusterComponents(ctx context.Context, client clientapi.Client, clusterNamespace, clusterName string) (componentapi.List, error) {
 	var componentList clusterv1alpha1.ComponentList
 	err := client.List(
 		ctx,
 		&componentList,
 		&clientapi.ListOptions{
 			Raw: &metav1.ListOptions{
+				FieldSelector: fmt.Sprintf("metadata.namespace=%s", clusterNamespace),
 				LabelSelector: fmt.Sprintf("%s=%s", constants.OneInfraClusterNameLabelName, clusterName),
 			},
 		},

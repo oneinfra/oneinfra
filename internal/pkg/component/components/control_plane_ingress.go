@@ -72,7 +72,7 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 		APIServers: map[string]string{},
 	}
 	for _, component := range clusterComponents {
-		apiserverHostPort, exists := component.AllocatedHostPorts["apiserver"]
+		apiserverHostPort, exists := component.AllocatedHostPorts[apiServerHostPortName]
 		if !exists {
 			return "", errors.New("apiserver host port not found")
 		}
@@ -99,7 +99,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
-	apiserverHostPort, err := component.RequestPort(hypervisor, "apiserver")
+	apiserverHostPort, err := component.RequestPort(hypervisor, apiServerHostPortName)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
-			fmt.Sprintf("control-plane-ingress-%s", cluster.Name),
+			ingress.ingressPodName(inquirer),
 			[]pod.Container{
 				{
 					Name:  "haproxy",
@@ -141,4 +141,21 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	}
 	cluster.APIServerEndpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
 	return ingress.reconcileWireguard(inquirer)
+}
+
+func (ingress *ControlPlaneIngress) ingressPodName(inquirer inquirer.ReconcilerInquirer) string {
+	return fmt.Sprintf("control-plane-ingress-%s", inquirer.Cluster().Name)
+}
+
+func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInquirer) error {
+	return inquirer.Hypervisor().DeletePod(
+		inquirer.Cluster().Name,
+		inquirer.Component().Name,
+		ingress.ingressPodName(inquirer),
+	)
+}
+
+// ReconcileDeletion reconciles the control plane ingress deletion
+func (ingress *ControlPlaneIngress) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
+	return ingress.stopIngress(inquirer)
 }

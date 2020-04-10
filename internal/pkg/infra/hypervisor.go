@@ -40,8 +40,9 @@ import (
 
 const (
 	toolingImage           = "oneinfra/tooling:latest"
-	podSandboxSHA1SumLabel = "oneinfra-pod-sha1sum"
-	componentLabel         = "component"
+	podSandboxSHA1SumLabel = "oneinfra/pod-sha1sum"
+	clusterNameLabel       = "oneinfra/cluster-name"
+	componentNameLabel     = "oneinfra/component-name"
 )
 
 // Hypervisor represents an hypervisor
@@ -190,14 +191,14 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 			Uid:  podSum,
 		},
 		Labels: map[string]string{
-			componentLabel:         pod.Name,
+			componentNameLabel:     pod.Name,
 			podSandboxSHA1SumLabel: podSum,
 		},
 		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
 	}
 	if cluster != nil {
-		podSandboxConfig.Labels["cluster"] = cluster.Name
+		podSandboxConfig.Labels[clusterNameLabel] = cluster.Name
 		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s-%s", cluster.Name, pod.Name, podSandboxConfig.Metadata.Uid)
 	} else {
 		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", pod.Name, podSandboxConfig.Metadata.Uid)
@@ -400,6 +401,34 @@ func (hypervisor *Hypervisor) WaitForPod(podSandboxID string) error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// ListPods returns a list of pod sandbox ID's that belong to the
+// provided cluster and component
+func (hypervisor *Hypervisor) ListPods(clusterName, componentName string) ([]string, error) {
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return []string{}, err
+	}
+	podSandboxList, err := criRuntime.ListPodSandbox(
+		context.TODO(),
+		&criapi.ListPodSandboxRequest{
+			Filter: &criapi.PodSandboxFilter{
+				LabelSelector: map[string]string{
+					clusterNameLabel:   clusterName,
+					componentNameLabel: componentName,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return []string{}, errors.Errorf("could not list pods for cluster %q and component %q", clusterName, componentName)
+	}
+	res := []string{}
+	for _, podSandbox := range podSandboxList.Items {
+		res = append(res, podSandbox.Id)
+	}
+	return res, nil
 }
 
 // DeletePod deletes a pod on the current hypervisor

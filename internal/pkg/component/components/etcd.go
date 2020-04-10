@@ -312,7 +312,7 @@ func (controlPlane *ControlPlane) runEtcdLearnerAndPromote(inquirer inquirer.Rec
 	if err != nil {
 		return err
 	}
-	if _, err = hypervisor.RunPod(cluster, etcdPod); err != nil {
+	if _, err = hypervisor.RunPod(cluster.Name, component.Name, etcdPod); err != nil {
 		return err
 	}
 	if settingUpLearner {

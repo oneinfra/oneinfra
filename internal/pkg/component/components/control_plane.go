@@ -144,7 +144,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	}
 	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	_, err = hypervisor.RunPod(
-		cluster,
+		cluster.Name,
+		component.Name,
 		pod.NewPod(
 			fmt.Sprintf("control-plane-%s", cluster.Name),
 			[]pod.Container{

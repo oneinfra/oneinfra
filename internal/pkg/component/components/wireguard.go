@@ -121,7 +121,8 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 		return err
 	}
 	return hypervisor.RunAndWaitForPod(
-		cluster,
+		cluster.Name,
+		component.Name,
 		pod.NewPod(
 			fmt.Sprintf("wireguard-%s", cluster.Name),
 			[]pod.Container{

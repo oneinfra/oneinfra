@@ -34,7 +34,6 @@ import (
 	"k8s.io/klog"
 
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 )
 
@@ -173,7 +172,7 @@ func (hypervisor *Hypervisor) EnsureImages(images ...string) error {
 }
 
 // PodSandboxConfig returns a pod sandbox config for the given pod and cluster
-func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod podapi.Pod) (criapi.PodSandboxConfig, error) {
+func (hypervisor *Hypervisor) PodSandboxConfig(clusterName, componentName string, pod podapi.Pod) (criapi.PodSandboxConfig, error) {
 	portMappings := []*criapi.PortMapping{}
 	for hostPort, podPort := range pod.Ports {
 		portMappings = append(portMappings, &criapi.PortMapping{
@@ -185,23 +184,26 @@ func (hypervisor *Hypervisor) PodSandboxConfig(cluster *cluster.Cluster, pod pod
 	if err != nil {
 		return criapi.PodSandboxConfig{}, err
 	}
+	clusterAndComponentName := ""
+	if len(clusterName) > 0 {
+		clusterAndComponentName += fmt.Sprintf("%s-", clusterName)
+	}
+	if len(componentName) > 0 {
+		clusterAndComponentName += fmt.Sprintf("%s-", componentName)
+	}
 	podSandboxConfig := criapi.PodSandboxConfig{
 		Metadata: &criapi.PodSandboxMetadata{
-			Name: pod.Name,
-			Uid:  podSum,
+			Name:      pod.Name,
+			Namespace: fmt.Sprintf("%s%s-%s", clusterAndComponentName, pod.Name, podSum),
+			Uid:       podSum,
 		},
 		Labels: map[string]string{
-			componentNameLabel:     pod.Name,
+			clusterNameLabel:       clusterName,
+			componentNameLabel:     componentName,
 			podSandboxSHA1SumLabel: podSum,
 		},
 		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
-	}
-	if cluster != nil {
-		podSandboxConfig.Labels[clusterNameLabel] = cluster.Name
-		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s-%s", cluster.Name, pod.Name, podSandboxConfig.Metadata.Uid)
-	} else {
-		podSandboxConfig.Metadata.Namespace = fmt.Sprintf("%s-%s", pod.Name, podSandboxConfig.Metadata.Uid)
 	}
 	if pod.Privileges == podapi.PrivilegesNetworkPrivileged {
 		podSandboxConfig.Linux = &criapi.LinuxPodSandboxConfig{
@@ -280,7 +282,7 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (bool, string, error)
 }
 
 // RunPod runs a pod on the current hypervisor
-func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
+func (hypervisor *Hypervisor) RunPod(clusterName, componentName string, pod podapi.Pod) (string, error) {
 	isPodRunning, podSandboxID, err := hypervisor.IsPodRunning(pod)
 	if err != nil {
 		return "", err
@@ -289,16 +291,16 @@ func (hypervisor *Hypervisor) RunPod(cluster *cluster.Cluster, pod podapi.Pod) (
 		klog.V(2).Infof("all containers within pod %q in hypervisor %q are running", pod.Name, hypervisor.Name)
 		return podSandboxID, nil
 	}
-	return hypervisor.runPodInNewSandbox(cluster, pod)
+	return hypervisor.runPodInNewSandbox(clusterName, componentName, pod)
 }
 
-func (hypervisor *Hypervisor) runPodInNewSandbox(cluster *cluster.Cluster, pod podapi.Pod) (string, error) {
+func (hypervisor *Hypervisor) runPodInNewSandbox(clusterName, componentName string, pod podapi.Pod) (string, error) {
 	klog.V(2).Infof("running pod %q in hypervisor %q", pod.Name, hypervisor.Name)
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return "", err
 	}
-	podSandboxConfig, err := hypervisor.PodSandboxConfig(cluster, pod)
+	podSandboxConfig, err := hypervisor.PodSandboxConfig(clusterName, componentName, pod)
 	if err != nil {
 		return "", err
 	}
@@ -457,8 +459,8 @@ func (hypervisor *Hypervisor) DeletePod(podSandboxID string) error {
 }
 
 // RunAndWaitForPod runs and waits for all containers within a pod to be finished
-func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod podapi.Pod) error {
-	podSandboxID, err := hypervisor.RunPod(cluster, pod)
+func (hypervisor *Hypervisor) RunAndWaitForPod(clusterName, componentName string, pod podapi.Pod) error {
+	podSandboxID, err := hypervisor.RunPod(clusterName, componentName, pod)
 	if err != nil {
 		return err
 	}
@@ -522,7 +524,7 @@ func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, hostPath, f
 		map[int]int{},
 		podapi.PrivilegesUnprivileged,
 	)
-	podSandboxID, err := hypervisor.runPodInNewSandbox(nil, uploadFilePod)
+	podSandboxID, err := hypervisor.runPodInNewSandbox(clusterName, componentName, uploadFilePod)
 	if err != nil {
 		return err
 	}

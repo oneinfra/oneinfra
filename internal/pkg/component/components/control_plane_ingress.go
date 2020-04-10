@@ -117,7 +117,8 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		return err
 	}
 	_, err = hypervisor.RunPod(
-		cluster,
+		cluster.Name,
+		component.Name,
 		pod.NewPod(
 			fmt.Sprintf("control-plane-ingress-%s", cluster.Name),
 			[]pod.Container{

@@ -141,25 +141,28 @@ func (hypervisor *Hypervisor) StartRemoteCRIEndpoint() error {
 	if err := infraHypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
-	_, err = infraHypervisor.RunPod(nil, podapi.Pod{
-		Name: "cri-endpoint",
-		Containers: []podapi.Container{
-			{
-				Name:  "cri-endpoint",
-				Image: haProxyImage,
-				Mounts: map[string]string{
-					haProxyCertBundlePath:                haProxyCertBundlePath,
-					haProxyClientCACertPath:              haProxyClientCACertPath,
-					haProxyConfigPath:                    "/etc/haproxy/haproxy.cfg",
-					"/containerd-socket/containerd.sock": "/var/lib/haproxy/containerd.sock",
+	_, err = infraHypervisor.RunPod(
+		"",
+		"cri-endpoint",
+		podapi.Pod{
+			Name: "cri-endpoint",
+			Containers: []podapi.Container{
+				{
+					Name:  "cri-endpoint",
+					Image: haProxyImage,
+					Mounts: map[string]string{
+						haProxyCertBundlePath:                haProxyCertBundlePath,
+						haProxyClientCACertPath:              haProxyClientCACertPath,
+						haProxyConfigPath:                    "/etc/haproxy/haproxy.cfg",
+						"/containerd-socket/containerd.sock": "/var/lib/haproxy/containerd.sock",
+					},
 				},
 			},
-		},
-		Ports: map[int]int{
-			haProxyPort: haProxyPort,
-		},
-		Privileges: podapi.PrivilegesUnprivileged,
-	})
+			Ports: map[int]int{
+				haProxyPort: haProxyPort,
+			},
+			Privileges: podapi.PrivilegesUnprivileged,
+		})
 	return err
 }
 

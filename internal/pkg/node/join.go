@@ -221,18 +221,21 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetric
 	if err != nil {
 		return err
 	}
-	return hypervisorRuntimeEndpoint.RunAndWaitForPod(nil, podapi.Pod{
-		Name: "kubelet-installer",
-		Containers: []podapi.Container{
-			{
-				Name:  "kubelet-installer",
-				Image: fmt.Sprintf(kubeletInstallerImage, kubernetesVersion),
-				Mounts: map[string]string{
-					"/usr/local/bin": "/host",
+	return hypervisorRuntimeEndpoint.RunAndWaitForPod(
+		nodeJoinRequest.Name,
+		"join",
+		podapi.Pod{
+			Name: "kubelet-installer",
+			Containers: []podapi.Container{
+				{
+					Name:  "kubelet-installer",
+					Image: fmt.Sprintf(kubeletInstallerImage, kubernetesVersion),
+					Mounts: map[string]string{
+						"/usr/local/bin": "/host",
+					},
 				},
 			},
-		},
-	})
+		})
 }
 
 func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {

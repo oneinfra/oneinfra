@@ -53,6 +53,8 @@ type Cluster struct {
 	ResourceVersion        string
 	Labels                 map[string]string
 	Annotations            map[string]string
+	Finalizers             []string
+	DeletionTimestamp      *metav1.Time
 	KubernetesVersion      string
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
@@ -122,6 +124,8 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		ResourceVersion:        cluster.ResourceVersion,
 		Labels:                 cluster.Labels,
 		Annotations:            cluster.Annotations,
+		Finalizers:             cluster.Finalizers,
+		DeletionTimestamp:      cluster.DeletionTimestamp,
 		KubernetesVersion:      cluster.Spec.KubernetesVersion,
 		CertificateAuthorities: newCertificateAuthoritiesFromv1alpha1(cluster.Spec.CertificateAuthorities),
 		EtcdServer:             newEtcdServerFromv1alpha1(cluster.Spec.EtcdServer),
@@ -146,11 +150,13 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 	return &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            cluster.Name,
-			Namespace:       cluster.Namespace,
-			ResourceVersion: cluster.ResourceVersion,
-			Labels:          cluster.Labels,
-			Annotations:     cluster.Annotations,
+			Name:              cluster.Name,
+			Namespace:         cluster.Namespace,
+			ResourceVersion:   cluster.ResourceVersion,
+			Labels:            cluster.Labels,
+			Annotations:       cluster.Annotations,
+			Finalizers:        cluster.Finalizers,
+			DeletionTimestamp: cluster.DeletionTimestamp,
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion:      cluster.KubernetesVersion,

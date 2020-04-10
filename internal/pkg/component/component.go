@@ -60,6 +60,8 @@ type Component struct {
 	ResourceVersion    string
 	Labels             map[string]string
 	Annotations        map[string]string
+	Finalizers         []string
+	DeletionTimestamp  *metav1.Time
 	Role               Role
 	HypervisorName     string
 	ClusterName        string
@@ -90,14 +92,16 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 // NewComponentFromv1alpha1 returns a component based on a versioned component
 func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component, error) {
 	res := Component{
-		Name:            component.Name,
-		Namespace:       component.Namespace,
-		ResourceVersion: component.ResourceVersion,
-		Labels:          component.Labels,
-		Annotations:     component.Annotations,
-		HypervisorName:  component.Spec.Hypervisor,
-		ClusterName:     component.Spec.Cluster,
-		Conditions:      conditions.NewConditionListFromv1alpha1(component.Status.Conditions),
+		Name:              component.Name,
+		Namespace:         component.Namespace,
+		ResourceVersion:   component.ResourceVersion,
+		Labels:            component.Labels,
+		Annotations:       component.Annotations,
+		Finalizers:        component.Finalizers,
+		DeletionTimestamp: component.DeletionTimestamp,
+		HypervisorName:    component.Spec.Hypervisor,
+		ClusterName:       component.Spec.Cluster,
+		Conditions:        conditions.NewConditionListFromv1alpha1(component.Status.Conditions),
 	}
 	switch component.Spec.Role {
 	case clusterv1alpha1.ControlPlaneRole:
@@ -195,11 +199,13 @@ func (component *Component) KubeConfig(cluster *cluster.Cluster, apiServerEndpoi
 func (component *Component) Export() *clusterv1alpha1.Component {
 	res := &clusterv1alpha1.Component{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            component.Name,
-			Namespace:       component.Namespace,
-			ResourceVersion: component.ResourceVersion,
-			Labels:          component.Labels,
-			Annotations:     component.Annotations,
+			Name:              component.Name,
+			Namespace:         component.Namespace,
+			ResourceVersion:   component.ResourceVersion,
+			Labels:            component.Labels,
+			Annotations:       component.Annotations,
+			Finalizers:        component.Finalizers,
+			DeletionTimestamp: component.DeletionTimestamp,
 		},
 		Spec: clusterv1alpha1.ComponentSpec{
 			Hypervisor: component.HypervisorName,

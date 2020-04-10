@@ -126,11 +126,15 @@ func (hypervisor *Hypervisor) StartRemoteCRIEndpoint() error {
 	if err != nil {
 		klog.Fatalf("error while creating oneinfra server certificate for hypervisor %q: %v", hypervisor.fullName(), err)
 	}
-	err = infraHypervisor.UploadFiles(map[string]string{
-		haProxyCertBundlePath:   strings.Join([]string{criEndpointCertificate, criEndpointPrivateKey}, ""),
-		haProxyClientCACertPath: hypervisor.ClientCACertificate.Certificate,
-		haProxyConfigPath:       haProxyCfg,
-	})
+	err = infraHypervisor.UploadFiles(
+		"",
+		"",
+		map[string]string{
+			haProxyCertBundlePath:   strings.Join([]string{criEndpointCertificate, criEndpointPrivateKey}, ""),
+			haProxyClientCACertPath: hypervisor.ClientCACertificate.Certificate,
+			haProxyConfigPath:       haProxyCfg,
+		},
+	)
 	if err != nil {
 		return err
 	}

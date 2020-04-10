@@ -277,6 +277,8 @@ func (controlPlane *ControlPlane) reconcileCertificatesAndKeys(inquirer inquirer
 		return err
 	}
 	return hypervisor.UploadFiles(
+		cluster.Name,
+		component.Name,
 		map[string]string{
 			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           etcdServerCertificate.Certificate,
 			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           etcdServerCertificate.PrivateKey,

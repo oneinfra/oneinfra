@@ -54,6 +54,17 @@ type HypervisorSpec struct {
 	PortRange HypervisorPortRange `json:"portRange,omitempty"`
 }
 
+// FileMap is a map of file paths as keys and their sum as values
+type FileMap map[string]string
+
+// ComponentFileMap is a map of filemaps, with component as keys, and
+// filemaps as values
+type ComponentFileMap map[string]FileMap
+
+// ClusterFileMap is a map of component filemaps, with clusters as
+// keys, and component filemaps as values
+type ClusterFileMap map[string]ComponentFileMap
+
 // LocalHypervisorCRIEndpoint represents a local hypervisor CRI endpoint (unix socket)
 type LocalHypervisorCRIEndpoint struct {
 	// CRIEndpoint is the unix socket path
@@ -80,8 +91,8 @@ type HypervisorStatus struct {
 	AllocatedPorts []HypervisorPortAllocation `json:"allocatedPorts,omitempty"`
 	// FreedPorts is a list of ports available for usage, freed when
 	// components have been deleted
-	FreedPorts []int             `json:"freedPorts,omitempty"`
-	Files      map[string]string `json:"files,omitempty"`
+	FreedPorts []int          `json:"freedPorts,omitempty"`
+	Files      ClusterFileMap `json:"files,omitempty"`
 }
 
 // HypervisorPortRange represents a port range

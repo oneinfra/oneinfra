@@ -53,7 +53,7 @@ type Hypervisor struct {
 	Annotations        map[string]string
 	Public             bool
 	IPAddress          string
-	Files              map[string]string
+	Files              ClusterFileMap
 	Endpoint           hypervisorEndpoint
 	criRuntime         criapi.RuntimeServiceClient
 	criImage           criapi.ImageServiceClient
@@ -74,7 +74,7 @@ type HypervisorList []*Hypervisor
 func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
 	hypervisorFiles := hypervisor.Status.Files
 	if hypervisorFiles == nil {
-		hypervisorFiles = map[string]string{}
+		hypervisorFiles = infrav1alpha1.ClusterFileMap{}
 	}
 	res := Hypervisor{
 		Name:            hypervisor.Name,
@@ -84,7 +84,7 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		Annotations:     hypervisor.Annotations,
 		Public:          hypervisor.Spec.Public,
 		IPAddress:       hypervisor.Spec.IPAddress,
-		Files:           hypervisorFiles,
+		Files:           NewClusterFileMapFromv1alpha1(hypervisorFiles),
 		portRangeLow:    hypervisor.Spec.PortRange.Low,
 		portRangeHigh:   hypervisor.Spec.PortRange.High,
 		freedPorts:      hypervisor.Status.FreedPorts,
@@ -441,12 +441,12 @@ func (hypervisor *Hypervisor) RunAndWaitForPod(cluster *cluster.Cluster, pod pod
 
 // UploadFiles uploads a map of files, with location as keys, and
 // contents as values
-func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
+func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, files map[string]string) error {
 	if err := hypervisor.EnsureImage(toolingImage); err != nil {
 		return err
 	}
 	for fileLocation, fileContents := range files {
-		if err := hypervisor.uploadFile(fileContents, fileLocation); err != nil {
+		if err := hypervisor.uploadFile(clusterName, componentName, fileContents, fileLocation); err != nil {
 			return err
 		}
 	}
@@ -455,18 +455,18 @@ func (hypervisor *Hypervisor) UploadFiles(files map[string]string) error {
 
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
-func (hypervisor *Hypervisor) UploadFile(fileContents, hostPath string) error {
+func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, fileContents, hostPath string) error {
 	if err := hypervisor.EnsureImage(toolingImage); err != nil {
 		return err
 	}
-	return hypervisor.uploadFile(fileContents, hostPath)
+	return hypervisor.uploadFile(clusterName, componentName, fileContents, hostPath)
 }
 
 // FileUpToDate returns whether the given file contents match on the
 // host
-func (hypervisor *Hypervisor) FileUpToDate(fileContents, hostPath string) bool {
+func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, fileContents, hostPath string) bool {
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
-	if currentFileContentsSHA1, exists := hypervisor.Files[hostPath]; exists {
+	if currentFileContentsSHA1, exists := hypervisor.Files[clusterName][componentName][hostPath]; exists {
 		if currentFileContentsSHA1 == fileContentsSHA1 {
 			return true
 		}
@@ -474,8 +474,8 @@ func (hypervisor *Hypervisor) FileUpToDate(fileContents, hostPath string) bool {
 	return false
 }
 
-func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
-	if hypervisor.FileUpToDate(fileContents, hostPath) {
+func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, fileContents, hostPath string) error {
+	if hypervisor.FileUpToDate(clusterName, componentName, fileContents, hostPath) {
 		klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
 		return nil
 	}
@@ -501,7 +501,13 @@ func (hypervisor *Hypervisor) uploadFile(fileContents, hostPath string) error {
 		return err
 	}
 	if hypervisor.Files != nil {
-		hypervisor.Files[hostPath] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
+		if hypervisor.Files[clusterName] == nil {
+			hypervisor.Files[clusterName] = ComponentFileMap{}
+		}
+		if hypervisor.Files[clusterName][componentName] == nil {
+			hypervisor.Files[clusterName][componentName] = FileMap{}
+		}
+		hypervisor.Files[clusterName][componentName][hostPath] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	}
 	return hypervisor.DeletePod(podSandboxID)
 }
@@ -560,7 +566,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 		Status: infrav1alpha1.HypervisorStatus{
 			AllocatedPorts: hypervisor.allocatedPorts.Export(),
 			FreedPorts:     hypervisor.freedPorts,
-			Files:          hypervisor.Files,
+			Files:          hypervisor.Files.Export(),
 		},
 	}
 	resHypervisor.Spec.LocalCRIEndpoint, resHypervisor.Spec.RemoteCRIEndpoint = hypervisor.Endpoint.Export()

@@ -107,6 +107,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return err
 	}
 	err = hypervisor.UploadFiles(
+		cluster.Name,
+		component.Name,
 		map[string]string{
 			// etcd secrets
 			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,

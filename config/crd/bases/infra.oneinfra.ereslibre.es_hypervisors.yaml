@@ -96,6 +96,7 @@ spec:
           description: HypervisorStatus defines the observed state of Hypervisor
           properties:
             allocatedPorts:
+              description: AllocatedPorts is a list of hypervisor allocated ports
               items:
                 description: HypervisorPortAllocation represents a port allocation
                   in an hypervisor
@@ -110,8 +111,24 @@ spec:
               type: array
             files:
               additionalProperties:
-                type: string
+                additionalProperties:
+                  additionalProperties:
+                    type: string
+                  description: FileMap is a map of file paths as keys and their sum
+                    as values
+                  type: object
+                description: ComponentFileMap is a map of filemaps, with component
+                  as keys, and filemaps as values
+                type: object
+              description: ClusterFileMap is a map of component filemaps, with clusters
+                as keys, and component filemaps as values
               type: object
+            freedPorts:
+              description: FreedPorts is a list of ports available for usage, freed
+                when components have been deleted
+              items:
+                type: integer
+              type: array
           type: object
       type: object
   version: v1alpha1

@@ -456,31 +456,31 @@ func (controlPlane *ControlPlane) removeEtcdMember(inquirer inquirer.ReconcilerI
 	}
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	_, err = etcdClient.MemberRemove(ctx, memberID)
-	if err == nil {
-		component := inquirer.Component()
-		cluster := inquirer.Cluster()
-		hypervisor := inquirer.Hypervisor()
-		if etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]; exists {
-			cluster.StoragePeerEndpoints = utils.RemoveElementsFromList(
-				cluster.StoragePeerEndpoints,
-				etcdEndpoint(inquirer, etcdPeerHostPort),
-			)
-		}
-		if etcdClientHostPort, exists := component.AllocatedHostPorts[etcdClientHostPortName]; exists {
-			cluster.StorageClientEndpoints = utils.RemoveElementsFromList(
-				cluster.StorageClientEndpoints,
-				etcdEndpoint(inquirer, etcdClientHostPort),
-			)
-		}
-		if err := component.FreePort(hypervisor, etcdPeerHostPortName); err != nil {
-			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdPeerHostPortName, hypervisor.Name)
-		}
-		if err := component.FreePort(hypervisor, etcdClientHostPortName); err != nil {
-			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdClientHostPortName, hypervisor.Name)
-		}
+	if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {
+		return errors.Wrap(err, "could not remove etcd member")
 	}
-	return errors.Wrap(err, "could not remove etcd member")
+	component := inquirer.Component()
+	cluster := inquirer.Cluster()
+	hypervisor := inquirer.Hypervisor()
+	if etcdPeerHostPort, exists := component.AllocatedHostPorts[etcdPeerHostPortName]; exists {
+		cluster.StoragePeerEndpoints = utils.RemoveElementsFromList(
+			cluster.StoragePeerEndpoints,
+			etcdEndpoint(inquirer, etcdPeerHostPort),
+		)
+	}
+	if etcdClientHostPort, exists := component.AllocatedHostPorts[etcdClientHostPortName]; exists {
+		cluster.StorageClientEndpoints = utils.RemoveElementsFromList(
+			cluster.StorageClientEndpoints,
+			etcdEndpoint(inquirer, etcdClientHostPort),
+		)
+	}
+	if err := component.FreePort(hypervisor, etcdPeerHostPortName); err != nil {
+		return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdPeerHostPortName, hypervisor.Name)
+	}
+	if err := component.FreePort(hypervisor, etcdClientHostPortName); err != nil {
+		return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdClientHostPortName, hypervisor.Name)
+	}
+	return nil
 }
 
 func (controlPlane *ControlPlane) etcdPodName(inquirer inquirer.ReconcilerInquirer) string {

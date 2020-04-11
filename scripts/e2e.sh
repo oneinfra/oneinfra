@@ -70,6 +70,8 @@ done
 
 set -ex
 
+find "/tmp/oneinfra-clusters/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} pods'
+
 find "/tmp/oneinfra-clusters/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} ps -a'
 
 kubectl cluster-info

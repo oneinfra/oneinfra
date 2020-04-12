@@ -140,7 +140,8 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		return err
 	}
 	cluster.APIServerEndpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
-	return ingress.reconcileWireguard(inquirer)
+	// TODO: set up wireguard
+	return nil
 }
 
 func (ingress *ControlPlaneIngress) ingressPodName(inquirer inquirer.ReconcilerInquirer) string {

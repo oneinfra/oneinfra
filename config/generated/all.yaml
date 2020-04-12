@@ -10,7 +10,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: (devel)
+    controller-gen.kubebuilder.io/version: v0.2.8
   creationTimestamp: null
   name: clusters.cluster.oneinfra.ereslibre.es
 spec:
@@ -237,7 +237,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: (devel)
+    controller-gen.kubebuilder.io/version: v0.2.8
   creationTimestamp: null
   name: components.cluster.oneinfra.ereslibre.es
 spec:
@@ -363,7 +363,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: (devel)
+    controller-gen.kubebuilder.io/version: v0.2.8
   creationTimestamp: null
   name: hypervisors.infra.oneinfra.ereslibre.es
 spec:

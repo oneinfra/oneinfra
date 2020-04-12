@@ -443,21 +443,20 @@ func etcdEndpoint(inquirer inquirer.ReconcilerInquirer, hostPort int) string {
 }
 
 func (controlPlane *ControlPlane) removeEtcdMember(inquirer inquirer.ReconcilerInquirer) error {
-	if len(controlPlane.etcdClientEndpoints(inquirer)) == 0 {
-		return nil
-	}
-	memberFound, memberID, err := controlPlane.etcdMemberID(inquirer)
-	if err != nil || !memberFound {
-		return err
-	}
-	etcdClient, err := controlPlane.etcdClient(inquirer)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancel()
-	if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {
-		return errors.Wrap(err, "could not remove etcd member")
+	if len(controlPlane.etcdClientEndpoints(inquirer)) > 0 {
+		memberFound, memberID, err := controlPlane.etcdMemberID(inquirer)
+		if err != nil || !memberFound {
+			return err
+		}
+		etcdClient, err := controlPlane.etcdClient(inquirer)
+		if err != nil {
+			return err
+		}
+		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+		defer cancel()
+		if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {
+			return errors.Wrap(err, "could not remove etcd member")
+		}
 	}
 	component := inquirer.Component()
 	cluster := inquirer.Cluster()

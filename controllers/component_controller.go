@@ -29,14 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 )
 
 // ComponentReconciler reconciles a Component object
 type ComponentReconciler struct {
 	client.Client
-	Scheme            *runtime.Scheme
-	clusterReconciler *reconciler.ClusterReconciler
+	Scheme *runtime.Scheme
 }
 
 // Reconcile reconciles the component resources

@@ -50,7 +50,7 @@ go-generate: RELEASE
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
-	go run cmd/oi-manager/main.go
+	go run cmd/oi-manager/main.go -verbosity 10
 
 # Run against a kind cluster with webhooks set up with generated certificates
 run-kind: kind run

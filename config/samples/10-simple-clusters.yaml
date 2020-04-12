@@ -1,0 +1,210 @@
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-1
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-1
+spec:
+  cluster: simple-cluster-1
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-1
+spec:
+  cluster: simple-cluster-1
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-2
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-2
+spec:
+  cluster: simple-cluster-2
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-2
+spec:
+  cluster: simple-cluster-2
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-3
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-3
+spec:
+  cluster: simple-cluster-3
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-3
+spec:
+  cluster: simple-cluster-3
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-4
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-4
+spec:
+  cluster: simple-cluster-4
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-4
+spec:
+  cluster: simple-cluster-4
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-5
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-5
+spec:
+  cluster: simple-cluster-5
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-5
+spec:
+  cluster: simple-cluster-5
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-6
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-6
+spec:
+  cluster: simple-cluster-6
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-6
+spec:
+  cluster: simple-cluster-6
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-7
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-7
+spec:
+  cluster: simple-cluster-7
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-7
+spec:
+  cluster: simple-cluster-7
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-8
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-8
+spec:
+  cluster: simple-cluster-8
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-8
+spec:
+  cluster: simple-cluster-8
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-9
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-9
+spec:
+  cluster: simple-cluster-9
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-9
+spec:
+  cluster: simple-cluster-9
+  role: control-plane-ingress
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-10
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-10
+spec:
+  cluster: simple-cluster-10
+  role: control-plane
+---
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Component
+metadata:
+  name: control-plane-ingress-10
+spec:
+  cluster: simple-cluster-10
+  role: control-plane-ingress

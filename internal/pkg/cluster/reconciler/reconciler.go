@@ -17,7 +17,10 @@ limitations under the License.
 package reconciler
 
 import (
+	"context"
+
 	"k8s.io/klog"
+	clientapi "sigs.k8s.io/controller-runtime/pkg/client"
 
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
@@ -64,6 +67,31 @@ func (clusterReconciler *ClusterReconciler) IsClusterFullyScheduled(clusterName 
 		}
 	}
 	return hasComponents
+}
+
+// PreReconcile prereconciles all components known to this cluster
+// reconciler
+func (clusterReconciler *ClusterReconciler) PreReconcile() ReconcileErrors {
+	klog.V(1).Info("starting pre-reconciliation process")
+	reconcileErrors := ReconcileErrors{}
+	for clusterName := range clusterReconciler.ClusterMap {
+		for _, component := range clusterReconciler.ComponentList.WithCluster(clusterName) {
+			err := componentreconciler.PreReconcile(
+				&ClusterReconcilerInquirer{
+					component:         component,
+					clusterReconciler: clusterReconciler,
+				},
+			)
+			if err != nil {
+				klog.Errorf("failed to pre-reconcile component %q: %v", component.Name, err)
+				reconcileErrors.addComponentError(clusterName, component.Name, err)
+			}
+		}
+	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
 // Reconcile reconciles all components known to this cluster
@@ -130,7 +158,7 @@ func (clusterReconciler *ClusterReconciler) reconcileControlPlaneComponents(clus
 		)
 		if err != nil {
 			klog.Errorf("failed to reconcile component %q: %v", component.Name, err)
-			reconcileErrors.addComponentError(component.ClusterName, component.Name, err)
+			reconcileErrors.addComponentError(clusterName, component.Name, err)
 		}
 	}
 }
@@ -235,4 +263,86 @@ func (clusterReconciler *ClusterReconciler) Specs() (string, error) {
 	}
 	res += components
 	return res, nil
+}
+
+// UpdateResources updates all resources known to this cluster
+// reconciler if they are dirty
+func (clusterReconciler *ClusterReconciler) UpdateResources(ctx context.Context, client clientapi.Client) error {
+	someError := false
+	if err := clusterReconciler.updateHypervisors(ctx, client); err != nil {
+		someError = true
+	}
+	if err := clusterReconciler.updateClusters(ctx, client); err != nil {
+		someError = true
+	}
+	if err := clusterReconciler.updateComponents(ctx, client); err != nil {
+		someError = true
+	}
+	if someError {
+		return errors.New("could not update all resources")
+	}
+	return nil
+}
+
+func (clusterReconciler *ClusterReconciler) updateHypervisors(ctx context.Context, client clientapi.Client) error {
+	someError := false
+	for _, hypervisor := range clusterReconciler.HypervisorMap {
+		isDirty, err := hypervisor.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if hypervisor %q is dirty", hypervisor.Name)
+			continue
+		}
+		if isDirty {
+			if err := client.Status().Update(ctx, hypervisor.Export()); err != nil {
+				someError = true
+				klog.Errorf("could not update hypervisor %q status: %v", hypervisor.Name, err)
+			}
+		}
+	}
+	if someError {
+		return errors.New("could not update all hypervisors")
+	}
+	return nil
+}
+
+func (clusterReconciler *ClusterReconciler) updateClusters(ctx context.Context, client clientapi.Client) error {
+	someError := false
+	for _, cluster := range clusterReconciler.ClusterMap {
+		isDirty, err := cluster.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if cluster %q is dirty", cluster.Name)
+			continue
+		}
+		if isDirty {
+			if err := client.Status().Update(ctx, cluster.Export()); err != nil {
+				someError = true
+				klog.Errorf("could not update cluster %q status: %v", cluster.Name, err)
+			}
+		}
+	}
+	if someError {
+		return errors.New("could not update all clusters")
+	}
+	return nil
+}
+
+func (clusterReconciler *ClusterReconciler) updateComponents(ctx context.Context, client clientapi.Client) error {
+	someError := false
+	for _, component := range clusterReconciler.ComponentList {
+		isDirty, err := component.IsDirty()
+		if err != nil {
+			klog.Errorf("could not determine if component %q is dirty", component.Name)
+			continue
+		}
+		if isDirty {
+			if err := client.Status().Update(ctx, component.Export()); err != nil {
+				someError = true
+				klog.Errorf("could not update component %q status: %v", component.Name, err)
+			}
+		}
+	}
+	if someError {
+		return errors.New("could not update all components")
+	}
+	return nil
 }

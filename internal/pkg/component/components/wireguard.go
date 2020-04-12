@@ -28,7 +28,8 @@ import (
 )
 
 const (
-	wireguardImage = "oneinfra/wireguard:latest"
+	wireguardImage        = "oneinfra/wireguard:latest"
+	wireguardHostPortName = "wireguard"
 )
 
 const (
@@ -49,7 +50,7 @@ func (ingress *ControlPlaneIngress) wireguardConfiguration(inquirer inquirer.Rec
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	wireguardHostPort, err := component.RequestPort(hypervisor, "wireguard")
+	wireguardHostPort, err := component.RequestPort(hypervisor, wireguardHostPortName)
 	if err != nil {
 		return "", err
 	}

@@ -33,6 +33,21 @@ func AddElementsToListIfNotExists(list []string, elements ...string) []string {
 	return res
 }
 
+// HasListAnyElement returns whether the list has any of the provided
+// elements
+func HasListAnyElement(list []string, elements ...string) bool {
+	elementMap := map[string]struct{}{}
+	for _, element := range elements {
+		elementMap[element] = struct{}{}
+	}
+	for _, element := range list {
+		if _, found := elementMap[element]; found {
+			return true
+		}
+	}
+	return false
+}
+
 // RemoveElementsFromList removes elements from a given list. The
 // resulting list preserves the original order
 func RemoveElementsFromList(list []string, elements ...string) []string {

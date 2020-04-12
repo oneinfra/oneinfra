@@ -82,6 +82,12 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if cluster.HasUninitializedCertificates() {
 			return ctrl.Result{Requeue: true}, nil
 		}
+		if err := clusterReconciler.PreReconcile(); err != nil {
+			return ctrl.Result{Requeue: true}, nil
+		}
+		if err := clusterReconciler.UpdateResources(ctx, r); err != nil {
+			return ctrl.Result{Requeue: true}, nil
+		}
 		if err := clusterReconciler.Reconcile(); err != nil {
 			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
@@ -103,13 +109,7 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
-	if err := updateHypervisors(ctx, r, clusterReconciler); err != nil {
-		res = ctrl.Result{Requeue: true}
-	}
-	if err := updateClusters(ctx, r, clusterReconciler); err != nil {
-		res = ctrl.Result{Requeue: true}
-	}
-	if err := updateComponents(ctx, r, clusterReconciler); err != nil {
+	if err := clusterReconciler.UpdateResources(ctx, r); err != nil {
 		res = ctrl.Result{Requeue: true}
 	}
 

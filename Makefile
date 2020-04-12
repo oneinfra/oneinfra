@@ -149,7 +149,7 @@ $(TEST_WEBHOOK_CERTS_DIR)/tls.crt: $(TEST_WEBHOOK_CERTS_DIR)/tls.csr $(TEST_WEBH
 	openssl x509 -req -in $(TEST_WEBHOOK_CERTS_DIR)/tls.csr -CA $(TEST_WEBHOOK_CERTS_DIR)/ca.crt -CAkey $(TEST_WEBHOOK_CERTS_DIR)/ca.key -CAcreateserial -out $(TEST_WEBHOOK_CERTS_DIR)/tls.crt -days 3650 -sha256
 
 kind: webhook-certs
-	kind create cluster --name oi-test-cluster
+	kind create cluster --name oi-test-cluster --config .kind/config.yaml
 	./.kind/scripts/write-runtime-patches.sh
 	kubectl apply -k .kind/kustomize
 

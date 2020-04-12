@@ -1,0 +1,8 @@
+apiVersion: kind.sigs.k8s.io/v1alpha3
+kind: Cluster
+nodes:
+- role: control-plane
+  extraMounts:
+  - containerPath: /etc/hosts
+    hostPath: /etc/hosts
+    readOnly: true

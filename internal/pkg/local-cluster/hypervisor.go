@@ -141,7 +141,7 @@ func (hypervisor *Hypervisor) StartRemoteCRIEndpoint() error {
 	if err := infraHypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
-	_, err = infraHypervisor.RunPod(
+	_, err = infraHypervisor.EnsurePod(
 		"",
 		"cri-endpoint",
 		podapi.Pod{

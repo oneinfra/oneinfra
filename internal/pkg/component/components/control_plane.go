@@ -44,7 +44,26 @@ const (
 // including: etcd, API server, controller-manager and scheduler
 type ControlPlane struct{}
 
-// Reconcile reconciles the kube-apiserver
+// PreReconcile pre-reconciles the control plane component
+func (controlPlane *ControlPlane) PreReconcile(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	if component.HypervisorName == "" {
+		return errors.Errorf("could not pre-reconcile component %q; no hypervisor assigned yet", component.Name)
+	}
+	hypervisor := inquirer.Hypervisor()
+	if _, err := component.RequestPort(hypervisor, apiServerHostPortName); err != nil {
+		return err
+	}
+	if _, err := component.RequestPort(hypervisor, etcdPeerHostPortName); err != nil {
+		return err
+	}
+	if _, err := component.RequestPort(hypervisor, etcdClientHostPortName); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Reconcile reconciles the control plane component
 func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
@@ -146,7 +165,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return errors.New("etcd client host port not found")
 	}
 	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
-	_, err = hypervisor.RunPod(
+	_, err = hypervisor.EnsurePod(
 		cluster.Name,
 		component.Name,
 		pod.NewPod(

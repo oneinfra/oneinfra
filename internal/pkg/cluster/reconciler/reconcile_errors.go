@@ -53,7 +53,7 @@ func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterName string) bo
 }
 
 func (reconcileErrors ReconcileErrors) addClusterError(clusterName string, err error) {
-	reconcileErrors.ensureEntry(clusterName)
+	reconcileErrors.ensureClusterEntry(clusterName)
 	reconcileErrors[clusterName] = append(
 		reconcileErrors[clusterName],
 		err,
@@ -61,14 +61,14 @@ func (reconcileErrors ReconcileErrors) addClusterError(clusterName string, err e
 }
 
 func (reconcileErrors ReconcileErrors) addComponentError(clusterName, componentName string, err error) {
-	reconcileErrors.ensureEntry(clusterName)
+	reconcileErrors.ensureClusterEntry(clusterName)
 	reconcileErrors[clusterName] = append(
 		reconcileErrors[clusterName],
 		errors.Wrap(err, componentName),
 	)
 }
 
-func (reconcileErrors ReconcileErrors) ensureEntry(clusterName string) {
+func (reconcileErrors ReconcileErrors) ensureClusterEntry(clusterName string) {
 	if reconcileErrors[clusterName] == nil {
 		reconcileErrors[clusterName] = []error{}
 	}

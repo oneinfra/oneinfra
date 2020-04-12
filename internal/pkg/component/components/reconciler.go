@@ -23,6 +23,10 @@ import (
 // Component is an interface that allows a component implementing this
 // interface to be reconciled
 type Component interface {
+	// PreReconcile allocates resources that need to be reserved for the
+	// reconcile process. If conflicts arise on resources, the
+	// PreReconcile will be retried, instead of a full Reconcile cycle
+	PreReconcile(inquirer.ReconcilerInquirer) error
 	Reconcile(inquirer.ReconcilerInquirer) error
 	ReconcileDeletion(inquirer.ReconcilerInquirer) error
 }

@@ -61,29 +61,20 @@ backend apiservers
 // ControlPlaneIngress represents an endpoint to a set of control plane instances
 type ControlPlaneIngress struct{}
 
-func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.ReconcilerInquirer, clusterComponents componentapi.List) (string, error) {
-	template, err := template.New("").Parse(haProxyTemplate)
-	if err != nil {
-		return "", err
+// PreReconcile pre-reconciles the control plane ingress component
+func (ingress *ControlPlaneIngress) PreReconcile(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	if component.HypervisorName == "" {
+		return errors.Errorf("could not pre-reconcile component %q; no hypervisor assigned yet", component.Name)
 	}
-	haProxyConfigData := struct {
-		APIServers map[string]string
-	}{
-		APIServers: map[string]string{},
+	hypervisor := inquirer.Hypervisor()
+	if _, err := component.RequestPort(hypervisor, apiServerHostPortName); err != nil {
+		return err
 	}
-	for _, component := range clusterComponents {
-		apiserverHostPort, exists := component.AllocatedHostPorts[apiServerHostPortName]
-		if !exists {
-			return "", errors.New("apiserver host port not found")
-		}
-		haProxyConfigData.APIServers[component.Name] = net.JoinHostPort(
-			inquirer.ComponentHypervisor(component).IPAddress,
-			strconv.Itoa(apiserverHostPort),
-		)
+	if _, err := component.RequestPort(hypervisor, wireguardHostPortName); err != nil {
+		return err
 	}
-	var rendered bytes.Buffer
-	err = template.Execute(&rendered, haProxyConfigData)
-	return rendered.String(), err
+	return nil
 }
 
 // Reconcile reconciles the control plane ingress
@@ -116,7 +107,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err != nil {
 		return err
 	}
-	_, err = hypervisor.RunPod(
+	_, err = hypervisor.EnsurePod(
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
@@ -142,6 +133,31 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	cluster.APIServerEndpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
 	// TODO: set up wireguard
 	return nil
+}
+
+func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.ReconcilerInquirer, clusterComponents componentapi.List) (string, error) {
+	template, err := template.New("").Parse(haProxyTemplate)
+	if err != nil {
+		return "", err
+	}
+	haProxyConfigData := struct {
+		APIServers map[string]string
+	}{
+		APIServers: map[string]string{},
+	}
+	for _, component := range clusterComponents {
+		apiserverHostPort, exists := component.AllocatedHostPorts[apiServerHostPortName]
+		if !exists {
+			return "", errors.New("apiserver host port not found")
+		}
+		haProxyConfigData.APIServers[component.Name] = net.JoinHostPort(
+			inquirer.ComponentHypervisor(component).IPAddress,
+			strconv.Itoa(apiserverHostPort),
+		)
+	}
+	var rendered bytes.Buffer
+	err = template.Execute(&rendered, haProxyConfigData)
+	return rendered.String(), err
 }
 
 func (ingress *ControlPlaneIngress) ingressPodName(inquirer inquirer.ReconcilerInquirer) string {

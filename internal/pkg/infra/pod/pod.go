@@ -65,26 +65,6 @@ func NewPod(name string, containers []Container, ports map[int]int, privileges P
 	}
 }
 
-// NewSingleContainerPod returns a pod with name, and a single
-// container with name, image, command, args, mounts, ports and
-// privileges
-func NewSingleContainerPod(name, image string, command []string, args []string, mounts map[string]string, ports map[int]int, privileges Privileges) Pod {
-	return Pod{
-		Name: name,
-		Containers: []Container{
-			{
-				Name:       name,
-				Image:      image,
-				Command:    command,
-				Args:       args,
-				Mounts:     mounts,
-				Privileges: privileges,
-			},
-		},
-		Ports: ports,
-	}
-}
-
 // SHA1Sum returns the SHA-1 of the textual YAML representation of
 // this pod
 func (pod *Pod) SHA1Sum() (string, error) {

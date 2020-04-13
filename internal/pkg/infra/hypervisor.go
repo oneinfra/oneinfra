@@ -581,24 +581,69 @@ func (hypervisor *Hypervisor) RunAndWaitForPod(clusterName, componentName string
 // UploadFiles uploads a map of files, with location as keys, and
 // contents as values
 func (hypervisor *Hypervisor) UploadFiles(clusterName, componentName string, files map[string]string) error {
+	filesToUpload := []podapi.Container{}
+	for fileLocation, fileContents := range files {
+		if hypervisor.FileUpToDate(clusterName, componentName, fileLocation, fileContents) {
+			klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, fileLocation)
+			continue
+		}
+		klog.V(2).Infof("preparing file upload to hypervisor %q at location %q", hypervisor.Name, fileLocation)
+		fileLocationDir := filepath.Dir(fileLocation)
+		filesToUpload = append(
+			filesToUpload,
+			podapi.Container{
+				Name:    fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
+				Image:   ToolingImage,
+				Command: []string{"write-base64-file.sh"},
+				Args: []string{
+					base64.StdEncoding.EncodeToString([]byte(fileContents)),
+					fileLocation,
+				},
+				Mounts:     map[string]string{fileLocationDir: fileLocationDir},
+				Privileges: podapi.PrivilegesUnprivileged,
+			},
+		)
+	}
+	if len(filesToUpload) == 0 {
+		return nil
+	}
 	if err := hypervisor.EnsureImage(ToolingImage); err != nil {
 		return err
 	}
-	for fileLocation, fileContents := range files {
-		if err := hypervisor.uploadFile(clusterName, componentName, fileLocation, fileContents); err != nil {
-			return err
+	err := hypervisor.RunAndWaitForPod(
+		clusterName,
+		componentName,
+		podapi.Pod{
+			Name:       "upload-files",
+			Containers: filesToUpload,
+			Ports:      map[int]int{},
+			Privileges: podapi.PrivilegesUnprivileged,
+		},
+	)
+	if err == nil && hypervisor.Files != nil {
+		if hypervisor.Files[clusterName] == nil {
+			hypervisor.Files[clusterName] = ComponentFileMap{}
+		}
+		if hypervisor.Files[clusterName][componentName] == nil {
+			hypervisor.Files[clusterName][componentName] = FileMap{}
+		}
+		for fileLocation, fileContents := range files {
+			hypervisor.Files[clusterName][componentName][fileLocation] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 		}
 	}
-	return nil
+	return err
 }
 
 // UploadFile uploads a file to the current hypervisor to hostPath
 // with given fileContents
 func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, hostPath, fileContents string) error {
-	if err := hypervisor.EnsureImage(ToolingImage); err != nil {
-		return err
-	}
-	return hypervisor.uploadFile(clusterName, componentName, hostPath, fileContents)
+	return hypervisor.UploadFiles(
+		clusterName,
+		componentName,
+		map[string]string{
+			hostPath: fileContents,
+		},
+	)
 }
 
 // FileUpToDate returns whether the given file contents match on the
@@ -609,51 +654,6 @@ func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, hostPath,
 		return currentFileContentsSHA1 == fileContentsSHA1
 	}
 	return false
-}
-
-func (hypervisor *Hypervisor) uploadFile(clusterName, componentName, hostPath, fileContents string) error {
-	if hypervisor.FileUpToDate(clusterName, componentName, hostPath, fileContents) {
-		klog.V(2).Infof("skipping file upload to hypervisor %q at location %q, hash matches", hypervisor.Name, hostPath)
-		return nil
-	}
-	klog.V(2).Infof("uploading file to hypervisor %q at location %q", hypervisor.Name, hostPath)
-	hostPathDir := filepath.Dir(hostPath)
-	uploadFilePod := podapi.NewSingleContainerPod(
-		fmt.Sprintf("upload-file-%x", md5.Sum([]byte(fileContents))),
-		ToolingImage,
-		[]string{"write-base64-file.sh"},
-		[]string{
-			base64.StdEncoding.EncodeToString([]byte(fileContents)),
-			hostPath,
-		},
-		map[string]string{hostPathDir: hostPathDir},
-		map[int]int{},
-		podapi.PrivilegesUnprivileged,
-	)
-	podSandboxID, err := hypervisor.ensurePod(
-		clusterName,
-		componentName,
-		"",
-		nil,
-		nil,
-		uploadFilePod,
-	)
-	if err != nil {
-		return err
-	}
-	if err := hypervisor.WaitForPod(podSandboxID); err != nil {
-		return err
-	}
-	if hypervisor.Files != nil {
-		if hypervisor.Files[clusterName] == nil {
-			hypervisor.Files[clusterName] = ComponentFileMap{}
-		}
-		if hypervisor.Files[clusterName][componentName] == nil {
-			hypervisor.Files[clusterName][componentName] = FileMap{}
-		}
-		hypervisor.Files[clusterName][componentName][hostPath] = fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
-	}
-	return hypervisor.DeletePodWithID(podSandboxID)
 }
 
 // HasPort returns whether a port exists for the given clusterName and componentName

@@ -75,7 +75,7 @@ func TestRequestVPNIP(t *testing.T) {
 			if err != nil {
 				t.Fatalf("could not parse CIDR %q", tt.cidr)
 			}
-			cluster := Cluster{VPNCIDR: cidrNetwork, VPNPeers: tt.peers}
+			cluster := Cluster{VPN: &VPN{CIDR: cidrNetwork}, VPNPeers: tt.peers}
 			if ip, err := cluster.requestVPNIP(); (err != nil) != tt.expectedErr {
 				t.Errorf("got %v error, was expecting: %v", err, tt.expectedErr)
 			} else if ip != tt.expectedIP {

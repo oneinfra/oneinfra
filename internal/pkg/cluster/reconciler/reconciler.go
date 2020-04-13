@@ -113,7 +113,9 @@ func (clusterReconciler *ClusterReconciler) Reconcile() ReconcileErrors {
 			conditions.ConditionTrue,
 		)
 
-		clusterReconciler.reconcileMinimalVPNPeers(cluster, &reconcileErrors)
+		if cluster.VPN.Enabled {
+			clusterReconciler.reconcileMinimalVPNPeers(cluster, &reconcileErrors)
+		}
 		clusterReconciler.reconcileControlPlaneComponents(clusterName, &reconcileErrors)
 		clusterReconciler.reconcileControlPlaneIngressComponents(clusterName, &reconcileErrors)
 		clusterReconciler.reconcileCustomResourceDefinitions(cluster, &reconcileErrors)

@@ -38,7 +38,7 @@ type ClusterSpec struct {
 	APIServer *KubeAPIServer `json:"apiServer,omitempty"`
 
 	// +optional
-	VPNCIDR string `json:"vpnCIDR,omitempty"`
+	VPN *VPN `json:"vpn,omitempty"`
 
 	// +optional
 	JoinKey *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`

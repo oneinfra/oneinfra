@@ -61,7 +61,7 @@ type Cluster struct {
 	APIServer              *KubeAPIServer
 	StorageClientEndpoints []string
 	StoragePeerEndpoints   []string
-	VPNCIDR                *net.IPNet
+	VPN                    *VPN
 	VPNPeers               VPNPeerMap
 	APIServerEndpoint      string
 	JoinKey                *crypto.KeyPair
@@ -77,16 +77,21 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns an internal cluster
-func NewCluster(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSANs []string) (*Cluster, error) {
-	_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
-	if err != nil {
-		return nil, err
-	}
+func NewCluster(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) (*Cluster, error) {
 	res := Cluster{
 		Name:              clusterName,
 		KubernetesVersion: kubernetesVersion,
-		VPNCIDR:           vpnCIDRNet,
-		VPNPeers:          VPNPeerMap{},
+		VPN: &VPN{
+			Enabled: vpnEnabled,
+		},
+		VPNPeers: VPNPeerMap{},
+	}
+	if vpnEnabled {
+		_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
+		if err != nil {
+			return nil, err
+		}
+		res.VPN.CIDR = vpnCIDRNet
 	}
 	if err := res.InitializeCertificatesAndKeys(); err != nil {
 		return nil, err
@@ -132,7 +137,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		APIServer:              kubeAPIServer,
 		StorageClientEndpoints: cluster.Status.StorageClientEndpoints,
 		StoragePeerEndpoints:   cluster.Status.StoragePeerEndpoints,
-		VPNCIDR:                newVPNCIDRFromv1alpha1(cluster.Spec.VPNCIDR),
+		VPN:                    newVPNFromv1alpha1(cluster.Spec.VPN),
 		VPNPeers:               newVPNPeersFromv1alpha1(cluster.Status.VPNPeers),
 		APIServerEndpoint:      cluster.Status.APIServerEndpoint,
 		JoinKey:                joinKey,
@@ -163,7 +168,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			CertificateAuthorities: cluster.CertificateAuthorities.Export(),
 			EtcdServer:             cluster.EtcdServer.Export(),
 			APIServer:              cluster.APIServer.Export(),
-			VPNCIDR:                cluster.VPNCIDR.String(),
+			VPN:                    cluster.VPN.Export(),
 			JoinKey:                cluster.JoinKey.Export(),
 			JoinTokens:             cluster.DesiredJoinTokens,
 		},
@@ -262,14 +267,14 @@ func (cluster *Cluster) HasUninitializedCertificates() bool {
 // requestVPNIP requests a VPN from the VPN CIDR
 func (cluster *Cluster) requestVPNIP() (string, error) {
 	assignedIP := big.NewInt(int64(len(cluster.VPNPeers) + 1))
-	vpnNetwork := big.NewInt(0).SetBytes(cluster.VPNCIDR.IP.To16())
+	vpnNetwork := big.NewInt(0).SetBytes(cluster.VPN.CIDR.IP.To16())
 	vpnAssignedIP := vpnNetwork.Add(vpnNetwork, assignedIP)
 	vpnAssignedIPSlice := vpnAssignedIP.Bytes()[2:]
 	if len(vpnAssignedIP.Bytes()) == net.IPv6len {
 		vpnAssignedIPSlice = vpnAssignedIP.Bytes()
 	}
-	if !cluster.VPNCIDR.Contains(net.IP(vpnAssignedIPSlice)) {
-		return "", errors.Errorf("not enough IP addresses to assign in the %q CIDR", cluster.VPNCIDR)
+	if !cluster.VPN.CIDR.Contains(net.IP(vpnAssignedIPSlice)) {
+		return "", errors.Errorf("not enough IP addresses to assign in the %q CIDR", cluster.VPN.CIDR)
 	}
 	return net.IP(vpnAssignedIPSlice).String(), nil
 }

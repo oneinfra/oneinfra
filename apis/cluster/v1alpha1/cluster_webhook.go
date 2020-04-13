@@ -43,7 +43,7 @@ func (cluster *Cluster) Default() {
 	klog.Info("default", "name", cluster.Name)
 	cluster.addFinalizer()
 	cluster.defaultKubernetesVersion()
-	cluster.defaultVPNCIDR()
+	cluster.defaultVPN()
 	cluster.defaultUninitializedCertificatesLabel()
 }
 
@@ -66,9 +66,11 @@ func (cluster *Cluster) defaultKubernetesVersion() {
 	}
 }
 
-func (cluster *Cluster) defaultVPNCIDR() {
-	if cluster.Spec.VPNCIDR == "" {
-		cluster.Spec.VPNCIDR = "10.0.0.0/8"
+func (cluster *Cluster) defaultVPN() {
+	if cluster.Spec.VPN == nil {
+		cluster.Spec.VPN = &VPN{
+			Enabled: false,
+		}
 	}
 }
 

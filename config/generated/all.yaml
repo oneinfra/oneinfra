@@ -21,6 +21,12 @@ spec:
   - JSONPath: .status.apiServerEndpoint
     name: API server endpoint
     type: string
+  - JSONPath: .spec.vpn.enabled
+    name: VPN
+    type: boolean
+  - JSONPath: .spec.vpn.CIDR
+    name: VPN CIDR
+    type: string
   - JSONPath: .metadata.creationTimestamp
     name: Age
     type: date
@@ -174,8 +180,17 @@ spec:
               type: array
             kubernetesVersion:
               type: string
-            vpnCIDR:
-              type: string
+            vpn:
+              description: VPN defines the VPN configuration for this cluster
+              properties:
+                CIDR:
+                  description: The VPN CIDR for this cluster. 10.0.0.0/8 by default.
+                  type: string
+                enabled:
+                  description: Whether a VPN should be set for this cluster. Disabled
+                    by default.
+                  type: boolean
+              type: object
           type: object
         status:
           description: ClusterStatus defines the observed state of Cluster

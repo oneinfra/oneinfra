@@ -27,7 +27,7 @@ import (
 )
 
 // Inject injects a cluster with name componentName
-func Inject(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSANs []string) error {
+func Inject(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func Inject(clusterName, kubernetesVersion, vpnCIDR string, apiServerExtraSANs [
 		res += clustersSpecs
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, vpnCIDR, apiServerExtraSANs)
+	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, vpnEnabled, vpnCIDR, apiServerExtraSANs)
 	if err != nil {
 		return err
 	}

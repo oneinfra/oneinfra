@@ -23,6 +23,12 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
+// VPN represents the VPN configuration
+type VPN struct {
+	Enabled bool
+	CIDR    *net.IPNet
+}
+
 // VPNPeer represents a VPN peer
 type VPNPeer struct {
 	Name       string
@@ -33,6 +39,32 @@ type VPNPeer struct {
 
 // VPNPeerMap represents a map of VPN peers
 type VPNPeerMap map[string]*VPNPeer
+
+func newVPNFromv1alpha1(vpn *clusterv1alpha1.VPN) *VPN {
+	if vpn == nil || vpn.CIDR == nil {
+		return &VPN{
+			Enabled: false,
+		}
+	}
+	return &VPN{
+		Enabled: vpn.Enabled,
+		CIDR:    newVPNCIDRFromv1alpha1(*vpn.CIDR),
+	}
+}
+
+// Export exports this VPN to a versioned VPN
+func (vpn *VPN) Export() *clusterv1alpha1.VPN {
+	if vpn.CIDR == nil {
+		return &clusterv1alpha1.VPN{
+			Enabled: false,
+		}
+	}
+	vpnCIDR := vpn.CIDR.String()
+	return &clusterv1alpha1.VPN{
+		Enabled: vpn.Enabled,
+		CIDR:    &vpnCIDR,
+	}
+}
 
 func newVPNPeersFromv1alpha1(peers []clusterv1alpha1.VPNPeer) VPNPeerMap {
 	res := VPNPeerMap{}

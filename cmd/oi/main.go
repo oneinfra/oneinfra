@@ -56,6 +56,11 @@ func main() {
 								Usage: "kubernetes version",
 								Value: "default",
 							},
+							&cli.BoolFlag{
+								Name:  "vpn-enabled",
+								Usage: "CIDR used for the internal VPN",
+								Value: false,
+							},
 							&cli.StringFlag{
 								Name:  "vpn-cidr",
 								Usage: "CIDR used for the internal VPN",
@@ -71,7 +76,7 @@ func main() {
 							if kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
-							return cluster.Inject(c.String("name"), kubernetesVersion, c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
+							return cluster.Inject(c.String("name"), kubernetesVersion, c.Bool("vpn-enabled"), c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{

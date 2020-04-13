@@ -37,13 +37,26 @@ type ClusterSpec struct {
 	APIServer *KubeAPIServer `json:"apiServer,omitempty"`
 
 	// +optional
-	VPNCIDR string `json:"vpnCIDR,omitempty"`
+	VPN *VPN `json:"vpn,omitempty"`
 
 	// +optional
 	JoinKey *commonv1alpha1.KeyPair `json:"joinKey,omitempty"`
 
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
+}
+
+// VPN defines the VPN configuration for this cluster
+type VPN struct {
+	// Whether a VPN should be set for this cluster. Disabled by default.
+	//
+	// +optional
+	Enabled bool `json:"enabled"`
+
+	// The VPN CIDR for this cluster. 10.0.0.0/8 by default.
+	//
+	// +optional
+	CIDR *string `json:"CIDR,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
@@ -96,6 +109,8 @@ type EtcdServer struct {
 
 // +kubebuilder:printcolumn:name="Kubernetes version",type=string,JSONPath=`.spec.kubernetesVersion`
 // +kubebuilder:printcolumn:name="API server endpoint",type=string,JSONPath=`.status.apiServerEndpoint`
+// +kubebuilder:printcolumn:name="VPN",type=boolean,JSONPath=`.spec.vpn.enabled`
+// +kubebuilder:printcolumn:name="VPN CIDR",type=string,JSONPath=`.spec.vpn.CIDR`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status

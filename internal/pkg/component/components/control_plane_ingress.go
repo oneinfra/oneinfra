@@ -71,8 +71,11 @@ func (ingress *ControlPlaneIngress) PreReconcile(inquirer inquirer.ReconcilerInq
 	if _, err := component.RequestPort(hypervisor, apiServerHostPortName); err != nil {
 		return err
 	}
-	if _, err := component.RequestPort(hypervisor, wireguardHostPortName); err != nil {
-		return err
+	cluster := inquirer.Cluster()
+	if cluster.VPN.Enabled {
+		if _, err := component.RequestPort(hypervisor, wireguardHostPortName); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -131,7 +134,11 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		return err
 	}
 	cluster.APIServerEndpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
-	// TODO: set up wireguard
+	if cluster.VPN.Enabled {
+		if err := ingress.reconcileWireguard(inquirer); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

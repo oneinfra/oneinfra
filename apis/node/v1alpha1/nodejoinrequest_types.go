@@ -64,10 +64,10 @@ type NodeJoinRequestStatus struct {
 	// request spec. Base64 encoded.
 	VPNAddress string `json:"vpnAddress,omitempty"`
 
-	// VPNPeer contains the VPN address of the VPN peer of this
+	// VPNPeers contains the VPN address of the VPN peer of this
 	// node. Filled by `oneinfra`, and ciphered using the provided
 	// SymmetricKey in the rqeuest spec. Base64 encoded.
-	VPNPeers []string `json:"vpnPeer,omitempty"`
+	VPNPeers []string `json:"vpnPeers,omitempty"`
 
 	// KubeConfig has the kubeconfig contents that the kubelet should
 	// use. Filled by `oneinfra`, and ciphered using the provided

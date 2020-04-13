@@ -116,8 +116,8 @@ properties:
         description: VPNEnabled contains whether this cluster has VPN enabled. Filled
           by "oneinfra", not ciphered.
         type: boolean
-      vpnPeer:
-        description: VPNPeer contains the VPN address of the VPN peer of this node.
+      vpnPeers:
+        description: VPNPeers contains the VPN address of the VPN peer of this node.
           Filled by "oneinfra", and ciphered using the provided SymmetricKey in the
           rqeuest spec. Base64 encoded.
         items:

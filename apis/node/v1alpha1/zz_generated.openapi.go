@@ -64,6 +64,9 @@ properties:
         items:
           description: Condition represents a condition
           properties:
+            lastSetTime:
+              format: date-time
+              type: string
             lastTransitionTime:
               format: date-time
               type: string

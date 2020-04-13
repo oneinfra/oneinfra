@@ -42,6 +42,7 @@ type Condition struct {
 	Type               ConditionType
 	Status             ConditionStatus
 	LastTransitionTime metav1.Time
+	LastSetTime        metav1.Time
 	Reason             string
 	Message            string
 }
@@ -58,6 +59,7 @@ func NewConditionListFromv1alpha1(conditionList commonv1alpha1.ConditionList) Co
 			Type:               ConditionType(condition.Type),
 			Status:             ConditionStatus(condition.Status),
 			LastTransitionTime: condition.LastTransitionTime,
+			LastSetTime:        condition.LastSetTime,
 			Reason:             condition.Reason,
 			Message:            condition.Message,
 		})
@@ -93,16 +95,19 @@ func (conditionList *ConditionList) SetCondition(conditionType ConditionType, co
 	for _, condition := range *conditionList {
 		if condition.Type == conditionType {
 			if condition.Status == conditionStatus {
+				condition.LastSetTime = metav1.Now()
 				return
 			}
 		} else {
 			newConditionList = append(newConditionList, condition)
 		}
 	}
+	now := metav1.Now()
 	newConditionList = append(newConditionList, Condition{
 		Type:               conditionType,
 		Status:             conditionStatus,
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: now,
+		LastSetTime:        now,
 	})
 	*conditionList = newConditionList
 }
@@ -116,6 +121,7 @@ func (conditionList ConditionList) Export() commonv1alpha1.ConditionList {
 			Type:               commonv1alpha1.ConditionType(condition.Type),
 			Status:             commonv1alpha1.ConditionStatus(condition.Status),
 			LastTransitionTime: condition.LastTransitionTime,
+			LastSetTime:        condition.LastSetTime,
 			Reason:             condition.Reason,
 			Message:            condition.Message,
 		})

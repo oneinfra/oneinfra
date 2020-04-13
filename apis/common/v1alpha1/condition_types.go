@@ -43,6 +43,7 @@ type Condition struct {
 	Type               ConditionType   `json:"type,omitempty"`
 	Status             ConditionStatus `json:"status,omitempty"`
 	LastTransitionTime metav1.Time     `json:"lastTransitionTime,omitempty"`
+	LastSetTime        metav1.Time     `json:"lastSetTime,omitempty"`
 	Reason             string          `json:"reason,omitempty"`
 	Message            string          `json:"message,omitempty"`
 }

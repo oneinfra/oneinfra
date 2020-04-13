@@ -117,9 +117,9 @@ properties:
           by "oneinfra", not ciphered.
         type: boolean
       vpnPeers:
-        description: VPNPeers contains the VPN address of the VPN peer of this node.
-          Filled by "oneinfra", and ciphered using the provided SymmetricKey in the
-          rqeuest spec. Base64 encoded.
+        description: VPNPeers contains the VPN peers of this node. Filled by "oneinfra",
+          and ciphered using the provided SymmetricKey in the request spec. Base64
+          encoded.
         items:
           type: string
         type: array

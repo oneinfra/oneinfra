@@ -341,17 +341,6 @@ func (controlPlane *ControlPlane) reconcileEtcdCertificatesAndKeys(inquirer inqu
 }
 
 func (controlPlane *ControlPlane) runEtcd(inquirer inquirer.ReconcilerInquirer) error {
-	etcdPod, err := controlPlane.etcdPod(inquirer)
-	if err != nil {
-		return err
-	}
-	isEtcdRunning, _, allContainersRunning, _, _, err := inquirer.Hypervisor().IsPodRunning(etcdPod)
-	if err != nil {
-		return err
-	}
-	if isEtcdRunning && allContainersRunning {
-		return nil
-	}
 	if err := controlPlane.reconcileEtcdCertificatesAndKeys(inquirer); err != nil {
 		return err
 	}

@@ -232,7 +232,7 @@ func (hypervisor *Hypervisor) PodSandboxConfig(clusterName, componentName string
 // IsPodRunning returns whether a pod is running on the current
 // hypervisor, along with extra information about the pod sandbox ID,
 // what containers are currently running, and which are not
-func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (isPodRunning bool, podSandboxID string, allContainersRunning bool, runningContainers, notRunningContainers map[string]*criapi.Container, err error) {
+func (hypervisor *Hypervisor) IsPodRunning(clusterName, componentName string, pod podapi.Pod) (isPodRunning bool, podSandboxID string, allContainersRunning bool, runningContainers, notRunningContainers map[string]*criapi.Container, err error) {
 	criRuntime, err := hypervisor.CRIRuntime()
 	if err != nil {
 		return false, "", false, nil, nil, err
@@ -247,6 +247,9 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (isPodRunning bool, p
 		&criapi.ListPodSandboxRequest{
 			Filter: &criapi.PodSandboxFilter{
 				LabelSelector: map[string]string{
+					clusterNameLabel:       clusterName,
+					componentNameLabel:     componentName,
+					podNameLabel:           pod.Name,
 					podSandboxSHA1SumLabel: podSum,
 				},
 			},
@@ -305,7 +308,7 @@ func (hypervisor *Hypervisor) IsPodRunning(pod podapi.Pod) (isPodRunning bool, p
 
 // EnsurePod runs a pod on the current hypervisor
 func (hypervisor *Hypervisor) EnsurePod(clusterName, componentName string, pod podapi.Pod) (string, error) {
-	isPodRunning, podSandboxID, allContainersRunning, podRunningContainers, podNotRunningContainers, err := hypervisor.IsPodRunning(pod)
+	isPodRunning, podSandboxID, allContainersRunning, podRunningContainers, podNotRunningContainers, err := hypervisor.IsPodRunning(clusterName, componentName, pod)
 	if err != nil {
 		return "", err
 	}
@@ -313,10 +316,8 @@ func (hypervisor *Hypervisor) EnsurePod(clusterName, componentName string, pod p
 		klog.V(2).Infof("pod %q and all its containers in hypervisor %q are running", pod.Name, hypervisor.Name)
 		return podSandboxID, nil
 	}
-	if podSandboxID != "" {
-		podSandboxID = ""
-		podRunningContainers = map[string]*criapi.Container{}
-		hypervisor.DeletePod(clusterName, componentName, pod.Name)
+	if err := hypervisor.DeletePod(clusterName, componentName, pod.Name); err != nil {
+		klog.V(2).Infof("could not delete pods named %q: %v", pod.Name, err)
 	}
 	return hypervisor.ensurePod(
 		clusterName,
@@ -528,7 +529,6 @@ func (hypervisor *Hypervisor) DeletePods(clusterName, componentName string) erro
 
 // DeletePod deletes all pods matching the given cluster, component and pod name
 func (hypervisor *Hypervisor) DeletePod(clusterName, componentName, podName string) error {
-	klog.V(2).Infof("deleting pods for cluster %q and component %q from hypervisor %q", clusterName, componentName, hypervisor.Name)
 	podList, err := hypervisor.ListPods(clusterName, componentName, podName)
 	if err != nil {
 		return err

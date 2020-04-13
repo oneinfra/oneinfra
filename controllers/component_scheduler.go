@@ -62,7 +62,7 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	var err error
-	r.hypervisorMap, err = listHypervisors(ctx, r)
+	r.hypervisorMap, err = listHypervisors(ctx, r, nil)
 	if err != nil {
 		return ctrl.Result{RequeueAfter: time.Minute}, err
 	}

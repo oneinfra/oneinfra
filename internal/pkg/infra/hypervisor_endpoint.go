@@ -38,16 +38,31 @@ type hypervisorEndpoint interface {
 
 type localHypervisorEndpoint struct {
 	CRIEndpoint string
+	clientConn  *grpc.ClientConn
 }
 
 type remoteHypervisorEndpoint struct {
 	CRIEndpoint       string
 	CACertificate     *certificates.Certificate
 	ClientCertificate *certificates.Certificate
+	clientConn        *grpc.ClientConn
 }
 
 func (endpoint *localHypervisorEndpoint) Connection() (*grpc.ClientConn, error) {
-	return grpc.Dial(fmt.Sprintf("passthrough:///unix://%s", endpoint.CRIEndpoint), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+	if endpoint.clientConn != nil {
+		return endpoint.clientConn, nil
+	}
+	clientConn, err := grpc.Dial(
+		fmt.Sprintf("passthrough:///unix://%s", endpoint.CRIEndpoint),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithTimeout(5*time.Second),
+	)
+	if err != nil {
+		return nil, err
+	}
+	endpoint.clientConn = clientConn
+	return clientConn, nil
 }
 
 func (endpoint *localHypervisorEndpoint) Export() (*infrav1alpha1.LocalHypervisorCRIEndpoint, *infrav1alpha1.RemoteHypervisorCRIEndpoint) {
@@ -57,6 +72,9 @@ func (endpoint *localHypervisorEndpoint) Export() (*infrav1alpha1.LocalHyperviso
 }
 
 func (endpoint *remoteHypervisorEndpoint) Connection() (*grpc.ClientConn, error) {
+	if endpoint.clientConn != nil {
+		return endpoint.clientConn, nil
+	}
 	clientCert, err := tls.X509KeyPair(
 		[]byte(endpoint.ClientCertificate.Certificate),
 		[]byte(endpoint.ClientCertificate.PrivateKey),
@@ -74,7 +92,17 @@ func (endpoint *remoteHypervisorEndpoint) Connection() (*grpc.ClientConn, error)
 			RootCAs:      certPool,
 		}),
 	)
-	return grpc.Dial(endpoint.CRIEndpoint, transportCredentials, grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+	clientConn, err := grpc.Dial(
+		endpoint.CRIEndpoint,
+		transportCredentials,
+		grpc.WithBlock(),
+		grpc.WithTimeout(5*time.Second),
+	)
+	if err != nil {
+		return nil, err
+	}
+	endpoint.clientConn = clientConn
+	return clientConn, nil
 }
 
 func (endpoint *remoteHypervisorEndpoint) Export() (*infrav1alpha1.LocalHypervisorCRIEndpoint, *infrav1alpha1.RemoteHypervisorCRIEndpoint) {
@@ -85,22 +113,28 @@ func (endpoint *remoteHypervisorEndpoint) Export() (*infrav1alpha1.LocalHypervis
 	}
 }
 
-func setHypervisorEndpointFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, resHypervisor *Hypervisor) error {
+func setHypervisorEndpointFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, connectionPool *HypervisorConnectionPool, resHypervisor *Hypervisor) error {
 	if hypervisor.Spec.LocalCRIEndpoint != nil && hypervisor.Spec.RemoteCRIEndpoint != nil {
 		return errors.Errorf("hypervisor %q has both a local and a remote CRI endpoint, can only have one", hypervisor.Name)
 	} else if hypervisor.Spec.LocalCRIEndpoint != nil {
-		resHypervisor.Endpoint = &localHypervisorEndpoint{
-			CRIEndpoint: hypervisor.Spec.LocalCRIEndpoint.CRIEndpoint,
-		}
+		resHypervisor.Endpoint = connectionPool.connection(
+			hypervisor.Name,
+			&localHypervisorEndpoint{
+				CRIEndpoint: hypervisor.Spec.LocalCRIEndpoint.CRIEndpoint,
+			},
+		)
 	} else if hypervisor.Spec.RemoteCRIEndpoint != nil {
-		resHypervisor.Endpoint = &remoteHypervisorEndpoint{
-			CRIEndpoint: hypervisor.Spec.RemoteCRIEndpoint.CRIEndpoint,
-			CACertificate: certificates.NewCertificateFromv1alpha1(&commonv1alpha1.Certificate{
-				Certificate: hypervisor.Spec.RemoteCRIEndpoint.CACertificate,
-				PrivateKey:  "",
-			}),
-			ClientCertificate: certificates.NewCertificateFromv1alpha1(hypervisor.Spec.RemoteCRIEndpoint.ClientCertificate),
-		}
+		resHypervisor.Endpoint = connectionPool.connection(
+			hypervisor.Name,
+			&remoteHypervisorEndpoint{
+				CRIEndpoint: hypervisor.Spec.RemoteCRIEndpoint.CRIEndpoint,
+				CACertificate: certificates.NewCertificateFromv1alpha1(&commonv1alpha1.Certificate{
+					Certificate: hypervisor.Spec.RemoteCRIEndpoint.CACertificate,
+					PrivateKey:  "",
+				}),
+				ClientCertificate: certificates.NewCertificateFromv1alpha1(hypervisor.Spec.RemoteCRIEndpoint.ClientCertificate),
+			},
+		)
 	} else {
 		return errors.Errorf("hypervisor %q is missing a local or a remote CRI endpoint", hypervisor.Name)
 	}

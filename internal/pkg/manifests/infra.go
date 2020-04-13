@@ -44,7 +44,7 @@ func RetrieveHypervisors(manifests string) infra.HypervisorMap {
 		if _, _, err := serializer.Decode([]byte(document), nil, &hypervisor); err != nil || hypervisor.TypeMeta.Kind != "Hypervisor" {
 			continue
 		}
-		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor)
+		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor, nil)
 		if err != nil {
 			continue
 		}

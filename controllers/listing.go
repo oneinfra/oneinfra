@@ -34,14 +34,14 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
-func listHypervisors(ctx context.Context, client clientapi.Client) (infra.HypervisorMap, error) {
+func listHypervisors(ctx context.Context, client clientapi.Client, connectionPool *infra.HypervisorConnectionPool) (infra.HypervisorMap, error) {
 	var hypervisorList infrav1alpha1.HypervisorList
 	if err := client.List(ctx, &hypervisorList); err != nil {
 		return infra.HypervisorMap{}, err
 	}
 	res := infra.HypervisorMap{}
 	for _, hypervisor := range hypervisorList.Items {
-		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor)
+		internalHypervisor, err := infra.NewHypervisorFromv1alpha1(&hypervisor, connectionPool)
 		if err != nil {
 			klog.Errorf("could not convert hypervisor to internal type: %v", err)
 			continue

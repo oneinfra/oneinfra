@@ -23,12 +23,13 @@ import (
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"k8s.io/klog"
 	clientapi "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func newClusterReconciler(ctx context.Context, client clientapi.Client, cluster *cluster.Cluster, components ...*component.Component) (*reconciler.ClusterReconciler, error) {
-	hypervisorMap, err := listHypervisors(ctx, client)
+func newClusterReconciler(ctx context.Context, client clientapi.Client, cluster *cluster.Cluster, hypervisorConnectionPool *infra.HypervisorConnectionPool, components ...*component.Component) (*reconciler.ClusterReconciler, error) {
+	hypervisorMap, err := listHypervisors(ctx, client, hypervisorConnectionPool)
 	if err != nil {
 		klog.Errorf("could not list hypervisors: %v", err)
 		return nil, err

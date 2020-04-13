@@ -67,6 +67,7 @@ type Hypervisor struct {
 	freedPorts         []int
 	allocatedPorts     HypervisorPortAllocationList
 	loadedContentsHash string
+	connectionPool     *HypervisorConnectionPool
 }
 
 // HypervisorMap represents a map of hypervisors
@@ -76,10 +77,13 @@ type HypervisorMap map[string]*Hypervisor
 type HypervisorList []*Hypervisor
 
 // NewHypervisorFromv1alpha1 returns an hypervisor based on a versioned hypervisor
-func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hypervisor, error) {
+func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, connectionPool *HypervisorConnectionPool) (*Hypervisor, error) {
 	hypervisorFiles := hypervisor.Status.Files
 	if hypervisorFiles == nil {
 		hypervisorFiles = infrav1alpha1.ClusterFileMap{}
+	}
+	if connectionPool == nil {
+		connectionPool = &HypervisorConnectionPool{}
 	}
 	res := Hypervisor{
 		Name:            hypervisor.Name,
@@ -94,8 +98,9 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor) (*Hyperviso
 		portRangeHigh:   hypervisor.Spec.PortRange.High,
 		freedPorts:      hypervisor.Status.FreedPorts,
 		allocatedPorts:  NewHypervisorPortAllocationListFromv1alpha1(hypervisor.Status.AllocatedPorts),
+		connectionPool:  connectionPool,
 	}
-	if err := setHypervisorEndpointFromv1alpha1(hypervisor, &res); err != nil {
+	if err := setHypervisorEndpointFromv1alpha1(hypervisor, connectionPool, &res); err != nil {
 		return nil, err
 	}
 	if err := res.RefreshCachedSpecs(); err != nil {

@@ -29,12 +29,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
 // ComponentReconciler reconciles a Component object
 type ComponentReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme         *runtime.Scheme
+	ConnectionPool infra.HypervisorConnectionPool
 }
 
 // Reconcile reconciles the component resources
@@ -68,7 +70,7 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
-	clusterReconciler, err := newClusterReconciler(ctx, r, cluster)
+	clusterReconciler, err := newClusterReconciler(ctx, r, cluster, &r.ConnectionPool)
 	if err != nil {
 		klog.Errorf("could not create a cluster reconciler: %v", err)
 		return ctrl.Result{RequeueAfter: time.Minute}, nil

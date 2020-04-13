@@ -35,6 +35,7 @@ import (
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/controllers"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -92,8 +93,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.ComponentReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		ConnectionPool: infra.HypervisorConnectionPool{},
 	}).SetupWithManager(mgr); err != nil {
 		klog.Error("could not set component reconciler controller")
 		os.Exit(1)

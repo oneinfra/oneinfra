@@ -606,9 +606,7 @@ func (hypervisor *Hypervisor) UploadFile(clusterName, componentName, hostPath, f
 func (hypervisor *Hypervisor) FileUpToDate(clusterName, componentName, hostPath, fileContents string) bool {
 	fileContentsSHA1 := fmt.Sprintf("%x", sha1.Sum([]byte(fileContents)))
 	if currentFileContentsSHA1, exists := hypervisor.Files[clusterName][componentName][hostPath]; exists {
-		if currentFileContentsSHA1 == fileContentsSHA1 {
-			return true
-		}
+		return currentFileContentsSHA1 == fileContentsSHA1
 	}
 	return false
 }

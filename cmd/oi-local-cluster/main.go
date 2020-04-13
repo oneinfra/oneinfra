@@ -66,7 +66,7 @@ func main() {
 						},
 						Action: func(c *cli.Context) error {
 							kubernetesVersion := c.String("kubernetes-version")
-							if len(kubernetesVersion) == 0 || kubernetesVersion == "default" {
+							if kubernetesVersion == "" || kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
 							return cluster.Create(c.String("name"), kubernetesVersion, c.Int("size-private"), c.Int("size-public"), c.Bool("remote"))

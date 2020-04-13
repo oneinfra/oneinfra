@@ -94,6 +94,9 @@ type EtcdServer struct {
 	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
 }
 
+// +kubebuilder:printcolumn:name="Kubernetes version",type=string,JSONPath=`.spec.kubernetesVersion`
+// +kubebuilder:printcolumn:name="API server endpoint",type=string,JSONPath=`.status.apiServerEndpoint`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 

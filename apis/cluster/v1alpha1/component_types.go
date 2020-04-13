@@ -55,6 +55,10 @@ type ComponentHostPortAllocation struct {
 	Port int    `json:"port,omitempty"`
 }
 
+// +kubebuilder:printcolumn:name="Cluster",type=string,JSONPath=`.spec.cluster`
+// +kubebuilder:printcolumn:name="Role",type=string,JSONPath=`.spec.role`
+// +kubebuilder:printcolumn:name="Hypervisor",type=string,JSONPath=`.spec.hypervisor`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 

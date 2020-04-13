@@ -108,6 +108,11 @@ type HypervisorPortAllocation struct {
 	Port      int    `json:"port,omitempty"`
 }
 
+// +kubebuilder:printcolumn:name="Public",type=boolean,JSONPath=`.spec.public`
+// +kubebuilder:printcolumn:name="IP Address",type=string,JSONPath=`.spec.ipAddress`
+// +kubebuilder:printcolumn:name="Port Low",type=integer,JSONPath=`.spec.portRange.low`
+// +kubebuilder:printcolumn:name="Port High",type=integer,JSONPath=`.spec.portRange.high`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 

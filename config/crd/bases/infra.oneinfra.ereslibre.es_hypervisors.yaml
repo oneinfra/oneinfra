@@ -8,6 +8,22 @@ metadata:
   creationTimestamp: null
   name: hypervisors.infra.oneinfra.ereslibre.es
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.public
+    name: Public
+    type: boolean
+  - JSONPath: .spec.ipAddress
+    name: IP Address
+    type: string
+  - JSONPath: .spec.portRange.low
+    name: Port Low
+    type: integer
+  - JSONPath: .spec.portRange.high
+    name: Port High
+    type: integer
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: infra.oneinfra.ereslibre.es
   names:
     kind: Hypervisor

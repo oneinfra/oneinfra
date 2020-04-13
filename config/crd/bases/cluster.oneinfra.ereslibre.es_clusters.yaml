@@ -8,6 +8,16 @@ metadata:
   creationTimestamp: null
   name: clusters.cluster.oneinfra.ereslibre.es
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.kubernetesVersion
+    name: Kubernetes version
+    type: string
+  - JSONPath: .status.apiServerEndpoint
+    name: API server endpoint
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: cluster.oneinfra.ereslibre.es
   names:
     kind: Cluster

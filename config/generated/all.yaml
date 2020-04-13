@@ -14,6 +14,16 @@ metadata:
   creationTimestamp: null
   name: clusters.cluster.oneinfra.ereslibre.es
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.kubernetesVersion
+    name: Kubernetes version
+    type: string
+  - JSONPath: .status.apiServerEndpoint
+    name: API server endpoint
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -241,6 +251,19 @@ metadata:
   creationTimestamp: null
   name: components.cluster.oneinfra.ereslibre.es
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.cluster
+    name: Cluster
+    type: string
+  - JSONPath: .spec.role
+    name: Role
+    type: string
+  - JSONPath: .spec.hypervisor
+    name: Hypervisor
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -367,6 +390,22 @@ metadata:
   creationTimestamp: null
   name: hypervisors.infra.oneinfra.ereslibre.es
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.public
+    name: Public
+    type: boolean
+  - JSONPath: .spec.ipAddress
+    name: IP Address
+    type: string
+  - JSONPath: .spec.portRange.low
+    name: Port Low
+    type: integer
+  - JSONPath: .spec.portRange.high
+    name: Port High
+    type: integer
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:

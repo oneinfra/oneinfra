@@ -38,8 +38,9 @@ type NodeJoinRequest struct {
 	ContainerRuntimeEndpoint string
 	ImageServiceEndpoint     string
 	KubernetesVersion        string
+	VPNEnabled               bool
 	VPNAddress               string
-	VPNPeer                  string
+	VPNPeers                 []string
 	KubeConfig               string
 	KubeletConfig            string
 	KubeletServerCertificate string
@@ -66,8 +67,9 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
 		ImageServiceEndpoint:     nodeJoinRequest.Spec.ImageServiceEndpoint,
 		KubernetesVersion:        nodeJoinRequest.Status.KubernetesVersion,
+		VPNEnabled:               nodeJoinRequest.Status.VPNEnabled,
 		VPNAddress:               nodeJoinRequest.Status.VPNAddress,
-		VPNPeer:                  nodeJoinRequest.Status.VPNPeer,
+		VPNPeers:                 nodeJoinRequest.Status.VPNPeers,
 		KubeConfig:               nodeJoinRequest.Status.KubeConfig,
 		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
 		KubeletServerCertificate: nodeJoinRequest.Status.KubeletServerCertificate,
@@ -101,8 +103,9 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
 			KubernetesVersion:        nodeJoinRequest.KubernetesVersion,
+			VPNEnabled:               nodeJoinRequest.VPNEnabled,
 			VPNAddress:               nodeJoinRequest.VPNAddress,
-			VPNPeer:                  nodeJoinRequest.VPNPeer,
+			VPNPeers:                 nodeJoinRequest.VPNPeers,
 			KubeConfig:               nodeJoinRequest.KubeConfig,
 			KubeletConfig:            nodeJoinRequest.KubeletConfig,
 			KubeletServerCertificate: nodeJoinRequest.KubeletServerCertificate,

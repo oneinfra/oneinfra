@@ -108,6 +108,11 @@ func (cluster *Cluster) fillNodeJoinRequestKubernetesVersion(nodeJoinRequest *no
 }
 
 func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	if cluster.VPN.Enabled == false {
+		nodeJoinRequest.VPNEnabled = false
+		return nil
+	}
+	nodeJoinRequest.VPNEnabled = true
 	vpnPeer, err := cluster.GenerateVPNPeer(fmt.Sprintf("worker-%s", nodeJoinRequest.Name))
 	if err != nil {
 		return err
@@ -125,7 +130,7 @@ func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *n
 	if err != nil {
 		return err
 	}
-	nodeJoinRequest.VPNPeer = ingressVPNPeer
+	nodeJoinRequest.VPNPeers = []string{ingressVPNPeer}
 	return nil
 }
 

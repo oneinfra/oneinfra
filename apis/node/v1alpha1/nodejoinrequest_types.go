@@ -55,6 +55,10 @@ type NodeJoinRequestStatus struct {
 	// the provided SymmetricKey in the request spec. Base64 encoded.
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 
+	// VPNEnabled contains whether this cluster has VPN enabled. Filled
+	// by `oneinfra`, not ciphered.
+	VPNEnabled bool `json:"vpnEnabled"`
+
 	// VPNAddress contains the VPN address of this node. Filled by
 	// `oneinfra`, and ciphered using the provided SymmetricKey in the
 	// request spec. Base64 encoded.
@@ -63,7 +67,7 @@ type NodeJoinRequestStatus struct {
 	// VPNPeer contains the VPN address of the VPN peer of this
 	// node. Filled by `oneinfra`, and ciphered using the provided
 	// SymmetricKey in the rqeuest spec. Base64 encoded.
-	VPNPeer string `json:"vpnPeer,omitempty"`
+	VPNPeers []string `json:"vpnPeer,omitempty"`
 
 	// KubeConfig has the kubeconfig contents that the kubelet should
 	// use. Filled by `oneinfra`, and ciphered using the provided

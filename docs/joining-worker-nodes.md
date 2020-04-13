@@ -59,7 +59,7 @@ actions that will take place:
     symmetric key in the spec:
 
     * Kubernetes version
-    * VPN address and peers
+    * VPN address and peers, if the VPN is enabled for this cluster
     * Kubelet kubeconfig contents
     * Kubelet config contents
     * Kubelet server certificate and private key

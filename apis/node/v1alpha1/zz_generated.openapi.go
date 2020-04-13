@@ -112,11 +112,19 @@ properties:
           and ciphered using the provided SymmetricKey in the request spec. Base64
           encoded.
         type: string
+      vpnEnabled:
+        description: VPNEnabled contains whether this cluster has VPN enabled. Filled
+          by "oneinfra", not ciphered.
+        type: boolean
       vpnPeer:
         description: VPNPeer contains the VPN address of the VPN peer of this node.
           Filled by "oneinfra", and ciphered using the provided SymmetricKey in the
           rqeuest spec. Base64 encoded.
-        type: string
+        items:
+          type: string
+        type: array
+    required:
+    - vpnEnabled
     type: object
 type: object`
 )

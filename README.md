@@ -72,14 +72,13 @@ $ oi-local-cluster cluster create | \
     oi component inject --name controlplane2 --role control-plane | \
     oi component inject --name controlplane3 --role control-plane | \
     oi component inject --name loadbalancer --role control-plane-ingress | \
-    oi reconcile | \
-    tee ha-cluster-manifests.conf | \
-    oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
+    oi reconcile > ha-cluster-manifests.conf
 ```
 
 And access it:
 
 ```console
+$ cat ha-cluster-manifests.conf | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
 $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
@@ -128,12 +127,12 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
     ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/simple-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
-    $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster-kubeconfig.conf
     ```
 
 5. And access it:
 
     ```console
+    $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster-kubeconfig.conf
     $ kubectl --kubeconfig=simple-cluster-kubeconfig.conf cluster-info
     Kubernetes master is running at https://172.17.0.5:30000
     ```
@@ -144,12 +143,12 @@ comprised by three control plane instances:
     ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha1/config/samples/ha-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
-    $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
     ```
 
     1. And access it:
 
         ```console
+        $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
         $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
         Kubernetes master is running at https://172.17.0.5:30002
         ```

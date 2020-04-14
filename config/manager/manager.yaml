@@ -27,7 +27,7 @@ spec:
         - /oi-manager
         args:
         - --enable-leader-election
-        image: oneinfra/oi-manager:20.04.0-alpha2
+        image: oneinfra/oi-manager:20.04.0-alpha3
         name: manager
         resources:
           limits:

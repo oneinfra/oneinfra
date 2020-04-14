@@ -844,7 +844,7 @@ spec:
         - --enable-leader-election
         command:
         - /oi-manager
-        image: oneinfra/oi-manager:20.04.0-alpha1
+        image: oneinfra/oi-manager:20.04.0-alpha2
         name: manager
         ports:
         - containerPort: 9443

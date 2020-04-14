@@ -19,33 +19,49 @@ package controllers
 import (
 	"context"
 
+	"k8s.io/klog"
+
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
+	clusterreconciler "github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
-	"k8s.io/klog"
 	clientapi "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func newClusterReconciler(ctx context.Context, client clientapi.Client, cluster *cluster.Cluster, hypervisorConnectionPool *infra.HypervisorConnectionPool, components ...*component.Component) (*reconciler.ClusterReconciler, error) {
+func newComponentReconciler(ctx context.Context, client clientapi.Client, cluster *cluster.Cluster, hypervisorConnectionPool *infra.HypervisorConnectionPool, components ...*component.Component) (*componentreconciler.ComponentReconciler, error) {
 	hypervisorMap, err := listHypervisors(ctx, client, hypervisorConnectionPool)
 	if err != nil {
 		klog.Errorf("could not list hypervisors: %v", err)
 		return nil, err
 	}
-	componentList := components
-	if len(components) == 0 {
-		var err error
-		componentList, err = listClusterComponents(ctx, client, cluster.Namespace, cluster.Name)
-		if err != nil {
-			klog.Errorf("could not list components: %v", err)
-			return nil, err
-		}
+	componentList, err := listClusterComponents(ctx, client, cluster.Namespace, cluster.Name)
+	if err != nil {
+		klog.Errorf("could not list components: %v", err)
+		return nil, err
 	}
-	return &reconciler.ClusterReconciler{
-		HypervisorMap: hypervisorMap,
-		ClusterMap:    clusterapi.Map{cluster.Name: cluster},
-		ComponentList: componentList,
-	}, nil
+	return componentreconciler.NewComponentReconciler(
+		hypervisorMap,
+		clusterapi.Map{cluster.Name: cluster},
+		componentList,
+	), nil
+}
+
+func newClusterReconciler(ctx context.Context, client clientapi.Client, cluster *clusterapi.Cluster) (*clusterreconciler.ClusterReconciler, error) {
+	hypervisorMap, err := listHypervisors(ctx, client, nil)
+	if err != nil {
+		klog.Errorf("could not list hypervisors: %v", err)
+		return nil, err
+	}
+	componentList, err := listClusterComponents(ctx, client, cluster.Namespace, cluster.Name)
+	if err != nil {
+		klog.Errorf("could not list components: %v", err)
+		return nil, err
+	}
+	return clusterreconciler.NewClusterReconciler(
+		hypervisorMap,
+		clusterapi.Map{cluster.Name: cluster},
+		componentList,
+	), nil
 }

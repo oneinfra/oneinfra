@@ -24,8 +24,10 @@ import (
 
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
+	clusterreconciler "github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
+	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 	"github.com/pkg/errors"
 )
 
@@ -40,14 +42,19 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 	clusters := manifests.RetrieveClusters(string(stdin))
 	components := manifests.RetrieveComponents(string(stdin))
 
-	clusterReconciler := reconciler.NewClusterReconciler(hypervisors, clusters, components)
-
-	var reconcileErrs reconciler.ReconcileErrors
+	componentReconciler := componentreconciler.NewComponentReconciler(hypervisors, clusters, components)
+	clusterReconciler := clusterreconciler.NewClusterReconciler(hypervisors, clusters, components)
+	var componentReconcileErrs, clusterReconcileErrs reconciler.ReconcileErrors
 	for i := 0; i < maxRetries; i++ {
-		if reconcileErrs = clusterReconciler.Reconcile(); reconcileErrs == nil {
+		if componentReconcileErrs = componentReconciler.Reconcile(); componentReconcileErrs != nil {
+			klog.V(2).Infof("failed to reconcile some components: %v, retrying (%d/%d) after %s of wait time", componentReconcileErrs, i+1, maxRetries, retryWaitTime)
+		}
+		if clusterReconcileErrs = clusterReconciler.Reconcile(); clusterReconcileErrs != nil {
+			klog.V(2).Infof("failed to reconcile some clusters: %v, retrying (%d/%d) after %s of wait time", clusterReconcileErrs, i+1, maxRetries, retryWaitTime)
+		}
+		if componentReconcileErrs == nil && clusterReconcileErrs == nil {
 			break
 		}
-		klog.V(2).Infof("failed to reconcile some resources: %v, retrying (%d/%d) after %s of wait time", reconcileErrs, i+1, maxRetries, retryWaitTime)
 		time.Sleep(retryWaitTime)
 	}
 
@@ -57,8 +64,8 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 	}
 	fmt.Print(clusterSpecs)
 
-	if reconcileErrs != nil {
-		return errors.Wrap(reconcileErrs, "failed to reconcile some resources")
+	if componentReconcileErrs != nil || clusterReconcileErrs != nil {
+		return errors.New("failed to reconcile some resources")
 	}
 
 	return nil

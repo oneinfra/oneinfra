@@ -17,11 +17,17 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
+	"time"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -39,8 +45,53 @@ type ClusterReconciler struct {
 
 // Reconcile reconciles the cluster resources
 func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	// TODO: cluster-wide changes will be reconciled here
-	return ctrl.Result{}, nil
+	ctx := context.Background()
+
+	cluster, err := getCluster(ctx, r, req)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		klog.Errorf("could not get cluster %q: %v", req, err)
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
+	}
+
+	clusterReconciler, err := newClusterReconciler(ctx, r, cluster)
+	if err != nil {
+		klog.Errorf("could not create a cluster reconciler: %v", err)
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
+	}
+	clusterMap := clusterReconciler.ClusterMap()
+	cluster = clusterMap[cluster.Name]
+
+	res := ctrl.Result{}
+
+	if cluster.DeletionTimestamp == nil {
+		if err := clusterReconciler.Reconcile(cluster); err != nil {
+			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
+			res = ctrl.Result{Requeue: true}
+		}
+	} else {
+		if err := clusterReconciler.ReconcileDeletion(cluster); err != nil {
+			klog.Errorf("failed to reconcile cluster %q deletion: %v", req, err)
+			res = ctrl.Result{Requeue: true}
+		} else {
+			if cluster != nil {
+				if err := r.Update(ctx, cluster.Export()); err != nil {
+					klog.Errorf("could not update cluster %q: %v", cluster.Name, err)
+					res = ctrl.Result{Requeue: true}
+				}
+			} else {
+				res = ctrl.Result{Requeue: true}
+			}
+		}
+	}
+
+	if err := reconciler.UpdateResources(ctx, clusterReconciler, r); err != nil {
+		res = ctrl.Result{Requeue: true}
+	}
+
+	return res, nil
 }
 
 // SetupWithManager sets up the cluster reconciler with mgr manager

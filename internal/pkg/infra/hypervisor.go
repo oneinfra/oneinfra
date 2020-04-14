@@ -702,7 +702,7 @@ func (hypervisor *Hypervisor) FreePort(clusterName, componentName string) error 
 		}
 	}
 	if hypervisorPortAllocation == nil {
-		return errors.Errorf("could not find port allocation for cluster %q and component %q", clusterName, componentName)
+		return nil
 	}
 	hypervisor.allocatedPorts = newAllocatedPorts
 	if hypervisor.freedPorts == nil {

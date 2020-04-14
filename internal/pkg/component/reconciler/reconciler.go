@@ -17,82 +17,169 @@ limitations under the License.
 package reconciler
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+
 	"k8s.io/klog"
 
+	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/component/components"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
-	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 )
 
-// PreReconcile pre-reconciles the component
-func PreReconcile(inquirer inquirer.ReconcilerInquirer) error {
-	klog.V(1).Infof("pre-reconciling component %q with role %q", inquirer.Component().Name, inquirer.Component().Role)
-	component := retrieveComponent(inquirer)
-	if component == nil {
-		return errors.Errorf("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
-	}
-	return component.PreReconcile(inquirer)
+// ComponentReconciler represents a component reconciler
+type ComponentReconciler struct {
+	hypervisorMap infra.HypervisorMap
+	clusterMap    clusterapi.Map
+	componentList componentapi.List
 }
 
-// Reconcile reconciles the component
-func Reconcile(inquirer inquirer.ReconcilerInquirer) error {
-	klog.V(1).Infof("reconciling component %q with role %q", inquirer.Component().Name, inquirer.Component().Role)
-	component := retrieveComponent(inquirer)
-	if component == nil {
-		return errors.Errorf("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
+// NewComponentReconciler creates a component reconciler with the provided hypervisors, clusters and components
+func NewComponentReconciler(hypervisorMap infra.HypervisorMap, clusterMap clusterapi.Map, componentList componentapi.List) *ComponentReconciler {
+	return &ComponentReconciler{
+		hypervisorMap: hypervisorMap,
+		clusterMap:    clusterMap,
+		componentList: componentList,
 	}
-	inquirer.Component().Conditions.SetCondition(
-		componentapi.ReconcileStarted,
-		conditions.ConditionTrue,
-	)
-	res := component.Reconcile(inquirer)
-	if res == nil {
-		inquirer.Component().Conditions.SetCondition(
-			componentapi.ReconcileSucceeded,
+}
+
+// PreReconcile pre-reconciles the provided components
+func (componentReconciler *ComponentReconciler) PreReconcile(componentsToPreReconcile ...*componentapi.Component) reconciler.ReconcileErrors {
+	if len(componentsToPreReconcile) == 0 {
+		componentsToPreReconcile = componentReconciler.componentList
+	}
+	reconcileErrors := reconciler.ReconcileErrors{}
+	for _, component := range componentsToPreReconcile {
+		klog.V(1).Infof("pre-reconciling component %q with role %q", component.Name, component.Role)
+		componentToReconcile := retrieveComponent(component)
+		if componentToReconcile == nil {
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				errors.New("could not retrieve a specific component instance"),
+			)
+			continue
+		}
+		err := componentToReconcile.PreReconcile(
+			&reconciler.Inquirer{
+				ReconciledComponent: component,
+				Reconciler:          componentReconciler,
+			},
+		)
+		if err != nil {
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				err,
+			)
+		}
+	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
+}
+
+// Reconcile reconciles the provided components
+func (componentReconciler *ComponentReconciler) Reconcile(componentsToReconcile ...*componentapi.Component) reconciler.ReconcileErrors {
+	if len(componentsToReconcile) == 0 {
+		componentsToReconcile = componentReconciler.componentList
+	}
+	reconcileErrors := reconciler.ReconcileErrors{}
+	for _, component := range componentsToReconcile {
+		klog.V(1).Infof("reconciling component %q with role %q", component.Name, component.Role)
+		componentToReconcile := retrieveComponent(component)
+		if componentToReconcile == nil {
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				errors.New("could not retrieve a specific component instance"),
+			)
+			continue
+		}
+		component.Conditions.SetCondition(
+			componentapi.ReconcileStarted,
 			conditions.ConditionTrue,
 		)
-	} else {
-		inquirer.Component().Conditions.SetCondition(
-			componentapi.ReconcileSucceeded,
-			conditions.ConditionFalse,
+		err := componentToReconcile.Reconcile(
+			&reconciler.Inquirer{
+				ReconciledComponent: component,
+				Reconciler:          componentReconciler,
+			},
 		)
+		if err == nil {
+			component.Conditions.SetCondition(
+				componentapi.ReconcileSucceeded,
+				conditions.ConditionTrue,
+			)
+		} else {
+			component.Conditions.SetCondition(
+				componentapi.ReconcileSucceeded,
+				conditions.ConditionFalse,
+			)
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				err,
+			)
+		}
 	}
-	return res
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
-// ReconcileDeletion reconciles the component deletion
-func ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
-	klog.V(1).Infof("reconciling component %q with role %q deletion", inquirer.Component().Name, inquirer.Component().Role)
-	component := retrieveComponent(inquirer)
-	if component == nil {
-		return errors.Errorf("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
-	}
-	var res error
-	if inquirer.Component().HypervisorName != "" {
-		res = component.ReconcileDeletion(inquirer)
-	} else {
-		res = nil
-	}
-	if res == nil {
-		inquirer.Component().Finalizers = utils.RemoveElementsFromList(
-			inquirer.Component().Finalizers,
-			constants.OneInfraCleanupFinalizer,
+// ReconcileDeletion reconciles the deletion of the provided components
+func (componentReconciler *ComponentReconciler) ReconcileDeletion(componentsToDelete ...*componentapi.Component) reconciler.ReconcileErrors {
+	reconcileErrors := reconciler.ReconcileErrors{}
+	for _, component := range componentsToDelete {
+		klog.V(1).Infof("reconciling component %q deletion with role %q", component.Name, component.Role)
+		componentToReconcile := retrieveComponent(component)
+		if componentToReconcile == nil {
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				errors.New("could not retrieve a specific component instance"),
+			)
+			continue
+		}
+		err := componentToReconcile.ReconcileDeletion(
+			&reconciler.Inquirer{
+				ReconciledComponent: component,
+				Reconciler:          componentReconciler,
+			},
 		)
+		if err == nil {
+			component.Finalizers = utils.RemoveElementsFromList(
+				component.Finalizers,
+				constants.OneInfraCleanupFinalizer,
+			)
+		} else {
+			reconcileErrors.AddComponentError(
+				component.ClusterName,
+				component.Name,
+				err,
+			)
+		}
 	}
-	return res
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
-func retrieveComponent(inquirer inquirer.ReconcilerInquirer) components.Component {
-	switch inquirer.Component().Role {
+func retrieveComponent(component *componentapi.Component) components.Component {
+	switch component.Role {
 	case componentapi.ControlPlaneRole:
 		return &components.ControlPlane{}
 	case componentapi.ControlPlaneIngressRole:
 		return &components.ControlPlaneIngress{}
 	}
-	klog.V(1).Infof("could not retrieve a specific component instance for component %q", inquirer.Component().Name)
+	klog.V(1).Infof("could not retrieve a specific component instance for component %q", component.Name)
 	return nil
 }

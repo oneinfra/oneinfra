@@ -52,7 +52,8 @@ func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterName string) bo
 	return len(clusterErrors) == 0
 }
 
-func (reconcileErrors ReconcileErrors) addClusterError(clusterName string, err error) {
+// AddClusterError adds a cluster-level error
+func (reconcileErrors ReconcileErrors) AddClusterError(clusterName string, err error) {
 	reconcileErrors.ensureClusterEntry(clusterName)
 	reconcileErrors[clusterName] = append(
 		reconcileErrors[clusterName],
@@ -60,7 +61,8 @@ func (reconcileErrors ReconcileErrors) addClusterError(clusterName string, err e
 	)
 }
 
-func (reconcileErrors ReconcileErrors) addComponentError(clusterName, componentName string, err error) {
+// AddComponentError adds a component-level error
+func (reconcileErrors ReconcileErrors) AddComponentError(clusterName, componentName string, err error) {
 	reconcileErrors.ensureClusterEntry(clusterName)
 	reconcileErrors[clusterName] = append(
 		reconcileErrors[clusterName],

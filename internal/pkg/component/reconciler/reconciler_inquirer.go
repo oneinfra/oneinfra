@@ -22,17 +22,17 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 )
 
-// HypervisorMap returns the hypervisor map known to this cluster reconciler
-func (clusterReconciler *ClusterReconciler) HypervisorMap() infra.HypervisorMap {
-	return clusterReconciler.hypervisorMap
+// HypervisorMap returns the hypervisor map known to this component reconciler
+func (componentReconciler *ComponentReconciler) HypervisorMap() infra.HypervisorMap {
+	return componentReconciler.hypervisorMap
 }
 
-// ClusterMap returns the cluster map known to this cluster reconciler
-func (clusterReconciler *ClusterReconciler) ClusterMap() clusterapi.Map {
-	return clusterReconciler.clusterMap
+// ClusterMap returns the cluster map known to this component reconciler
+func (componentReconciler *ComponentReconciler) ClusterMap() clusterapi.Map {
+	return componentReconciler.clusterMap
 }
 
-// ComponentList returns the component list known to this cluster reconciler
-func (clusterReconciler *ClusterReconciler) ComponentList() componentapi.List {
-	return clusterReconciler.componentList
+// ComponentList returns the component list known to this component reconciler
+func (componentReconciler *ComponentReconciler) ComponentList() componentapi.List {
+	return componentReconciler.componentList
 }

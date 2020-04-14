@@ -23,6 +23,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,6 +31,7 @@ import (
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 )
 
 // ComponentReconciler reconciles a Component object
@@ -64,19 +66,11 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
 		}
 		klog.Errorf("could not get cluster %q: %v", component.ClusterName, err)
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
-
-	clusterReconciler, err := newClusterReconciler(ctx, r, cluster, &r.ConnectionPool)
-	if err != nil {
-		klog.Errorf("could not create a cluster reconciler: %v", err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
-	}
-
-	res := ctrl.Result{}
 
 	if component.DeletionTimestamp == nil {
 		// If the owning cluster has uninitialized certificates it's not
@@ -84,34 +78,55 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if cluster.HasUninitializedCertificates() {
 			return ctrl.Result{Requeue: true}, nil
 		}
-		if err := clusterReconciler.PreReconcile(); err != nil {
+		err := retry.RetryOnConflict(
+			retry.DefaultRetry,
+			func() error {
+				componentReconciler, err := newComponentReconciler(ctx, r, cluster, &r.ConnectionPool)
+				if err != nil {
+					klog.Errorf("could not create a component reconciler: %v", err)
+					return err
+				}
+				component = componentReconciler.ComponentList().WithName(component.Name)
+				if err := componentReconciler.PreReconcile(component); err != nil {
+					return err
+				}
+				return reconciler.UpdateResources(ctx, componentReconciler, r)
+			},
+		)
+		if err != nil {
 			return ctrl.Result{Requeue: true}, nil
 		}
-		if err := clusterReconciler.UpdateResources(ctx, r); err != nil {
-			return ctrl.Result{Requeue: true}, nil
-		}
-		if err := clusterReconciler.Reconcile(); err != nil {
-			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
+	}
+
+	componentReconciler, err := newComponentReconciler(ctx, r, cluster, &r.ConnectionPool)
+	if err != nil {
+		klog.Errorf("could not create a component reconciler: %v", err)
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
+	}
+
+	res := ctrl.Result{}
+
+	if component.DeletionTimestamp == nil {
+		if err := componentReconciler.Reconcile(component); err != nil {
+			klog.Errorf("failed to reconcile component %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
 		}
 	} else {
-		component := clusterReconciler.ComponentList.WithName(component.Name)
-		if err := clusterReconciler.ReconcileDeletions(component); err != nil {
-			klog.Errorf("failed to reconcile component deletion %q in cluster %q: %v", req, cluster.Name, err)
-			res = ctrl.Result{Requeue: true}
-		} else {
-			if component != nil {
-				if err := r.Update(ctx, component.Export()); err != nil {
-					klog.Errorf("could not update component %q: %v", component.Name, err)
-					res = ctrl.Result{Requeue: true}
-				}
+		for {
+			if err := componentReconciler.ReconcileDeletion(component); err != nil {
+				klog.Errorf("failed to reconcile component deletion %q in cluster %q: %v", req, cluster.Name, err)
+				res = ctrl.Result{Requeue: true}
 			} else {
+				if err := r.Update(ctx, component.Export()); err == nil {
+					break
+				}
+				klog.Errorf("could not update component %q: %v", component.Name, err)
 				res = ctrl.Result{Requeue: true}
 			}
 		}
 	}
 
-	if err := clusterReconciler.UpdateResources(ctx, r); err != nil {
+	if err := reconciler.UpdateResources(ctx, componentReconciler, r); err != nil {
 		res = ctrl.Result{Requeue: true}
 	}
 

@@ -22,7 +22,7 @@ import (
 
 const (
 	// DefaultKeyBitSize is the default key bit size
-	DefaultKeyBitSize = 1024
+	DefaultKeyBitSize = 4096
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
 	// OneInfraJoinConfigMap is the name of the ConfigMap used to

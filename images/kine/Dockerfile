@@ -28,9 +28,7 @@ RUN echo "Installing dependencies" \
 
 
 FROM ubuntu:18.04
-
 COPY --from=builder /root/go/bin/kine /usr/local/bin/
-
 RUN echo "Installing dependencies" \
   && apt-get update -qq \
   && apt-get install --no-install-recommends -qq -y \

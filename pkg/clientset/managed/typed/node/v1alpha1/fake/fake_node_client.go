@@ -28,8 +28,8 @@ type FakeNodeV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeNodeV1alpha1) NodeJoinRequests(namespace string) v1alpha1.NodeJoinRequestInterface {
-	return &FakeNodeJoinRequests{c, namespace}
+func (c *FakeNodeV1alpha1) NodeJoinRequests() v1alpha1.NodeJoinRequestInterface {
+	return &FakeNodeJoinRequests{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -91,8 +91,7 @@ func createKubernetesClient(apiServerEndpoint, caCertificate, token string) (cli
 func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string) error {
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      nodename,
-			Namespace: constants.OneInfraNamespace,
+			Name: nodename,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
 			SymmetricKey:             symmetricKey,
@@ -103,7 +102,6 @@ func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodenam
 	}
 	err := client.
 		Post().
-		Namespace(constants.OneInfraNamespace).
 		Resource("nodejoinrequests").
 		Body(&nodeJoinRequest).
 		Do().
@@ -126,7 +124,6 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 			nodeJoinRequest := nodev1alpha1.NodeJoinRequest{}
 			err := client.
 				Get().
-				Namespace(constants.OneInfraNamespace).
 				Resource("nodejoinrequests").
 				Name(nodename).
 				Do().

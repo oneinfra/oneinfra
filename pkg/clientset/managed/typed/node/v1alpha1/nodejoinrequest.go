@@ -32,7 +32,7 @@ import (
 // NodeJoinRequestsGetter has a method to return a NodeJoinRequestInterface.
 // A group's client should implement this interface.
 type NodeJoinRequestsGetter interface {
-	NodeJoinRequests(namespace string) NodeJoinRequestInterface
+	NodeJoinRequests() NodeJoinRequestInterface
 }
 
 // NodeJoinRequestInterface has methods to work with NodeJoinRequest resources.
@@ -51,14 +51,12 @@ type NodeJoinRequestInterface interface {
 // nodeJoinRequests implements NodeJoinRequestInterface
 type nodeJoinRequests struct {
 	client rest.Interface
-	ns     string
 }
 
 // newNodeJoinRequests returns a NodeJoinRequests
-func newNodeJoinRequests(c *NodeV1alpha1Client, namespace string) *nodeJoinRequests {
+func newNodeJoinRequests(c *NodeV1alpha1Client) *nodeJoinRequests {
 	return &nodeJoinRequests{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -66,7 +64,6 @@ func newNodeJoinRequests(c *NodeV1alpha1Client, namespace string) *nodeJoinReque
 func (c *nodeJoinRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -83,7 +80,6 @@ func (c *nodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJoinR
 	}
 	result = &v1alpha1.NodeJoinRequestList{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -100,7 +96,6 @@ func (c *nodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	}
 	opts.Watch = true
 	return c.client.Get().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -111,7 +106,6 @@ func (c *nodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 func (c *nodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		Body(nodeJoinRequest).
 		Do().
@@ -123,7 +117,6 @@ func (c *nodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (re
 func (c *nodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Put().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		Name(nodeJoinRequest.Name).
 		Body(nodeJoinRequest).
@@ -135,7 +128,6 @@ func (c *nodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (re
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
 func (c *nodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		Name(name).
 		Body(options).
@@ -150,7 +142,6 @@ func (c *nodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptio
 		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -163,7 +154,6 @@ func (c *nodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptio
 func (c *nodeJoinRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Patch(pt).
-		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		SubResource(subresources...).
 		Name(name).

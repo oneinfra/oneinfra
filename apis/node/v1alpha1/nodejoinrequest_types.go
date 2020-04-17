@@ -107,6 +107,7 @@ type NodeJoinRequestStatus struct {
 
 // +genclient
 // +genclient:noStatus
+// +genclient:nonNamespaced
 // +kubebuilder:object:root=true
 
 // NodeJoinRequest is the Schema for the nodejoinrequests API

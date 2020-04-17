@@ -70,7 +70,7 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRD(client apiextensionsclients
 				Kind:       "NodeJoinRequest",
 				ListKind:   "NodeJoinRequestList",
 			},
-			Scope: extensionsv1.NamespaceScoped,
+			Scope: extensionsv1.ClusterScoped,
 			Versions: []extensionsv1.CustomResourceDefinitionVersion{
 				{
 					Name:    nodev1alpha1.GroupVersion.Version,
@@ -112,7 +112,7 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRDLegacy(client apiextensionsc
 				Kind:       "NodeJoinRequest",
 				ListKind:   "NodeJoinRequestList",
 			},
-			Scope: extensionsv1beta1.NamespaceScoped,
+			Scope: extensionsv1beta1.ClusterScoped,
 			Validation: &extensionsv1beta1.CustomResourceValidation{
 				OpenAPIV3Schema: &openAPISchema,
 			},

@@ -31,7 +31,6 @@ import (
 // FakeNodeJoinRequests implements NodeJoinRequestInterface
 type FakeNodeJoinRequests struct {
 	Fake *FakeNodeV1alpha1
-	ns   string
 }
 
 var nodejoinrequestsResource = schema.GroupVersionResource{Group: "node", Version: "v1alpha1", Resource: "nodejoinrequests"}
@@ -41,8 +40,7 @@ var nodejoinrequestsKind = schema.GroupVersionKind{Group: "node", Version: "v1al
 // Get takes name of the nodeJoinRequest, and returns the corresponding nodeJoinRequest object, and an error if there is any.
 func (c *FakeNodeJoinRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(nodejoinrequestsResource, c.ns, name), &v1alpha1.NodeJoinRequest{})
-
+		Invokes(testing.NewRootGetAction(nodejoinrequestsResource, name), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -52,8 +50,7 @@ func (c *FakeNodeJoinRequests) Get(name string, options v1.GetOptions) (result *
 // List takes label and field selectors, and returns the list of NodeJoinRequests that match those selectors.
 func (c *FakeNodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJoinRequestList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(nodejoinrequestsResource, nodejoinrequestsKind, c.ns, opts), &v1alpha1.NodeJoinRequestList{})
-
+		Invokes(testing.NewRootListAction(nodejoinrequestsResource, nodejoinrequestsKind, opts), &v1alpha1.NodeJoinRequestList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -74,15 +71,13 @@ func (c *FakeNodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJ
 // Watch returns a watch.Interface that watches the requested nodeJoinRequests.
 func (c *FakeNodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(nodejoinrequestsResource, c.ns, opts))
-
+		InvokesWatch(testing.NewRootWatchAction(nodejoinrequestsResource, opts))
 }
 
 // Create takes the representation of a nodeJoinRequest and creates it.  Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
 func (c *FakeNodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(nodejoinrequestsResource, c.ns, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
-
+		Invokes(testing.NewRootCreateAction(nodejoinrequestsResource, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -92,8 +87,7 @@ func (c *FakeNodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest)
 // Update takes the representation of a nodeJoinRequest and updates it. Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
 func (c *FakeNodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(nodejoinrequestsResource, c.ns, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
-
+		Invokes(testing.NewRootUpdateAction(nodejoinrequestsResource, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -103,14 +97,13 @@ func (c *FakeNodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest)
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
 func (c *FakeNodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(nodejoinrequestsResource, c.ns, name), &v1alpha1.NodeJoinRequest{})
-
+		Invokes(testing.NewRootDeleteAction(nodejoinrequestsResource, name), &v1alpha1.NodeJoinRequest{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeNodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(nodejoinrequestsResource, c.ns, listOptions)
+	action := testing.NewRootDeleteCollectionAction(nodejoinrequestsResource, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.NodeJoinRequestList{})
 	return err
@@ -119,8 +112,7 @@ func (c *FakeNodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listO
 // Patch applies the patch and returns the patched nodeJoinRequest.
 func (c *FakeNodeJoinRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(nodejoinrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.NodeJoinRequest{})
-
+		Invokes(testing.NewRootPatchSubresourceAction(nodejoinrequestsResource, name, pt, data, subresources...), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
 		return nil, err
 	}

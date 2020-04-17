@@ -41,7 +41,6 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 	nodeJoinRequestList := nodev1alpha1.NodeJoinRequestList{}
 	err = client.
 		Get().
-		Namespace(constants.OneInfraNamespace).
 		Resource("nodejoinrequests").
 		Do().
 		Into(&nodeJoinRequestList)
@@ -84,7 +83,6 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 		}
 		err = client.
 			Put().
-			Namespace(constants.OneInfraNamespace).
 			Resource("nodejoinrequests").
 			Name(nodeJoinRequest.Name).
 			SubResource("status").

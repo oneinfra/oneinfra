@@ -34,8 +34,8 @@ type NodeV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *NodeV1alpha1Client) NodeJoinRequests(namespace string) NodeJoinRequestInterface {
-	return newNodeJoinRequests(c, namespace)
+func (c *NodeV1alpha1Client) NodeJoinRequests() NodeJoinRequestInterface {
+	return newNodeJoinRequests(c)
 }
 
 // NewForConfig creates a new NodeV1alpha1Client for the given config.

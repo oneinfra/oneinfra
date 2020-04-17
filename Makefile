@@ -53,7 +53,7 @@ run: generate fmt vet manifests
 	go run cmd/oi-manager/main.go -verbosity 10
 
 # Run against a kind cluster with webhooks set up with generated certificates
-run-kind: kind run
+run-kind: kind-webhook-certs kind kind-deploy run
 
 # Install CRDs into a cluster
 install: manifests
@@ -128,7 +128,7 @@ e2e-remote: oi oi-local-cluster
 create-fake-worker:
 	./scripts/create-fake-worker.sh
 
-webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
+kind-webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
 
 $(TEST_WEBHOOK_CERTS_DIR):
 	mkdir -p $(TEST_WEBHOOK_CERTS_DIR)
@@ -148,8 +148,10 @@ $(TEST_WEBHOOK_CERTS_DIR)/tls.csr: $(TEST_WEBHOOK_CERTS_DIR)/tls.key
 $(TEST_WEBHOOK_CERTS_DIR)/tls.crt: $(TEST_WEBHOOK_CERTS_DIR)/tls.csr $(TEST_WEBHOOK_CERTS_DIR)/ca.crt $(TEST_WEBHOOK_CERTS_DIR)/ca.key
 	openssl x509 -req -in $(TEST_WEBHOOK_CERTS_DIR)/tls.csr -CA $(TEST_WEBHOOK_CERTS_DIR)/ca.crt -CAkey $(TEST_WEBHOOK_CERTS_DIR)/ca.key -CAcreateserial -out $(TEST_WEBHOOK_CERTS_DIR)/tls.crt -days 3650 -sha256
 
-kind: webhook-certs
+kind:
 	kind create cluster --name oi-test-cluster --config .kind/config.yaml
+
+kind-deploy:
 	./.kind/scripts/write-runtime-patches.sh
 	kubectl apply -k .kind/kustomize
 

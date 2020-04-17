@@ -135,7 +135,15 @@ func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *n
 }
 
 func (cluster *Cluster) fillNodeJoinRequestKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	kubeConfig, err := cluster.KubeConfigWithEndpoint(nodeJoinRequest.APIServerEndpoint, fmt.Sprintf("system:node:%s", nodeJoinRequest.Name), []string{"system:nodes"})
+	apiServerEndpoint := nodeJoinRequest.APIServerEndpoint
+	if apiServerEndpoint == "" {
+		apiServerEndpoint = cluster.APIServerEndpoint
+	}
+	kubeConfig, err := cluster.KubeConfigWithEndpoint(
+		apiServerEndpoint,
+		fmt.Sprintf("system:node:%s", nodeJoinRequest.Name),
+		[]string{"system:nodes"},
+	)
 	if err != nil {
 		return err
 	}

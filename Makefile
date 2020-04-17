@@ -40,6 +40,10 @@ oi-local-cluster: go-generate
 oi-releaser: oi
 	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
 
+clientset-generate:
+	rm -rf pkg/clientset
+	client-gen --input-base=github.com/oneinfra/oneinfra/apis --input "cluster/v1alpha1" -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg -n clientset
+
 pipelines: oi-releaser
 	oi-releaser pipelines test dump > .azure-pipelines/test.yml
 	oi-releaser pipelines release dump > .azure-pipelines/release.yml

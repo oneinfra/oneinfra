@@ -107,6 +107,7 @@ type EtcdServer struct {
 	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
 }
 
+// +genclient
 // +kubebuilder:printcolumn:name="Kubernetes version",type=string,JSONPath=`.spec.kubernetesVersion`
 // +kubebuilder:printcolumn:name="API server endpoint",type=string,JSONPath=`.status.apiServerEndpoint`
 // +kubebuilder:printcolumn:name="VPN",type=boolean,JSONPath=`.spec.vpn.enabled`

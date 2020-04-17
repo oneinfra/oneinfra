@@ -24,6 +24,7 @@ public cloud.
     (e.g. workers behind several NAT levels), or among them
   * CNI overlay will be set on top of the VPN tunnel
 
+
 # Non-goals
 
 * Create or manage infrastructure in any way
@@ -33,6 +34,7 @@ public cloud.
 * Perform any kind of worker node management
   * The only exception is the joining process -- it's a oneinfra goal
     to make worker join process as easy and secure as possible
+
 
 # Components
 
@@ -44,10 +46,12 @@ An [hypervisor](hypervisors.md) is a physical or virtual machine where
 Hypervisors are user provided in the form of a CRI endpoint to connect
 to.
 
+
 ### Public and private hypervisors
 
 `oneinfra` makes the differentiation between public and private
 hypervisors.
+
 
 #### Public hypervisors
 
@@ -60,6 +64,7 @@ should have an interface inside a public network. They should also
 have an interface inside a private network, so they can route traffic
 to private hypervisors.
 
+
 #### Private hypervisors
 
 Private hypervisors is where the control plane components will
@@ -67,12 +72,14 @@ run. These private hypervisors should have an interface inside a
 private network, only reachable by public hypervisors, and other
 private hypervisors.
 
+
 ## Cluster
 
 A [cluster](clusters.md) is the abstraction of a whole Kubernetes
 cluster -- with control plane and control plane ingresses. It has all
 the certificate authorities and shared information required by the
 different components that are part of the same cluster.
+
 
 ## Component
 
@@ -96,6 +103,12 @@ In the future, it will be possible to scale Control Plane components
 in a fine grained way; you will be able to create more `API server`
 instances without having to create more `Controller Manager` or
 `Scheduler` instances.
+
+Components are automatically reconciled by the `Cluster` resource,
+based on the desired number of control plane replicas. At this time, a
+control plane ingress is always created along with a `Cluster`
+resource, and only one. This will be improved in the near future.
+
 
 # Conceptual architecture diagram
 

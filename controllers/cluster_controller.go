@@ -18,33 +18,28 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 )
 
-// ClusterReconciler reconciles a Cluster object
-type ClusterReconciler struct {
+// ClusterController manages Component resources from Cluster resources
+type ClusterController struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=components/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=cluster.oneinfra.ereslibre.es,resources=clusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=infra.oneinfra.ereslibre.es,resources=hypervisors/status,verbs=get;update;patch
-
-// Reconcile reconciles the cluster resources
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+// Reconcile reconciles the Component resources that belong to a
+// Cluster resource
+func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
 	cluster, err := getCluster(ctx, r, req)
@@ -56,46 +51,121 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
-	clusterReconciler, err := newClusterReconciler(ctx, r, cluster)
+	desiredControlPlaneReplicas := cluster.ControlPlaneReplicas
+	currentClusterComponents, err := listClusterComponents(ctx, r, cluster.Namespace, cluster.Name)
 	if err != nil {
-		klog.Errorf("could not create a cluster reconciler: %v", err)
+		klog.Errorf("could not list cluster %q components: %v", req, err)
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
-	clusterMap := clusterReconciler.ClusterMap()
-	cluster = clusterMap[cluster.Name]
 
-	res := ctrl.Result{}
+	// Reconcile cluster deletion
 
-	if cluster.DeletionTimestamp == nil {
-		if err := clusterReconciler.Reconcile(cluster); err != nil {
-			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
-			res = ctrl.Result{Requeue: true}
+	if cluster.DeletionTimestamp != nil {
+		return r.reconcileDeletion(ctx, req, currentClusterComponents)
+	}
+
+	// Reconcile control plane components
+
+	currentUndeletedControlPlaneReplicas := componentapi.List{}
+	for _, controlPlaneReplica := range currentClusterComponents {
+		if controlPlaneReplica.Role != componentapi.ControlPlaneRole {
+			continue
+		}
+		if controlPlaneReplica.DeletionTimestamp != nil {
+			continue
+		}
+		currentUndeletedControlPlaneReplicas = append(
+			currentUndeletedControlPlaneReplicas,
+			controlPlaneReplica,
+		)
+	}
+
+	if desiredControlPlaneReplicas > len(currentUndeletedControlPlaneReplicas) {
+		missingReplicaCount := desiredControlPlaneReplicas - len(currentUndeletedControlPlaneReplicas)
+		for i := 0; i < missingReplicaCount; i++ {
+			component := componentapi.NewComponent(
+				cluster.Namespace,
+				cluster.Name,
+				fmt.Sprintf("%s-control-plane-", cluster.Name),
+				componentapi.ControlPlaneRole,
+			)
+			if err := r.Create(ctx, component.Export()); err != nil {
+				klog.Error("could not create a component")
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
+			}
 		}
 	} else {
-		if err := clusterReconciler.ReconcileDeletion(cluster); err != nil {
-			klog.Errorf("failed to reconcile cluster %q deletion: %v", req, err)
-			res = ctrl.Result{Requeue: true}
-		} else {
-			if cluster != nil {
-				if err := r.Update(ctx, cluster.Export()); err != nil {
-					klog.Errorf("could not update cluster %q: %v", cluster.Name, err)
-					res = ctrl.Result{Requeue: true}
-				}
-			} else {
-				res = ctrl.Result{Requeue: true}
+		excessReplicaCount := len(currentUndeletedControlPlaneReplicas) - desiredControlPlaneReplicas
+		for i := 0; i < excessReplicaCount; i++ {
+			component, err := currentUndeletedControlPlaneReplicas.Sample()
+			if err != nil {
+				klog.Error("could not get a component sample")
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
+			}
+			if err := r.Delete(ctx, component.Export()); err != nil {
+				klog.Error("could not delete excess component")
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
 			}
 		}
 	}
 
-	if err := reconciler.UpdateResources(ctx, clusterReconciler, r); err != nil {
-		res = ctrl.Result{Requeue: true}
+	// Reconcile control plane ingress components. At the moment, one
+	// control plane ingress (and only one) is allowed per cluster.
+
+	currentUndeletedControlPlaneIngressReplicas := componentapi.List{}
+	for _, controlPlaneIngressReplica := range currentClusterComponents {
+		if controlPlaneIngressReplica.Role != componentapi.ControlPlaneIngressRole {
+			continue
+		}
+		if controlPlaneIngressReplica.DeletionTimestamp != nil {
+			continue
+		}
+		currentUndeletedControlPlaneIngressReplicas = append(
+			currentUndeletedControlPlaneIngressReplicas,
+			controlPlaneIngressReplica,
+		)
 	}
 
-	return res, nil
+	if len(currentUndeletedControlPlaneIngressReplicas) == 0 {
+		component := componentapi.NewComponent(
+			cluster.Namespace,
+			cluster.Name,
+			fmt.Sprintf("%s-control-plane-ingress-", cluster.Name),
+			componentapi.ControlPlaneIngressRole,
+		)
+		if err := r.Create(ctx, component.Export()); err != nil {
+			klog.Error("could not create a component")
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+	} else if len(currentUndeletedControlPlaneIngressReplicas) > 1 {
+		excessReplicaCount := len(currentUndeletedControlPlaneIngressReplicas) - 1
+		for i := 0; i < excessReplicaCount; i++ {
+			component, err := currentUndeletedControlPlaneIngressReplicas.Sample()
+			if err != nil {
+				klog.Error("could not get a component sample")
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
+			}
+			if err := r.Delete(ctx, component.Export()); err != nil {
+				klog.Error("could not delete excess component")
+				return ctrl.Result{RequeueAfter: time.Minute}, nil
+			}
+		}
+	}
+
+	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the cluster reconciler with mgr manager
-func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ClusterController) reconcileDeletion(ctx context.Context, req ctrl.Request, components component.List) (ctrl.Result, error) {
+	for _, component := range components {
+		if err := r.Delete(ctx, component.Export()); err != nil {
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+	}
+	return ctrl.Result{}, nil
+}
+
+// SetupWithManager sets up the cluster controller with mgr manager
+func (r *ClusterController) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named("cluster-controller").
 		For(&clusterv1alpha1.Cluster{}).

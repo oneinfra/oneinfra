@@ -43,6 +43,7 @@ func (cluster *Cluster) Default() {
 	klog.Info("default", "name", cluster.Name)
 	cluster.addFinalizer()
 	cluster.defaultKubernetesVersion()
+	cluster.defaultControlPlaneReplicas()
 	cluster.defaultVPN()
 	cluster.defaultUninitializedCertificatesLabel()
 }
@@ -63,6 +64,12 @@ func (cluster *Cluster) addFinalizer() {
 func (cluster *Cluster) defaultKubernetesVersion() {
 	if cluster.Spec.KubernetesVersion == "" || cluster.Spec.KubernetesVersion == "default" {
 		cluster.Spec.KubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
+	}
+}
+
+func (cluster *Cluster) defaultControlPlaneReplicas() {
+	if cluster.Spec.ControlPlaneReplicas == 0 {
+		cluster.Spec.ControlPlaneReplicas = 1
 	}
 }
 

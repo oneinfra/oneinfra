@@ -107,6 +107,13 @@ func main() {
 		klog.Error("could not set cluster initializer controller")
 		os.Exit(1)
 	}
+	if err = (&controllers.ClusterController{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error("could not set cluster controller controller")
+		os.Exit(1)
+	}
 	if err = (&controllers.ClusterReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),

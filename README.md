@@ -67,11 +67,7 @@ processes of `oneinfra` without the need of a Kubernetes cluster.
 
 ```console
 $ oi-local-cluster cluster create | \
-    oi cluster inject --name simple-cluster | \
-    oi component inject --name controlplane1 --role control-plane | \
-    oi component inject --name controlplane2 --role control-plane | \
-    oi component inject --name controlplane3 --role control-plane | \
-    oi component inject --name loadbalancer --role control-plane-ingress | \
+    oi cluster inject --name ha-cluster | \
     oi reconcile > ha-cluster-manifests.conf
 ```
 

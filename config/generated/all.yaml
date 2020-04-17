@@ -150,6 +150,10 @@ spec:
                       type: string
                   type: object
               type: object
+            controlPlaneReplicas:
+              description: The number of control plane replicas this cluster will
+                manage. One control plane replica if not provided.
+              type: integer
             etcdServer:
               description: EtcdServer represents an etcd server
               properties:

@@ -56,6 +56,7 @@ type Cluster struct {
 	Finalizers             []string
 	DeletionTimestamp      *metav1.Time
 	KubernetesVersion      string
+	ControlPlaneReplicas   int
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
 	APIServer              *KubeAPIServer
@@ -77,10 +78,11 @@ type Cluster struct {
 type Map map[string]*Cluster
 
 // NewCluster returns an internal cluster
-func NewCluster(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) (*Cluster, error) {
+func NewCluster(clusterName, kubernetesVersion string, controlPlaneReplicas int, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) (*Cluster, error) {
 	res := Cluster{
-		Name:              clusterName,
-		KubernetesVersion: kubernetesVersion,
+		Name:                 clusterName,
+		KubernetesVersion:    kubernetesVersion,
+		ControlPlaneReplicas: controlPlaneReplicas,
 		VPN: &VPN{
 			Enabled: vpnEnabled,
 		},
@@ -132,6 +134,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		Finalizers:             cluster.Finalizers,
 		DeletionTimestamp:      cluster.DeletionTimestamp,
 		KubernetesVersion:      cluster.Spec.KubernetesVersion,
+		ControlPlaneReplicas:   cluster.Spec.ControlPlaneReplicas,
 		CertificateAuthorities: newCertificateAuthoritiesFromv1alpha1(cluster.Spec.CertificateAuthorities),
 		EtcdServer:             newEtcdServerFromv1alpha1(cluster.Spec.EtcdServer),
 		APIServer:              kubeAPIServer,
@@ -165,6 +168,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 		},
 		Spec: clusterv1alpha1.ClusterSpec{
 			KubernetesVersion:      cluster.KubernetesVersion,
+			ControlPlaneReplicas:   cluster.ControlPlaneReplicas,
 			CertificateAuthorities: cluster.CertificateAuthorities.Export(),
 			EtcdServer:             cluster.EtcdServer.Export(),
 			APIServer:              cluster.APIServer.Export(),

@@ -23,11 +23,13 @@ import (
 	"os"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
+	"k8s.io/klog"
 )
 
 // Inject injects a cluster with name componentName
-func Inject(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) error {
+func Inject(clusterName, kubernetesVersion string, controlPlaneReplicas int, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -49,7 +51,7 @@ func Inject(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR stri
 		res += clustersSpecs
 	}
 
-	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, vpnEnabled, vpnCIDR, apiServerExtraSANs)
+	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, controlPlaneReplicas, vpnEnabled, vpnCIDR, apiServerExtraSANs)
 	if err != nil {
 		return err
 	}
@@ -59,6 +61,32 @@ func Inject(clusterName, kubernetesVersion string, vpnEnabled bool, vpnCIDR stri
 	}
 
 	components := manifests.RetrieveComponents(string(stdin))
+
+	privateHypervisorList := hypervisors.PrivateList()
+	for i := 1; i <= newCluster.ControlPlaneReplicas; i++ {
+		component, err := component.NewComponentWithRandomHypervisor(
+			clusterName,
+			fmt.Sprintf("%s-control-plane-%d", clusterName, i),
+			component.ControlPlaneRole,
+			privateHypervisorList,
+		)
+		if err != nil {
+			klog.Fatalf("could not create new component: %v", err)
+		}
+		components = append(components, component)
+	}
+	publicHypervisorList := hypervisors.PrivateList()
+	component, err := component.NewComponentWithRandomHypervisor(
+		clusterName,
+		fmt.Sprintf("%s-control-plane-ingress", clusterName),
+		component.ControlPlaneIngressRole,
+		publicHypervisorList,
+	)
+	if err != nil {
+		klog.Fatalf("could not create new component: %v", err)
+	}
+	components = append(components, component)
+
 	if componentsSpecs, err := components.Specs(); err == nil {
 		res += componentsSpecs
 	}

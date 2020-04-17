@@ -112,14 +112,11 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			res = ctrl.Result{Requeue: true}
 		}
 	} else {
-		for {
-			if err := componentReconciler.ReconcileDeletion(component); err != nil {
-				klog.Errorf("failed to reconcile component deletion %q in cluster %q: %v", req, cluster.Name, err)
-				res = ctrl.Result{Requeue: true}
-			} else {
-				if err := r.Update(ctx, component.Export()); err == nil {
-					break
-				}
+		if err := componentReconciler.ReconcileDeletion(component); err != nil {
+			klog.Errorf("failed to reconcile component deletion %q in cluster %q: %v", req, cluster.Name, err)
+			res = ctrl.Result{Requeue: true}
+		} else {
+			if err := r.Update(ctx, component.Export()); err != nil {
 				klog.Errorf("could not update component %q: %v", component.Name, err)
 				res = ctrl.Result{Requeue: true}
 			}

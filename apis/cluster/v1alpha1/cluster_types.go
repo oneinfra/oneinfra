@@ -27,6 +27,12 @@ type ClusterSpec struct {
 	// +optional
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 
+	// The number of control plane replicas this cluster will
+	// manage. One control plane replica if not provided.
+	//
+	// +optional
+	ControlPlaneReplicas int `json:"controlPlaneReplicas,omitempty"`
+
 	// +optional
 	CertificateAuthorities *CertificateAuthorities `json:"certificateAuthorities,omitempty"`
 

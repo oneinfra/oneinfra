@@ -23,8 +23,10 @@ import (
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
+	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 )
 
 // ClusterReconciler represents a cluster reconciler
@@ -55,9 +57,9 @@ func (clusterReconciler *ClusterReconciler) IsComponentScheduled(component *comp
 
 // IsClusterFullyScheduled returns whether all components assigned to
 // this cluster are scheduled
-func (clusterReconciler *ClusterReconciler) IsClusterFullyScheduled(clusterName string) bool {
+func (clusterReconciler *ClusterReconciler) IsClusterFullyScheduled(clusterNamespace, clusterName string) bool {
 	hasComponents := false
-	for _, component := range clusterReconciler.componentList.WithCluster(clusterName) {
+	for _, component := range clusterReconciler.componentList.WithCluster(clusterNamespace, clusterName) {
 		hasComponents = true
 		if !clusterReconciler.IsComponentScheduled(component) {
 			return false
@@ -80,14 +82,14 @@ func (clusterReconciler *ClusterReconciler) Reconcile(clustersToReconcile ...*cl
 	reconcileErrors := reconciler.ReconcileErrors{}
 	for _, cluster := range clustersToReconcile {
 		klog.V(1).Infof("reconciling cluster %q", cluster.Name)
-		if !clusterReconciler.IsClusterFullyScheduled(cluster.Name) {
+		if !clusterReconciler.IsClusterFullyScheduled(cluster.Namespace, cluster.Name) {
 			klog.Infof("cluster %q is not fully scheduled; skipping", cluster.Name)
-			reconcileErrors.AddClusterError(cluster.Name, errors.New("cluster is not fully scheduled"))
+			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("cluster is not fully scheduled"))
 			continue
 		}
 		if cluster.APIServerEndpoint == "" {
 			klog.Infof("cluster %q lacks an API server endpoint yet; skipping", cluster.Name)
-			reconcileErrors.AddClusterError(cluster.Name, errors.New("cluster lacks an API server endpoint yet"))
+			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("cluster lacks an API server endpoint yet"))
 			continue
 		}
 		cluster.Conditions.SetCondition(
@@ -103,7 +105,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(clustersToReconcile ...*cl
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
 		clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
 		clusterReconciler.reconcileJoinPublicKeyConfigMap(cluster, &reconcileErrors)
-		if reconcileErrors.IsClusterErrorFree(cluster.Name) {
+		if reconcileErrors.IsClusterErrorFree(cluster.Namespace, cluster.Name) {
 			cluster.Conditions.SetCondition(
 				clusterapi.ReconcileSucceeded,
 				conditions.ConditionTrue,
@@ -124,55 +126,69 @@ func (clusterReconciler *ClusterReconciler) Reconcile(clustersToReconcile ...*cl
 func (clusterReconciler *ClusterReconciler) reconcileMinimalVPNPeers(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileMinimalVPNPeers(); err != nil {
 		klog.Errorf("failed to reconcile minimal VPN peers for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile minimal VPN peers"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile minimal VPN peers"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileCustomResourceDefinitions(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileCustomResourceDefinitions(); err != nil {
 		klog.Errorf("failed to reconcile custom resource definitions for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile custom resource definitions"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile custom resource definitions"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileNamespaces(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileNamespaces(); err != nil {
 		klog.Errorf("failed to reconcile namespaces for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile namespaces"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile namespaces"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcilePermissions(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcilePermissions(); err != nil {
 		klog.Errorf("failed to reconcile permissions for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile permissions"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile permissions"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileJoinTokens(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileJoinTokens(); err != nil {
 		klog.Errorf("failed to reconcile join tokens for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile join tokens"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile join tokens"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileNodeJoinRequests(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileNodeJoinRequests(); err != nil {
 		klog.Errorf("failed to reconcile node join requests for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile node join requests"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile node join requests"))
 	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileJoinPublicKeyConfigMap(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
 	if err := cluster.ReconcileJoinPublicKeyConfigMap(); err != nil {
 		klog.Errorf("failed to reconcile join public key ConfigMap for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Name, errors.Wrap(err, "failed to reconcile join public key ConfigMap"))
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile join public key ConfigMap"))
 	}
 }
 
 // ReconcileDeletion reconciles the deletion of the provided clusters
 func (clusterReconciler *ClusterReconciler) ReconcileDeletion(clustersToDelete ...*clusterapi.Cluster) reconciler.ReconcileErrors {
-	return nil
+	reconcileErrors := reconciler.ReconcileErrors{}
+	for _, clusterToDelete := range clustersToDelete {
+		if len(clusterReconciler.ComponentList().WithCluster(clusterToDelete.Namespace, clusterToDelete.Name)) > 0 {
+			reconcileErrors.AddClusterError(clusterToDelete.Namespace, clusterToDelete.Name, errors.New("not all components are deleted yet"))
+			continue
+		}
+		clusterToDelete.Finalizers = utils.RemoveElementsFromList(
+			clusterToDelete.Finalizers,
+			constants.OneInfraCleanupFinalizer,
+		)
+	}
+	if len(reconcileErrors) == 0 {
+		return nil
+	}
+	return reconcileErrors
 }
 
 // Specs returns the versioned specs for all resources

@@ -42,10 +42,14 @@ func (reconcileErrors ReconcileErrors) Error() string {
 	return strings.Join(allErrors, ", ")
 }
 
+func fullClusterName(clusterNamespace, clusterName string) string {
+	return fmt.Sprintf("%s/%s", clusterNamespace, clusterName)
+}
+
 // IsClusterErrorFree returns whether the cluster provided has at
 // least one error
-func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterName string) bool {
-	clusterErrors, exists := reconcileErrors[clusterName]
+func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterNamespace, clusterName string) bool {
+	clusterErrors, exists := reconcileErrors[fullClusterName(clusterNamespace, clusterName)]
 	if !exists {
 		return true
 	}
@@ -53,25 +57,27 @@ func (reconcileErrors ReconcileErrors) IsClusterErrorFree(clusterName string) bo
 }
 
 // AddClusterError adds a cluster-level error
-func (reconcileErrors ReconcileErrors) AddClusterError(clusterName string, err error) {
-	reconcileErrors.ensureClusterEntry(clusterName)
-	reconcileErrors[clusterName] = append(
-		reconcileErrors[clusterName],
+func (reconcileErrors ReconcileErrors) AddClusterError(clusterNamespace, clusterName string, err error) {
+	fullClusterName := fullClusterName(clusterNamespace, clusterName)
+	reconcileErrors.ensureClusterEntry(fullClusterName)
+	reconcileErrors[fullClusterName] = append(
+		reconcileErrors[fullClusterName],
 		err,
 	)
 }
 
 // AddComponentError adds a component-level error
-func (reconcileErrors ReconcileErrors) AddComponentError(clusterName, componentName string, err error) {
-	reconcileErrors.ensureClusterEntry(clusterName)
-	reconcileErrors[clusterName] = append(
-		reconcileErrors[clusterName],
+func (reconcileErrors ReconcileErrors) AddComponentError(clusterNamespace, clusterName, componentName string, err error) {
+	fullClusterName := fullClusterName(clusterNamespace, clusterName)
+	reconcileErrors.ensureClusterEntry(fullClusterName)
+	reconcileErrors[fullClusterName] = append(
+		reconcileErrors[fullClusterName],
 		errors.Wrap(err, componentName),
 	)
 }
 
-func (reconcileErrors ReconcileErrors) ensureClusterEntry(clusterName string) {
-	if reconcileErrors[clusterName] == nil {
-		reconcileErrors[clusterName] = []error{}
+func (reconcileErrors ReconcileErrors) ensureClusterEntry(fullClusterName string) {
+	if reconcileErrors[fullClusterName] == nil {
+		reconcileErrors[fullClusterName] = []error{}
 	}
 }

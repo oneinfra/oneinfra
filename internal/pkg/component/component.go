@@ -56,6 +56,7 @@ const (
 // Component represents a Control Plane component
 type Component struct {
 	Name               string
+	GenerateName       string
 	Namespace          string
 	ResourceVersion    string
 	Labels             map[string]string
@@ -89,10 +90,24 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 	}, nil
 }
 
+// NewComponent creates a component
+func NewComponent(clusterNamespace, clusterName, componentGenerateName string, role Role) *Component {
+	return &Component{
+		GenerateName:       componentGenerateName,
+		Namespace:          clusterNamespace,
+		ClusterName:        clusterName,
+		Role:               role,
+		AllocatedHostPorts: map[string]int{},
+		ClientCertificates: map[string]*certificates.Certificate{},
+		ServerCertificates: map[string]*certificates.Certificate{},
+	}
+}
+
 // NewComponentFromv1alpha1 returns a component based on a versioned component
 func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component, error) {
 	res := Component{
 		Name:              component.Name,
+		GenerateName:      component.GenerateName,
 		Namespace:         component.Namespace,
 		ResourceVersion:   component.ResourceVersion,
 		Labels:            component.Labels,
@@ -212,6 +227,7 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 	res := &clusterv1alpha1.Component{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              component.Name,
+			GenerateName:      component.GenerateName,
 			Namespace:         component.Namespace,
 			ResourceVersion:   component.ResourceVersion,
 			Labels:            component.Labels,

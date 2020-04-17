@@ -28,7 +28,6 @@ import (
 	"k8s.io/klog"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
-	"github.com/oneinfra/oneinfra/internal/app/oi/component"
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
@@ -56,6 +55,11 @@ func main() {
 								Usage: "kubernetes version",
 								Value: "default",
 							},
+							&cli.IntFlag{
+								Name:  "control-plane-replicas",
+								Usage: "Control plane number of replicas",
+								Value: 1,
+							},
 							&cli.BoolFlag{
 								Name:  "vpn-enabled",
 								Usage: "CIDR used for the internal VPN",
@@ -76,7 +80,7 @@ func main() {
 							if kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
-							return cluster.Inject(c.String("name"), kubernetesVersion, c.Bool("vpn-enabled"), c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
+							return cluster.Inject(c.String("name"), kubernetesVersion, c.Int("control-plane-replicas"), c.Bool("vpn-enabled"), c.String("vpn-cidr"), c.StringSlice("apiserver-extra-sans"))
 						},
 					},
 					{
@@ -178,35 +182,6 @@ func main() {
 					klog.InitFlags(&flagSet)
 					flagSet.Set("v", strconv.Itoa(c.Int("verbosity")))
 					return cluster.Reconcile(c.Int("max-retries"), c.Duration("retry-wait-time"))
-				},
-			},
-			{
-				Name:  "component",
-				Usage: "component operations",
-				Subcommands: []*cli.Command{
-					{
-						Name:  "inject",
-						Usage: "inject a component",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "name",
-								Required: true,
-								Usage:    "component name",
-							},
-							&cli.StringFlag{
-								Name:  "cluster",
-								Usage: "cluster name (can be omitted if stdin has only one cluster resource)",
-							},
-							&cli.StringFlag{
-								Name:     "role",
-								Required: true,
-								Usage:    "role of the component (control-plane, control-plane-ingress)",
-							},
-						},
-						Action: func(c *cli.Context) error {
-							return component.Inject(c.String("name"), c.String("cluster"), c.String("role"))
-						},
-					},
 				},
 			},
 			{

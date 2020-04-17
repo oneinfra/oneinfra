@@ -48,7 +48,10 @@ func (inquirer *Inquirer) Cluster() *cluster.Cluster {
 // current cluster in reconciliation
 func (inquirer *Inquirer) ClusterComponents(role component.Role) component.List {
 	componentList := inquirer.Reconciler.ComponentList()
-	return componentList.WithCluster(inquirer.Cluster().Name).WithRole(role)
+	return componentList.WithCluster(
+		inquirer.Cluster().Namespace,
+		inquirer.Cluster().Name,
+	).WithRole(role)
 }
 
 // ComponentHypervisor returns the hypervisor where the provided component is

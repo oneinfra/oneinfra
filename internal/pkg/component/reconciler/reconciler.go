@@ -58,6 +58,7 @@ func (componentReconciler *ComponentReconciler) PreReconcile(componentsToPreReco
 		componentToReconcile := retrieveComponent(component)
 		if componentToReconcile == nil {
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				errors.New("could not retrieve a specific component instance"),
@@ -72,6 +73,7 @@ func (componentReconciler *ComponentReconciler) PreReconcile(componentsToPreReco
 		)
 		if err != nil {
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				err,
@@ -95,6 +97,7 @@ func (componentReconciler *ComponentReconciler) Reconcile(componentsToReconcile 
 		componentToReconcile := retrieveComponent(component)
 		if componentToReconcile == nil {
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				errors.New("could not retrieve a specific component instance"),
@@ -122,6 +125,7 @@ func (componentReconciler *ComponentReconciler) Reconcile(componentsToReconcile 
 				conditions.ConditionFalse,
 			)
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				err,
@@ -142,6 +146,7 @@ func (componentReconciler *ComponentReconciler) ReconcileDeletion(componentsToDe
 		componentToReconcile := retrieveComponent(component)
 		if componentToReconcile == nil {
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				errors.New("could not retrieve a specific component instance"),
@@ -161,6 +166,7 @@ func (componentReconciler *ComponentReconciler) ReconcileDeletion(componentsToDe
 			)
 		} else {
 			reconcileErrors.AddComponentError(
+				component.Namespace,
 				component.ClusterName,
 				component.Name,
 				err,

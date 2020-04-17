@@ -310,8 +310,10 @@ func (controlPlane *ControlPlane) ReconcileDeletion(inquirer inquirer.Reconciler
 	if err := controlPlane.stopControlPlane(inquirer); err != nil {
 		return err
 	}
-	if err := controlPlane.removeEtcdMember(inquirer); err != nil {
-		return err
+	if inquirer.Cluster().DeletionTimestamp == nil {
+		if err := controlPlane.removeEtcdMember(inquirer); err != nil {
+			return err
+		}
 	}
 	if err := controlPlane.stopEtcd(inquirer); err != nil {
 		return err

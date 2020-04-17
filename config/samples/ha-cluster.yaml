@@ -1,37 +1,6 @@
----
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Cluster
 metadata:
   name: ha-cluster
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: ha-control-plane-1
 spec:
-  cluster: ha-cluster
-  role: control-plane
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: ha-control-plane-2
-spec:
-  cluster: ha-cluster
-  role: control-plane
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: ha-control-plane-3
-spec:
-  cluster: ha-cluster
-  role: control-plane
----
-apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
-kind: Component
-metadata:
-  name: ha-control-plane-ingress
-spec:
-  cluster: ha-cluster
-  role: control-plane-ingress
+  controlPlaneReplicas: 3

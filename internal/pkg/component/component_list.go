@@ -17,7 +17,9 @@ limitations under the License.
 package component
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
 )
 
 // List represents a list of components
@@ -47,14 +49,22 @@ func (list List) WithRole(role Role) List {
 
 // WithCluster returns a subset of the current list matching the given
 // cluster.
-func (list List) WithCluster(clusterName string) List {
+func (list List) WithCluster(clusterNamespace, clusterName string) List {
 	res := List{}
 	for _, component := range list {
-		if component.ClusterName == clusterName {
+		if component.Namespace == clusterNamespace && component.ClusterName == clusterName {
 			res = append(res, component)
 		}
 	}
 	return res
+}
+
+// Sample returns a random component from the current list
+func (list List) Sample() (*Component, error) {
+	if len(list) == 0 {
+		return nil, errors.New("no components available")
+	}
+	return list[rand.Intn(len(list))], nil
 }
 
 // Specs returns the versioned specs of all components in this list.

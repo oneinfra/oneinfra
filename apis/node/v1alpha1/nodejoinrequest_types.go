@@ -32,19 +32,26 @@ type NodeJoinRequestSpec struct {
 	// Base64 encoded symmetric key, used by `oneinfra` management
 	// cluster to cipher joining information. This key must be ciphered
 	// with the join public key of the cluster to be joined, and encoded
-	// in base64.
+	// in base64. The public join key of every managed cluster can be
+	// found on the `oneinfra-join` ConfigMap present in the
+	// `oneinfra-system` namespace.
 	SymmetricKey string `json:"symmetricKey,omitempty"`
 
-	// The API Server endpoint for what this join request is for.
+	// The API Server endpoint for what this join request is for. The
+	// generated kubeconfig file for the kubelet will point to this
+	// endpoint. If not provided, the default cluster API endpoint will
+	// be used.
+	//
+	// +optional
 	APIServerEndpoint string `json:"apiServerEndpoint,omitempty"`
 
-	// The local node container runtime endpoint
+	// The local node container runtime endpoint.
 	// (e.g. unix:///run/containerd/containerd.sock)
 	ContainerRuntimeEndpoint string `json:"containerRuntimeEndpoint,omitempty"`
 
-	// The local node image service endpoint (e.g. containerd, cri-o
-	// unix socket...). It's usually the same as the
-	// container runtime endpoint.
+	// The local node image service endpoint. It's usually the same as
+	// the container runtime endpoint.
+	// (e.g. unix:///run/containerd/containerd.sock)
 	ImageServiceEndpoint string `json:"imageServiceEndpoint,omitempty"`
 }
 

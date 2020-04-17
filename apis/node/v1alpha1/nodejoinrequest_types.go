@@ -105,6 +105,7 @@ type NodeJoinRequestStatus struct {
 	Conditions commonv1alpha1.ConditionList `json:"conditions,omitempty"`
 }
 
+// +genclient
 // +kubebuilder:object:root=true
 
 // NodeJoinRequest is the Schema for the nodejoinrequests API

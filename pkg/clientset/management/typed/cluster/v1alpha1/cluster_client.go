@@ -20,7 +20,7 @@ package v1alpha1
 
 import (
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/pkg/clientset/scheme"
+	"github.com/oneinfra/oneinfra/pkg/clientset/management/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

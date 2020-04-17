@@ -22,7 +22,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	scheme "github.com/oneinfra/oneinfra/pkg/clientset/scheme"
+	scheme "github.com/oneinfra/oneinfra/pkg/clientset/management/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

@@ -28,6 +28,9 @@ var (
 	// GroupVersion is group version used to register these objects
 	GroupVersion = schema.GroupVersion{Group: "node.oneinfra.ereslibre.es", Version: "v1alpha1"}
 
+	// SchemeGroupVersion is group version used to register these objects (client-gen compatibility)
+	SchemeGroupVersion = GroupVersion
+
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
 

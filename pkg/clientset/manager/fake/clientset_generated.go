@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/oneinfra/oneinfra/pkg/clientset/management"
-	clusterv1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/management/typed/cluster/v1alpha1"
-	fakeclusterv1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/management/typed/cluster/v1alpha1/fake"
+	clientset "github.com/oneinfra/oneinfra/pkg/clientset/manager"
+	clusterv1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/manager/typed/cluster/v1alpha1"
+	fakeclusterv1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/manager/typed/cluster/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

@@ -100,18 +100,6 @@ func (c *FakeNodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest)
 	return obj.(*v1alpha1.NodeJoinRequest), err
 }
 
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeNodeJoinRequests) UpdateStatus(nodeJoinRequest *v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(nodejoinrequestsResource, "status", c.ns, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeJoinRequest), err
-}
-
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
 func (c *FakeNodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

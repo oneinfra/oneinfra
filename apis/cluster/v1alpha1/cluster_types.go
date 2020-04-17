@@ -108,6 +108,7 @@ type EtcdServer struct {
 }
 
 // +genclient
+// +genclient:noStatus
 // +kubebuilder:printcolumn:name="Kubernetes version",type=string,JSONPath=`.spec.kubernetesVersion`
 // +kubebuilder:printcolumn:name="API server endpoint",type=string,JSONPath=`.status.apiServerEndpoint`
 // +kubebuilder:printcolumn:name="VPN",type=boolean,JSONPath=`.spec.vpn.enabled`

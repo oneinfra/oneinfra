@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/oneinfra/oneinfra/pkg/clientset/guest"
-	nodev1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/guest/typed/node/v1alpha1"
-	fakenodev1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/guest/typed/node/v1alpha1/fake"
+	clientset "github.com/oneinfra/oneinfra/pkg/clientset/managed"
+	nodev1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/managed/typed/node/v1alpha1"
+	fakenodev1alpha1 "github.com/oneinfra/oneinfra/pkg/clientset/managed/typed/node/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

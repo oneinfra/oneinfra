@@ -22,7 +22,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	scheme "github.com/oneinfra/oneinfra/pkg/clientset/management/scheme"
+	scheme "github.com/oneinfra/oneinfra/pkg/clientset/manager/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -39,7 +39,6 @@ type ClustersGetter interface {
 type ClusterInterface interface {
 	Create(*v1alpha1.Cluster) (*v1alpha1.Cluster, error)
 	Update(*v1alpha1.Cluster) (*v1alpha1.Cluster, error)
-	UpdateStatus(*v1alpha1.Cluster) (*v1alpha1.Cluster, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.Cluster, error)
@@ -127,22 +126,6 @@ func (c *clusters) Update(cluster *v1alpha1.Cluster) (result *v1alpha1.Cluster, 
 		Namespace(c.ns).
 		Resource("clusters").
 		Name(cluster.Name).
-		Body(cluster).
-		Do().
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-
-func (c *clusters) UpdateStatus(cluster *v1alpha1.Cluster) (result *v1alpha1.Cluster, err error) {
-	result = &v1alpha1.Cluster{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("clusters").
-		Name(cluster.Name).
-		SubResource("status").
 		Body(cluster).
 		Do().
 		Into(result)

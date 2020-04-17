@@ -22,7 +22,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
-	scheme "github.com/oneinfra/oneinfra/pkg/clientset/guest/scheme"
+	scheme "github.com/oneinfra/oneinfra/pkg/clientset/managed/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -39,7 +39,6 @@ type NodeJoinRequestsGetter interface {
 type NodeJoinRequestInterface interface {
 	Create(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
 	Update(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
-	UpdateStatus(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.NodeJoinRequest, error)
@@ -127,22 +126,6 @@ func (c *nodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (re
 		Namespace(c.ns).
 		Resource("nodejoinrequests").
 		Name(nodeJoinRequest.Name).
-		Body(nodeJoinRequest).
-		Do().
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-
-func (c *nodeJoinRequests) UpdateStatus(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
-	result = &v1alpha1.NodeJoinRequest{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("nodejoinrequests").
-		Name(nodeJoinRequest.Name).
-		SubResource("status").
 		Body(nodeJoinRequest).
 		Do().
 		Into(result)

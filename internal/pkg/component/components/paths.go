@@ -20,16 +20,32 @@ import (
 	"path/filepath"
 )
 
+func globalSecretsPath() string {
+	return "/etc/oneinfra/clusters"
+}
+
 func clusterSecretsPath(clusterName string) string {
-	return filepath.Join("/etc/oneinfra/clusters", clusterName)
+	return filepath.Join(globalSecretsPath(), clusterName)
 }
 
 func secretsPath(clusterName, componentName string) string {
 	return filepath.Join(clusterSecretsPath(clusterName), componentName)
 }
 
-func storagePath(clusterName string) string {
-	return filepath.Join("/var/lib/oneinfra/clusters", clusterName)
+func globalStoragePath() string {
+	return "/var/lib/oneinfra/clusters"
+}
+
+func clusterStoragePath(clusterName string) string {
+	return filepath.Join(globalStoragePath(), clusterName)
+}
+
+func componentStoragePath(clusterName, componentName string) string {
+	return filepath.Join(clusterStoragePath(clusterName), componentName)
+}
+
+func storagePath(clusterName, componentName, subcomponentName string) string {
+	return filepath.Join(componentStoragePath(clusterName, componentName), subcomponentName)
 }
 
 func secretsPathFile(clusterName, componentName, file string) string {

@@ -27,6 +27,7 @@ import (
 	"k8s.io/klog"
 
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
 )
@@ -172,14 +173,78 @@ func (ingress *ControlPlaneIngress) ingressPodName(inquirer inquirer.ReconcilerI
 }
 
 func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInquirer) error {
-	return inquirer.Hypervisor().DeletePod(
+	err := inquirer.Hypervisor().DeletePod(
 		inquirer.Cluster().Name,
 		inquirer.Component().Name,
 		ingress.ingressPodName(inquirer),
 	)
+	if err == nil {
+		component := inquirer.Component()
+		cluster := inquirer.Cluster()
+		hypervisor := inquirer.Hypervisor()
+		if err := component.FreePort(hypervisor, apiServerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", apiServerHostPortName, hypervisor.Name)
+		}
+		if cluster.VPN.Enabled {
+			if err := component.FreePort(hypervisor, wireguardHostPortName); err != nil {
+				return errors.Wrapf(err, "could not free port %q for hypervisor %q", wireguardHostPortName, hypervisor.Name)
+			}
+		}
+	}
+	return err
 }
 
 // ReconcileDeletion reconciles the control plane ingress deletion
 func (ingress *ControlPlaneIngress) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
-	return ingress.stopIngress(inquirer)
+	if err := ingress.stopIngress(inquirer); err != nil {
+		return err
+	}
+	return ingress.hostCleanup(inquirer)
+}
+
+func (ingress *ControlPlaneIngress) hostCleanup(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	res := hypervisor.RunAndWaitForPod(
+		cluster.Name,
+		component.Name,
+		pod.NewPod(
+			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
+			[]pod.Container{
+				{
+					Name:    "secrets-cleanup",
+					Image:   infra.ToolingImage,
+					Command: []string{"/bin/sh"},
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"rm -rf %s && (rmdir %s || true)",
+							secretsPath(cluster.Name, component.Name),
+							clusterSecretsPath(cluster.Name),
+						),
+					},
+					Mounts: map[string]string{
+						globalSecretsPath(): globalSecretsPath(),
+					},
+				},
+			},
+			map[int]int{},
+			pod.PrivilegesUnprivileged,
+		),
+	)
+	if res == nil {
+		if hypervisor.Files == nil {
+			return nil
+		}
+		if hypervisor.Files[cluster.Name] == nil {
+			return nil
+		}
+		if len(hypervisor.Files[cluster.Name]) == 1 {
+			delete(hypervisor.Files, cluster.Name)
+		} else {
+			delete(hypervisor.Files[cluster.Name], component.Name)
+		}
+	}
+	return res
 }

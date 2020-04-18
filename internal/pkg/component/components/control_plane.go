@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path/filepath"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -254,57 +253,6 @@ func (controlPlane *ControlPlane) stopControlPlane(inquirer inquirer.ReconcilerI
 	return err
 }
 
-func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquirer) error {
-	component := inquirer.Component()
-	hypervisor := inquirer.Hypervisor()
-	cluster := inquirer.Cluster()
-	res := hypervisor.RunAndWaitForPod(
-		cluster.Name,
-		component.Name,
-		pod.NewPod(
-			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
-			[]pod.Container{
-				{
-					Name:    "etcd-cleanup",
-					Image:   infra.ToolingImage,
-					Command: []string{"rm"},
-					Args: []string{
-						"-rf",
-						filepath.Join(storagePath(cluster.Name), "etcd", component.Name),
-					},
-					Mounts: map[string]string{
-						filepath.Join(storagePath(cluster.Name), "etcd"): filepath.Join(storagePath(cluster.Name), "etcd"),
-					},
-				},
-				{
-					Name:    "secrets-cleanup",
-					Image:   infra.ToolingImage,
-					Command: []string{"rm"},
-					Args: []string{
-						"-rf",
-						filepath.Join(clusterSecretsPath(cluster.Name), component.Name),
-					},
-					Mounts: map[string]string{
-						clusterSecretsPath(cluster.Name): clusterSecretsPath(cluster.Name),
-					},
-				},
-			},
-			map[int]int{},
-			pod.PrivilegesUnprivileged,
-		),
-	)
-	if res == nil {
-		if hypervisor.Files == nil {
-			return res
-		}
-		if hypervisor.Files[cluster.Name] == nil {
-			return res
-		}
-		delete(hypervisor.Files[cluster.Name], component.Name)
-	}
-	return res
-}
-
 // ReconcileDeletion reconciles the kube-apiserver deletion
 func (controlPlane *ControlPlane) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
 	if err := controlPlane.stopControlPlane(inquirer); err != nil {
@@ -318,8 +266,69 @@ func (controlPlane *ControlPlane) ReconcileDeletion(inquirer inquirer.Reconciler
 	if err := controlPlane.stopEtcd(inquirer); err != nil {
 		return err
 	}
-	if err := controlPlane.hostCleanup(inquirer); err != nil {
-		return err
+	return controlPlane.hostCleanup(inquirer)
+}
+
+func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	res := hypervisor.RunAndWaitForPod(
+		cluster.Name,
+		component.Name,
+		pod.NewPod(
+			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
+			[]pod.Container{
+				{
+					Name:    "etcd-cleanup",
+					Image:   infra.ToolingImage,
+					Command: []string{"/bin/sh"},
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"rm -rf %s && rmdir %s && (rmdir %s || true)",
+							storagePath(cluster.Name, component.Name, "etcd"),
+							componentStoragePath(cluster.Name, component.Name),
+							clusterStoragePath(cluster.Name),
+						),
+					},
+					Mounts: map[string]string{
+						globalStoragePath(): globalStoragePath(),
+					},
+				},
+				{
+					Name:    "secrets-cleanup",
+					Image:   infra.ToolingImage,
+					Command: []string{"/bin/sh"},
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"rm -rf %s && (rmdir %s || true)",
+							secretsPath(cluster.Name, component.Name),
+							clusterSecretsPath(cluster.Name),
+						),
+					},
+					Mounts: map[string]string{
+						globalSecretsPath(): globalSecretsPath(),
+					},
+				},
+			},
+			map[int]int{},
+			pod.PrivilegesUnprivileged,
+		),
+	)
+	if res == nil {
+		if hypervisor.Files == nil {
+			return nil
+		}
+		if hypervisor.Files[cluster.Name] == nil {
+			return nil
+		}
+		if len(hypervisor.Files[cluster.Name]) == 1 {
+			delete(hypervisor.Files, cluster.Name)
+		} else {
+			delete(hypervisor.Files[cluster.Name], component.Name)
+		}
 	}
-	return nil
+	return res
 }

@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -431,8 +430,8 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 			"--enable-grpc-gateway=false",
 		},
 		Mounts: map[string]string{
-			secretsPath(cluster.Name, component.Name):                        secretsPath(cluster.Name, component.Name),
-			filepath.Join(storagePath(cluster.Name), "etcd", component.Name): etcdDataDir,
+			secretsPath(cluster.Name, component.Name):         secretsPath(cluster.Name, component.Name),
+			storagePath(cluster.Name, component.Name, "etcd"): etcdDataDir,
 		},
 	}
 	if len(cluster.StoragePeerEndpoints) == 1 {
@@ -517,9 +516,20 @@ func (controlPlane *ControlPlane) etcdPodName(inquirer inquirer.ReconcilerInquir
 }
 
 func (controlPlane *ControlPlane) stopEtcd(inquirer inquirer.ReconcilerInquirer) error {
-	return inquirer.Hypervisor().DeletePod(
+	err := inquirer.Hypervisor().DeletePod(
 		inquirer.Cluster().Name,
 		inquirer.Component().Name,
 		controlPlane.etcdPodName(inquirer),
 	)
+	if err == nil {
+		component := inquirer.Component()
+		hypervisor := inquirer.Hypervisor()
+		if err := component.FreePort(hypervisor, etcdPeerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdPeerHostPortName, hypervisor.Name)
+		}
+		if err := component.FreePort(hypervisor, etcdClientHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", etcdClientHostPortName, hypervisor.Name)
+		}
+	}
+	return err
 }

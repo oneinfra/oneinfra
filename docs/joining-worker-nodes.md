@@ -49,7 +49,7 @@ actions that will take place:
 * During this time, `oneinfra` on the management cluster will perform
   the following actions:
 
-  * Discover the `NodeJoinRequest` resource in the target cluster.
+  * Discover the `NodeJoinRequest` resource in the managed cluster.
 
   * Decipher the symmetric key with the join private key, known to
     `oneinfra` in the management cluster.

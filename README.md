@@ -146,6 +146,25 @@ comprised by three control plane instances:
         $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
         Kubernetes master is running at https://172.17.0.5:30002
         ```
+7. List clusters and components on the management cluster:
+
+    ```console
+    $ kubectl get clusters -A
+    NAMESPACE   NAME             KUBERNETES VERSION   API SERVER ENDPOINT        VPN     VPN CIDR   AGE
+    default     ha-cluster       1.18.2               https://172.17.0.5:30001   false              62s
+    default     simple-cluster   1.18.2               https://172.17.0.5:30000   false              2m7s
+    ```
+
+    ```console
+    $ kubectl get components -A
+    NAMESPACE   NAME                                         CLUSTER          ROLE                    HYPERVISOR                  AGE
+    default     ha-cluster-control-plane-hvz2h               ha-cluster       control-plane           test-private-hypervisor-0   65s
+    default     ha-cluster-control-plane-ingress-8scc5       ha-cluster       control-plane-ingress   test-public-hypervisor-0    65s
+    default     ha-cluster-control-plane-j52xp               ha-cluster       control-plane           test-private-hypervisor-0   65s
+    default     ha-cluster-control-plane-l4flc               ha-cluster       control-plane           test-private-hypervisor-0   65s
+    default     simple-cluster-control-plane-bcx9g           simple-cluster   control-plane           test-private-hypervisor-0   2m10s
+    default     simple-cluster-control-plane-ingress-5sdfh   simple-cluster   control-plane-ingress   test-public-hypervisor-0    2m10s
+    ```
 
 
 ## Defining clusters

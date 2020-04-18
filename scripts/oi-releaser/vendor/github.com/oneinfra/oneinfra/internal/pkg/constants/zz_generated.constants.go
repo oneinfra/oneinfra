@@ -35,11 +35,23 @@ kubernetesVersions:
   containerdVersion: 1.3.3
   etcdVersion: 3.4.3
   pauseVersion: 3.1
+- version: 1.16.9
+  containerdVersion: 1.3.3
+  etcdVersion: 3.4.3
+  pauseVersion: 3.1
 - version: 1.17.4
   containerdVersion: 1.3.3
   etcdVersion: 3.4.3
   pauseVersion: 3.1
+- version: 1.17.5
+  containerdVersion: 1.3.3
+  etcdVersion: 3.4.3
+  pauseVersion: 3.1
 - version: 1.18.1
+  containerdVersion: 1.3.3
+  etcdVersion: 3.4.3
+  pauseVersion: 3.1
+- version: 1.18.2
   containerdVersion: 1.3.3
   etcdVersion: 3.4.3
   pauseVersion: 3.1

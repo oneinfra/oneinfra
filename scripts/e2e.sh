@@ -30,7 +30,7 @@ CLUSTER_NAME="${CLUSTER_NAME:-cluster}"
 mkdir -p ~/.kube
 
 echo "Creating infrastructure"
-oi-local-cluster cluster create --name "${INFRA_TEST_CLUSTER_NAME}" --kubernetes-version "${KUBERNETES_VERSION}" "$@" > ${CLUSTER_CONF}
+oi-local-hypervisor-set create --name "${INFRA_TEST_CLUSTER_NAME}" --kubernetes-version "${KUBERNETES_VERSION}" "$@" > ${CLUSTER_CONF}
 docker ps -a
 
 echo "Hypervisor manifests"
@@ -66,9 +66,9 @@ done
 
 set -ex
 
-find "/tmp/oneinfra-clusters/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} pods'
+find "/tmp/oneinfra-hypervisor-sets/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} pods'
 
-find "/tmp/oneinfra-clusters/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} ps -a'
+find "/tmp/oneinfra-hypervisor-sets/${INFRA_TEST_CLUSTER_NAME}/" -type s -name "*.sock" | xargs -I{} -- bash -c 'echo {}; crictl --runtime-endpoint unix://{} ps -a'
 
 kubectl cluster-info
 

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package localcluster
+package localhypervisorset
 
 import (
 	"fmt"
@@ -29,71 +29,71 @@ import (
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 )
 
-// HypervisorCluster represents a cluster of local hypervisors
-type HypervisorCluster struct {
+// HypervisorSet represents a set of local hypervisors
+type HypervisorSet struct {
 	Name        string
 	NodeImage   string
 	Remote      bool
 	Hypervisors []*Hypervisor
 }
 
-// NewHypervisorCluster creates a new cluster of hypervisors
-func NewHypervisorCluster(name, kubernetesVersion string, privateClusterSize, publicClusterSize int, remote bool) *HypervisorCluster {
-	cluster := HypervisorCluster{
+// NewHypervisorSet creates a new set of local hypervisors
+func NewHypervisorSet(name, kubernetesVersion string, privateHypervisorSetSize, publicHypervisorSetSize int, remote bool) *HypervisorSet {
+	set := HypervisorSet{
 		Name:        name,
 		NodeImage:   fmt.Sprintf("oneinfra/hypervisor:%s", kubernetesVersion),
 		Remote:      remote,
 		Hypervisors: []*Hypervisor{},
 	}
-	for i := 0; i < privateClusterSize; i++ {
-		cluster.addHypervisor(
+	for i := 0; i < privateHypervisorSetSize; i++ {
+		set.addHypervisor(
 			&Hypervisor{
 				Name:                 fmt.Sprintf("private-hypervisor-%d", i),
 				Public:               false,
-				HypervisorCluster:    &cluster,
+				HypervisorSet:        &set,
 				ExposedPortRangeLow:  30000,
 				ExposedPortRangeHigh: 60000,
 			},
 		)
 	}
-	for i := 0; i < publicClusterSize; i++ {
-		cluster.addHypervisor(
+	for i := 0; i < publicHypervisorSetSize; i++ {
+		set.addHypervisor(
 			&Hypervisor{
 				Name:                 fmt.Sprintf("public-hypervisor-%d", i),
 				Public:               true,
-				HypervisorCluster:    &cluster,
+				HypervisorSet:        &set,
 				ExposedPortRangeLow:  30000,
 				ExposedPortRangeHigh: 60000,
 			},
 		)
 	}
-	return &cluster
+	return &set
 }
 
-// LoadCluster loads a cluster with name from disk
-func LoadCluster(name string) (*HypervisorCluster, error) {
-	hypervisorCluster := HypervisorCluster{Name: name}
-	privateHypervisors, err := filepath.Glob(filepath.Join(hypervisorCluster.directory(), "private-hypervisor-*"))
+// LoadHypervisorSet loads an hypervisor set with name from disk
+func LoadHypervisorSet(name string) (*HypervisorSet, error) {
+	hypervisorSet := HypervisorSet{Name: name}
+	privateHypervisors, err := filepath.Glob(filepath.Join(hypervisorSet.directory(), "private-hypervisor-*"))
 	if err != nil {
 		return nil, err
 	}
-	publicHypervisors, err := filepath.Glob(filepath.Join(hypervisorCluster.directory(), "public-hypervisor-*"))
+	publicHypervisors, err := filepath.Glob(filepath.Join(hypervisorSet.directory(), "public-hypervisor-*"))
 	if err != nil {
 		return nil, err
 	}
-	return NewHypervisorCluster(name, "", len(privateHypervisors), len(publicHypervisors), false), nil
+	return NewHypervisorSet(name, "", len(privateHypervisors), len(publicHypervisors), false), nil
 }
 
-func (hypervisorCluster *HypervisorCluster) addHypervisor(hypervisor *Hypervisor) {
-	hypervisorCluster.Hypervisors = append(hypervisorCluster.Hypervisors, hypervisor)
+func (hypervisorSet *HypervisorSet) addHypervisor(hypervisor *Hypervisor) {
+	hypervisorSet.Hypervisors = append(hypervisorSet.Hypervisors, hypervisor)
 }
 
-// Create creates the local hypervisor cluster
-func (hypervisorCluster *HypervisorCluster) Create() error {
-	if err := hypervisorCluster.createDirectory(); err != nil {
+// Create creates the local hypervisor set
+func (hypervisorSet *HypervisorSet) Create() error {
+	if err := hypervisorSet.createDirectory(); err != nil {
 		return err
 	}
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		if err := hypervisor.Create(); err != nil {
 			return err
 		}
@@ -101,11 +101,11 @@ func (hypervisorCluster *HypervisorCluster) Create() error {
 	return nil
 }
 
-// Wait waits for the local hypervisor cluster to be created
-func (hypervisorCluster *HypervisorCluster) Wait() error {
+// Wait waits for the local hypervisor set to be created
+func (hypervisorSet *HypervisorSet) Wait() error {
 	var wg sync.WaitGroup
-	wg.Add(len(hypervisorCluster.Hypervisors))
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+	wg.Add(len(hypervisorSet.Hypervisors))
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		go func(hypervisor *Hypervisor) {
 			hypervisor.Wait()
 			wg.Done()
@@ -116,8 +116,8 @@ func (hypervisorCluster *HypervisorCluster) Wait() error {
 }
 
 // StartRemoteCRIEndpoints initializes the CRI endpoint on all hypervisors
-func (hypervisorCluster *HypervisorCluster) StartRemoteCRIEndpoints() error {
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+func (hypervisorSet *HypervisorSet) StartRemoteCRIEndpoints() error {
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		if err := hypervisor.StartRemoteCRIEndpoint(); err != nil {
 			return err
 		}
@@ -125,41 +125,41 @@ func (hypervisorCluster *HypervisorCluster) StartRemoteCRIEndpoints() error {
 	return nil
 }
 
-// Destroy destroys the local hypervisor cluster
-func (hypervisorCluster *HypervisorCluster) Destroy() error {
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+// Destroy destroys the local hypervisor set
+func (hypervisorSet *HypervisorSet) Destroy() error {
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		if err := hypervisor.Destroy(); err != nil {
 			log.Printf("could not destroy hypervisor %q; continuing...\n", hypervisor.Name)
 		}
 	}
-	return os.RemoveAll(hypervisorCluster.directory())
+	return os.RemoveAll(hypervisorSet.directory())
 }
 
-func (hypervisorCluster *HypervisorCluster) createDirectory() error {
-	return os.MkdirAll(hypervisorCluster.directory(), 0755)
+func (hypervisorSet *HypervisorSet) createDirectory() error {
+	return os.MkdirAll(hypervisorSet.directory(), 0755)
 }
 
-func (hypervisorCluster *HypervisorCluster) directory() string {
-	return filepath.Join(os.TempDir(), "oneinfra-clusters", hypervisorCluster.Name)
+func (hypervisorSet *HypervisorSet) directory() string {
+	return filepath.Join(os.TempDir(), "oneinfra-hypervisor-sets", hypervisorSet.Name)
 }
 
-// Export exports the local hypervisor cluster to a list of versioned hypervisors
-func (hypervisorCluster *HypervisorCluster) Export() []*infrav1alpha1.Hypervisor {
+// Export exports the local hypervisor set to a list of versioned hypervisors
+func (hypervisorSet *HypervisorSet) Export() []*infrav1alpha1.Hypervisor {
 	hypervisors := []*infrav1alpha1.Hypervisor{}
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		hypervisors = append(hypervisors, hypervisor.Export())
 	}
 	return hypervisors
 }
 
-// Specs returns the versioned specs for the local hypervisor cluster
-func (hypervisorCluster *HypervisorCluster) Specs() string {
+// Specs returns the versioned specs for the local hypervisor set
+func (hypervisorSet *HypervisorSet) Specs() string {
 	res := ""
 	scheme := runtime.NewScheme()
 	infrav1alpha1.AddToScheme(scheme)
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, infrav1alpha1.GroupVersion)
-	for _, hypervisor := range hypervisorCluster.Hypervisors {
+	for _, hypervisor := range hypervisorSet.Hypervisors {
 		hypervisorObject := hypervisor.Export()
 		if encodedHypervisor, err := runtime.Encode(encoder, hypervisorObject); err == nil {
 			res += fmt.Sprintf("---\n%s\n", string(encodedHypervisor))

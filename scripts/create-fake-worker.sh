@@ -30,7 +30,7 @@ fi
 
 OI_BIN=$(which oi)
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
-APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-cluster cluster endpoint --cluster ${CLUSTER_NAME})
+APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cluster ${CLUSTER_NAME})
 CONTAINERD_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} component --component containerd)
 CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
 

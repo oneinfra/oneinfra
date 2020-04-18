@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package localhypervisorset
 
 import (
 	"fmt"
@@ -23,10 +23,11 @@ import (
 	"net/url"
 	"os"
 
-	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
-	localcluster "github.com/oneinfra/oneinfra/internal/pkg/local-cluster"
-	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 	"github.com/pkg/errors"
+
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
+	localhypervisorsetpkg "github.com/oneinfra/oneinfra/internal/pkg/local-hypervisor-set"
+	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Endpoint prints the provided cluster endpoint
@@ -53,7 +54,7 @@ func Endpoint(clusterName string) error {
 	}
 	for _, component := range components {
 		if component.ClusterName == clusterName && component.Role == componentapi.ControlPlaneIngressRole {
-			internalHypervisorIP, err := localcluster.InternalIPAddress(component.HypervisorName)
+			internalHypervisorIP, err := localhypervisorsetpkg.InternalIPAddress(component.HypervisorName)
 			if err != nil {
 				return errors.Errorf("could not retrieve the internal IP address for hypervisor %q", component.HypervisorName)
 			}

@@ -14,18 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cluster
+package localhypervisorset
 
 import (
-	localcluster "github.com/oneinfra/oneinfra/internal/pkg/local-cluster"
+	localhypervisorsetpkg "github.com/oneinfra/oneinfra/internal/pkg/local-hypervisor-set"
 )
 
-// Destroy destroys a cluster with name clusterName
-func Destroy(clusterName string) error {
-	cluster, err := localcluster.LoadCluster(clusterName)
+// Destroy destroys a local hypervisor set with name hypervisorSetName
+func Destroy(hypervisorSetName string) error {
+	hypervisorSet, err := localhypervisorsetpkg.LoadHypervisorSet(hypervisorSetName)
 	if err != nil {
 		return err
 	}
-	cluster.Destroy()
+	hypervisorSet.Destroy()
 	return nil
 }

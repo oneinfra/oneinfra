@@ -15,7 +15,7 @@ PROJECT_GO_FOLDERS = apis cmd controllers internal
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)
 
-all: manager oi oi-local-cluster
+all: manager oi oi-local-hypervisor-set
 
 # Run tests
 test: lint fmt vet
@@ -32,9 +32,9 @@ manager: go-generate
 oi: go-generate
 	./scripts/run.sh go install ./cmd/oi
 
-# Build and install oi-local-cluster
-oi-local-cluster: go-generate
-	./scripts/run.sh go install ./cmd/oi-local-cluster
+# Build and install oi-local-hypervisor-set
+oi-local-hypervisor-set: go-generate
+	./scripts/run.sh go install ./cmd/oi-local-hypervisor-set
 
 # Build and install oi-releaser
 oi-releaser: oi
@@ -123,11 +123,11 @@ wg:
 	./scripts/install-wireguard.sh
 
 # Run e2e with local CRI endpoints (to be moved to a proper e2e framework)
-e2e: oi oi-local-cluster
+e2e: oi oi-local-hypervisor-set
 	./scripts/e2e.sh
 
 # Run e2e with remote CRI endpoints (to be moved to a proper e2e framework)
-e2e-remote: oi oi-local-cluster
+e2e-remote: oi oi-local-hypervisor-set
 	./scripts/e2e.sh --remote
 
 create-fake-worker:

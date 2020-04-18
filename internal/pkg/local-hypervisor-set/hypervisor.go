@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package localcluster
+package localhypervisorset
 
 import (
 	"bytes"
@@ -65,7 +65,7 @@ backend cri_backend
 type Hypervisor struct {
 	Name                 string
 	Public               bool
-	HypervisorCluster    *HypervisorCluster
+	HypervisorSet        *HypervisorSet
 	CRIEndpoint          string
 	ExposedPortRangeLow  int
 	ExposedPortRangeHigh int
@@ -78,7 +78,7 @@ func (hypervisor *Hypervisor) Create() error {
 	if err := hypervisor.createRuntimeDirectory(); err != nil {
 		return err
 	}
-	if hypervisor.HypervisorCluster.Remote {
+	if hypervisor.HypervisorSet.Remote {
 		if err := hypervisor.createCACertificates(); err != nil {
 			return err
 		}
@@ -87,9 +87,9 @@ func (hypervisor *Hypervisor) Create() error {
 	if err != nil {
 		return err
 	}
-	if err := exec.Command("docker", "inspect", hypervisor.HypervisorCluster.NodeImage).Run(); err != nil {
-		klog.Infof("pulling image %q; this can take a while, please wait...\n", hypervisor.HypervisorCluster.NodeImage)
-		if err := exec.Command("docker", "pull", hypervisor.HypervisorCluster.NodeImage).Run(); err != nil {
+	if err := exec.Command("docker", "inspect", hypervisor.HypervisorSet.NodeImage).Run(); err != nil {
+		klog.Infof("pulling image %q; this can take a while, please wait...\n", hypervisor.HypervisorSet.NodeImage)
+		if err := exec.Command("docker", "pull", hypervisor.HypervisorSet.NodeImage).Run(); err != nil {
 			return err
 		}
 	}
@@ -102,7 +102,7 @@ func (hypervisor *Hypervisor) Create() error {
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
-		hypervisor.HypervisorCluster.NodeImage,
+		hypervisor.HypervisorSet.NodeImage,
 	}...).Run()
 }
 
@@ -188,7 +188,7 @@ func (hypervisor *Hypervisor) haProxyTemplate() (string, error) {
 // Destroy destroys the current hypervisor
 func (hypervisor *Hypervisor) Destroy() error {
 	exec.Command(
-		"docker", "rm", "-f", fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name),
+		"docker", "rm", "-f", fmt.Sprintf("%s-%s", hypervisor.HypervisorSet.Name, hypervisor.Name),
 	).Run()
 	return os.RemoveAll(hypervisor.runtimeDirectory())
 }
@@ -210,11 +210,11 @@ func (hypervisor *Hypervisor) createRuntimeDirectory() error {
 }
 
 func (hypervisor *Hypervisor) runtimeDirectory() string {
-	return filepath.Join(hypervisor.HypervisorCluster.directory(), hypervisor.Name)
+	return filepath.Join(hypervisor.HypervisorSet.directory(), hypervisor.Name)
 }
 
 func (hypervisor *Hypervisor) fullName() string {
-	return fmt.Sprintf("%s-%s", hypervisor.HypervisorCluster.Name, hypervisor.Name)
+	return fmt.Sprintf("%s-%s", hypervisor.HypervisorSet.Name, hypervisor.Name)
 }
 
 // InternalIPAddress returns the internal IP address for the given
@@ -268,7 +268,7 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 			},
 		},
 	}
-	if hypervisor.HypervisorCluster.Remote {
+	if hypervisor.HypervisorSet.Remote {
 		internalIPAddress, err := hypervisor.internalIPAddress()
 		if err != nil {
 			klog.Fatalf("error while retrieving hypervisor internal IP address: %v", err)

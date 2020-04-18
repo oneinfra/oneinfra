@@ -128,7 +128,7 @@ e2e: oi oi-local-hypervisor-set
 
 # Run e2e with remote CRI endpoints (to be moved to a proper e2e framework)
 e2e-remote: oi oi-local-hypervisor-set
-	./scripts/e2e.sh --remote
+	./scripts/e2e.sh --tcp
 
 create-fake-worker:
 	./scripts/create-fake-worker.sh

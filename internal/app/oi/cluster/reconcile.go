@@ -46,16 +46,20 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 	clusterReconciler := clusterreconciler.NewClusterReconciler(hypervisors, clusters, components)
 	var componentReconcileErrs, clusterReconcileErrs reconciler.ReconcileErrors
 	for i := 0; i < maxRetries; i++ {
-		if componentReconcileErrs = componentReconciler.Reconcile(); componentReconcileErrs != nil {
-			klog.V(2).Infof("failed to reconcile some components: %v, retrying (%d/%d) after %s of wait time", componentReconcileErrs, i+1, maxRetries, retryWaitTime)
-		}
-		if clusterReconcileErrs = clusterReconciler.Reconcile(); clusterReconcileErrs != nil {
-			klog.V(2).Infof("failed to reconcile some clusters: %v, retrying (%d/%d) after %s of wait time", clusterReconcileErrs, i+1, maxRetries, retryWaitTime)
-		}
+		componentReconcileErrs = componentReconciler.Reconcile()
+		clusterReconcileErrs = clusterReconciler.Reconcile()
 		if componentReconcileErrs == nil && clusterReconcileErrs == nil {
 			break
 		}
 		time.Sleep(retryWaitTime)
+	}
+
+	if componentReconcileErrs != nil {
+		klog.V(2).Infof("failed to reconcile some components: %v", componentReconcileErrs)
+	}
+
+	if clusterReconcileErrs != nil {
+		klog.V(2).Infof("failed to reconcile some clusters: %v", clusterReconcileErrs)
 	}
 
 	clusterSpecs, err := clusterReconciler.Specs()

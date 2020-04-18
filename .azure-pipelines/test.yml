@@ -148,32 +148,6 @@ jobs:
     displayName: Run end to end tests
     env:
       KUBERNETES_VERSION: 1.18.2
-- job: e2e_1_18_2_with_local_cri_endpoints
-  displayName: e2e tests (1.18.2) with local CRI endpoints
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make deps
-    displayName: Install host dependencies
-    env:
-      KUBERNETES_VERSION: 1.18.2
-  - bash: make e2e
-    displayName: Run end to end tests
-    env:
-      KUBERNETES_VERSION: 1.18.2
-- job: e2e_1_18_2_with_remote_cri_endpoints
-  displayName: e2e tests (1.18.2) with remote CRI endpoints
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make deps
-    displayName: Install host dependencies
-    env:
-      KUBERNETES_VERSION: 1.18.2
-  - bash: make e2e-remote
-    displayName: Run end to end tests
-    env:
-      KUBERNETES_VERSION: 1.18.2
 - job: e2e_1_19_0_alpha_1_with_local_cri_endpoints
   displayName: e2e tests (1.19.0-alpha.1) with local CRI endpoints
   pool:

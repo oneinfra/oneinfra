@@ -81,7 +81,7 @@ func publishContainerJob(container string) azure.Job {
 	return azure.Job{
 		Job:         fmt.Sprintf("publish_%s_container_image", underscoredVersion),
 		DisplayName: fmt.Sprintf("Publish %s container image", container),
-		Pool:        defaultPool,
+		Pool:        azure.DefaultPool,
 		Steps: []azure.Step{
 			{
 				Bash:        "make publish-container-image-ci",

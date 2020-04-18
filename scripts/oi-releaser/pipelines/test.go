@@ -36,7 +36,7 @@ func AzureTest() error {
 			{
 				Job:         "build",
 				DisplayName: "Build",
-				Pool:        defaultPool,
+				Pool:        azure.DefaultPool,
 				Steps: []azure.Step{
 					{
 						Bash:        "make pull-builder",
@@ -51,7 +51,7 @@ func AzureTest() error {
 			{
 				Job:         "unit_and_integration_tests",
 				DisplayName: "Unit and Integration tests",
-				Pool:        defaultPool,
+				Pool:        azure.DefaultPool,
 				Steps: []azure.Step{
 					{
 						Bash:        "make pull-builder",
@@ -98,7 +98,7 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 		{
 			Job:         fmt.Sprintf("e2e_%s_with_local_cri_endpoints", underscoredVersion),
 			DisplayName: fmt.Sprintf("e2e tests (%s) with local CRI endpoints", kubernetesVersion),
-			Pool:        defaultPool,
+			Pool:        azure.DefaultPool,
 			Steps: []azure.Step{
 				{
 					Bash:        "make deps",
@@ -119,7 +119,7 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 		{
 			Job:         fmt.Sprintf("e2e_%s_with_remote_cri_endpoints", underscoredVersion),
 			DisplayName: fmt.Sprintf("e2e tests (%s) with remote CRI endpoints", kubernetesVersion),
-			Pool:        defaultPool,
+			Pool:        azure.DefaultPool,
 			Steps: []azure.Step{
 				{
 					Bash:        "make deps",

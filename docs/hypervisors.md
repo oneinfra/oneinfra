@@ -138,7 +138,7 @@ In this example, the `containerd.sock` is placed inside the chrooted
 environment `/var/lib/haproxy`.
 
 You can inspect the testing environment `oneinfra` creates in this
-setup by executing `oi-local-cluster cluster create --remote`.
+setup by executing `oi-local-hypervisor-set create --tcp`.
 
 Also, since `oneinfra` will authenticate against the hypervisor using
 a client certificate, you will need several certificates:

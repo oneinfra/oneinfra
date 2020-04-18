@@ -34,8 +34,9 @@ $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha5
 
 This should have installed the following binaries:
 
-* `oi-local-cluster`: allows you to test `oneinfra` locally in your
-  machine, creating hypervisors as Docker containers.
+* `oi-local-hypervisor-set`: allows you to test `oneinfra` locally in
+  your machine, creating hypervisors as Docker containers. This is
+  where `oneinfra` will schedule control plane components.
 
 * `oi`: CLI tool that allows you to test `oneinfra` locally in a
   standalone way, without requiring Kubernetes to store manifests.
@@ -66,7 +67,7 @@ the `oi` CLI tool that will allow you to test the reconciliation
 processes of `oneinfra` without the need of a Kubernetes cluster.
 
 ```console
-$ oi-local-cluster cluster create | oi cluster inject | oi reconcile > cluster-manifests.conf
+$ oi-local-hypervisor-set create | oi cluster inject | oi reconcile > cluster-manifests.conf
 ```
 
 And access it:
@@ -113,8 +114,19 @@ cluster control plane components somewhere. You can [also define your
 own set of hypervisors](docs/hypervisors.md) if you prefer.
 
     ```console
-    $ oi-local-cluster cluster create --remote | kubectl apply -f -
+    $ oi-local-hypervisor-set create --tcp | kubectl apply -f -
     ```
+
+    In this case, we need to use the `--tcp` flag, so the `oneinfra`
+    controller manager can talk to the CRI endpoints of the fake
+    hypervisors.
+
+    Hadn't we provided the `--tcp` flag here, we would have needed to
+    mount the UNIX sockets of the different hypervisors inside the
+    controller manager, leading to an even more artificial setup.
+
+    In production environments, it is a user responsibility to manage
+    the `Hypervisor` resources with remote CRI endpoints.
 
 4. Now, create a managed cluster:
 

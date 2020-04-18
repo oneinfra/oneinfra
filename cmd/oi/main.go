@@ -46,9 +46,9 @@ func main() {
 						Usage: "inject a cluster",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "name",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "name",
+								Usage: "cluster name",
+								Value: "cluster",
 							},
 							&cli.StringFlag{
 								Name:  "kubernetes-version",

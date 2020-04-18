@@ -75,7 +75,7 @@ func Inject(clusterName, kubernetesVersion string, controlPlaneReplicas int, vpn
 		}
 		components = append(components, component)
 	}
-	publicHypervisorList := hypervisors.PrivateList()
+	publicHypervisorList := hypervisors.PublicList()
 	component, err := component.NewComponentWithRandomHypervisor(
 		clusterName,
 		fmt.Sprintf("%s-control-plane-ingress", clusterName),

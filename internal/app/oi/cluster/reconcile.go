@@ -72,5 +72,7 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 		return errors.New("failed to reconcile some resources")
 	}
 
+	klog.Info("reconciliation finished successfully")
+
 	return nil
 }

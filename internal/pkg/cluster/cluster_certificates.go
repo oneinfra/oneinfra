@@ -17,6 +17,8 @@ limitations under the License.
 package cluster
 
 import (
+	"k8s.io/klog"
+
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
@@ -25,6 +27,7 @@ import (
 // InitializeCertificatesAndKeys initializes those certificates and
 // keys that are not set in this cluster
 func (cluster *Cluster) InitializeCertificatesAndKeys() error {
+	klog.Info("generating keys and certificates")
 	if err := cluster.initializeCertificateAuthorities(); err != nil {
 		return err
 	}

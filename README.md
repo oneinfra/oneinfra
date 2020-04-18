@@ -66,16 +66,14 @@ the `oi` CLI tool that will allow you to test the reconciliation
 processes of `oneinfra` without the need of a Kubernetes cluster.
 
 ```console
-$ oi-local-cluster cluster create | \
-    oi cluster inject --name ha-cluster | \
-    oi reconcile > ha-cluster-manifests.conf
+$ oi-local-cluster cluster create | oi cluster inject | oi reconcile > cluster-manifests.conf
 ```
 
 And access it:
 
 ```console
-$ cat ha-cluster-manifests.conf | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
-$ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
+$ cat cluster-manifests.conf | oi cluster admin-kubeconfig > cluster-kubeconfig.conf
+$ kubectl --kubeconfig=cluster-kubeconfig.conf cluster-info
 Kubernetes master is running at https://172.17.0.4:30000
 ```
 

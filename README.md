@@ -128,7 +128,7 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
     In production environments, it is a user responsibility to manage
     the `Hypervisor` resources with remote CRI endpoints.
 
-4. Now, create a managed cluster:
+4. Now, create a [managed cluster](config/samples/simple-cluster.yaml):
 
     ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha6/config/samples/simple-cluster.yaml
@@ -143,8 +143,9 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
     Kubernetes master is running at https://172.17.0.5:30000
     ```
 
-6. (optional) You can then create a second managed cluster, this one
-   comprised by three control plane instances:
+6. (optional) You can then create a [second managed
+   cluster](config/samples/ha-cluster.yaml), this one comprised by
+   three control plane instances:
 
     ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha6/config/samples/ha-cluster.yaml
@@ -177,6 +178,9 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
     default     simple-cluster-control-plane-bcx9g           simple-cluster   control-plane           test-private-hypervisor-0   2m10s
     default     simple-cluster-control-plane-ingress-5sdfh   simple-cluster   control-plane-ingress   test-public-hypervisor-0    2m10s
     ```
+
+Then play as much as you want by creating new clusters, deleting
+existing ones, or anything you want to try. Have fun!
 
 
 ## Defining clusters

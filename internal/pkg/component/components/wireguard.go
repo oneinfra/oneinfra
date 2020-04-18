@@ -107,12 +107,13 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 	if err != nil {
 		return err
 	}
-	wireguardConfigPath := secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
-	if hypervisor.FileUpToDate(cluster.Name, component.Name, wireguardConfigPath, wireguardConfig) {
+	wireguardConfigPath := componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
+	if hypervisor.FileUpToDate(cluster.Namespace, cluster.Name, component.Name, wireguardConfigPath, wireguardConfig) {
 		klog.V(2).Info("skipping wireguard reconfiguration, since configuration is up to date")
 		return nil
 	}
 	err = hypervisor.UploadFile(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		wireguardConfigPath,
@@ -122,6 +123,7 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 		return err
 	}
 	return hypervisor.RunAndWaitForPod(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
@@ -133,10 +135,10 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 					Command: []string{"wg-quick"},
 					Args: []string{
 						"up",
-						secretsPathFile(cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name)),
+						componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name)),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
+						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
 					Privileges: pod.PrivilegesNetworkPrivileged,
 				},

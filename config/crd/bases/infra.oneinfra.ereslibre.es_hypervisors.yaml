@@ -119,6 +119,8 @@ spec:
                 properties:
                   cluster:
                     type: string
+                  clusterNamespace:
+                    type: string
                   component:
                     type: string
                   port:
@@ -129,15 +131,19 @@ spec:
               additionalProperties:
                 additionalProperties:
                   additionalProperties:
-                    type: string
-                  description: FileMap is a map of file paths as keys and their sum
-                    as values
+                    additionalProperties:
+                      type: string
+                    description: FileMap is a map of file paths as keys and their
+                      sum as values
+                    type: object
+                  description: ComponentFileMap is a map of filemaps, with component
+                    as keys, and filemaps as values
                   type: object
-                description: ComponentFileMap is a map of filemaps, with component
-                  as keys, and filemaps as values
+                description: ClusterFileMap is a map of component filemaps, with clusters
+                  as keys, and component filemaps as values
                 type: object
-              description: ClusterFileMap is a map of component filemaps, with clusters
-                as keys, and component filemaps as values
+              description: NamespacedClusterFileMap is a map of cluster filemaps,
+                with namespaces as keys, and cluster filemaps as values
               type: object
             freedPorts:
               description: FreedPorts is a list of ports available for usage, freed

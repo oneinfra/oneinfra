@@ -24,30 +24,38 @@ func globalSecretsPath() string {
 	return "/etc/oneinfra/clusters"
 }
 
-func clusterSecretsPath(clusterName string) string {
-	return filepath.Join(globalSecretsPath(), clusterName)
-}
-
-func secretsPath(clusterName, componentName string) string {
-	return filepath.Join(clusterSecretsPath(clusterName), componentName)
-}
-
 func globalStoragePath() string {
 	return "/var/lib/oneinfra/clusters"
 }
 
-func clusterStoragePath(clusterName string) string {
-	return filepath.Join(globalStoragePath(), clusterName)
+func namespacedClusterSecretsPath(clusterNamespace string) string {
+	return filepath.Join(globalSecretsPath(), clusterNamespace)
 }
 
-func componentStoragePath(clusterName, componentName string) string {
-	return filepath.Join(clusterStoragePath(clusterName), componentName)
+func clusterSecretsPath(clusterNamespace, clusterName string) string {
+	return filepath.Join(namespacedClusterSecretsPath(clusterNamespace), clusterName)
 }
 
-func storagePath(clusterName, componentName, subcomponentName string) string {
-	return filepath.Join(componentStoragePath(clusterName, componentName), subcomponentName)
+func componentSecretsPath(clusterNamespace, clusterName, componentName string) string {
+	return filepath.Join(clusterSecretsPath(clusterNamespace, clusterName), componentName)
 }
 
-func secretsPathFile(clusterName, componentName, file string) string {
-	return filepath.Join(secretsPath(clusterName, componentName), file)
+func componentSecretsPathFile(clusterNamespace, clusterName, componentName, file string) string {
+	return filepath.Join(componentSecretsPath(clusterNamespace, clusterName, componentName), file)
+}
+
+func namespacedClusterStoragePath(clusterNamespace string) string {
+	return filepath.Join(globalStoragePath(), clusterNamespace)
+}
+
+func clusterStoragePath(clusterNamespace, clusterName string) string {
+	return filepath.Join(namespacedClusterStoragePath(clusterNamespace), clusterName)
+}
+
+func componentStoragePath(clusterNamespace, clusterName, componentName string) string {
+	return filepath.Join(clusterStoragePath(clusterNamespace, clusterName), componentName)
+}
+
+func subcomponentStoragePath(clusterNamespace, clusterName, componentName, subcomponentName string) string {
+	return filepath.Join(componentStoragePath(clusterNamespace, clusterName, componentName), subcomponentName)
 }

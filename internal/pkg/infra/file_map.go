@@ -31,20 +31,29 @@ type ComponentFileMap map[string]FileMap
 // keys, and component filemaps as values
 type ClusterFileMap map[string]ComponentFileMap
 
-// NewClusterFileMapFromv1alpha1 creates a cluster file map based on a
-// versioned cluster file map
-func NewClusterFileMapFromv1alpha1(clusterFileMap infrav1alpha1.ClusterFileMap) ClusterFileMap {
-	res := ClusterFileMap{}
-	for clusterName, componentFileMap := range clusterFileMap {
-		if res[clusterName] == nil {
-			res[clusterName] = ComponentFileMap{}
+// NamespacedClusterFileMap is a map of cluster filemaps, with
+// namespaces as keys, and cluster filemaps as values
+type NamespacedClusterFileMap map[string]ClusterFileMap
+
+// NewNamespacedClusterFileMapFromv1alpha1 creates a namespaced
+// cluster file map based on a versioned cluster file map
+func NewNamespacedClusterFileMapFromv1alpha1(namespacedClusterFileMap infrav1alpha1.NamespacedClusterFileMap) NamespacedClusterFileMap {
+	res := NamespacedClusterFileMap{}
+	for namespaceName, clusterFileMap := range namespacedClusterFileMap {
+		if res[namespaceName] == nil {
+			res[namespaceName] = ClusterFileMap{}
 		}
-		for componentName, fileMap := range componentFileMap {
-			if res[clusterName][componentName] == nil {
-				res[clusterName][componentName] = FileMap{}
+		for clusterName, componentFileMap := range clusterFileMap {
+			if res[namespaceName][clusterName] == nil {
+				res[namespaceName][clusterName] = ComponentFileMap{}
 			}
-			for fileName, fileSum := range fileMap {
-				res[clusterName][componentName][fileName] = fileSum
+			for componentName, fileMap := range componentFileMap {
+				if res[namespaceName][clusterName][componentName] == nil {
+					res[namespaceName][clusterName][componentName] = FileMap{}
+				}
+				for fileName, fileSum := range fileMap {
+					res[namespaceName][clusterName][componentName][fileName] = fileSum
+				}
 			}
 		}
 	}
@@ -52,18 +61,23 @@ func NewClusterFileMapFromv1alpha1(clusterFileMap infrav1alpha1.ClusterFileMap) 
 }
 
 // Export exports this cluster file map to a versioned cluster file map
-func (clusterFileMap ClusterFileMap) Export() infrav1alpha1.ClusterFileMap {
-	res := infrav1alpha1.ClusterFileMap{}
-	for clusterName, componentFileMap := range clusterFileMap {
-		if res[clusterName] == nil {
-			res[clusterName] = infrav1alpha1.ComponentFileMap{}
+func (namespacedClusterFileMap NamespacedClusterFileMap) Export() infrav1alpha1.NamespacedClusterFileMap {
+	res := infrav1alpha1.NamespacedClusterFileMap{}
+	for namespaceName, clusterFileMap := range namespacedClusterFileMap {
+		if res[namespaceName] == nil {
+			res[namespaceName] = infrav1alpha1.ClusterFileMap{}
 		}
-		for componentName, fileMap := range componentFileMap {
-			if res[clusterName][componentName] == nil {
-				res[clusterName][componentName] = infrav1alpha1.FileMap{}
+		for clusterName, componentFileMap := range clusterFileMap {
+			if res[namespaceName][clusterName] == nil {
+				res[namespaceName][clusterName] = infrav1alpha1.ComponentFileMap{}
 			}
-			for fileName, fileSum := range fileMap {
-				res[clusterName][componentName][fileName] = fileSum
+			for componentName, fileMap := range componentFileMap {
+				if res[namespaceName][clusterName][componentName] == nil {
+					res[namespaceName][clusterName][componentName] = infrav1alpha1.FileMap{}
+				}
+				for fileName, fileSum := range fileMap {
+					res[namespaceName][clusterName][componentName][fileName] = fileSum
+				}
 			}
 		}
 	}

@@ -129,6 +129,7 @@ func (hypervisor *Hypervisor) StartRemoteCRIEndpoint() error {
 	err = infraHypervisor.UploadFiles(
 		"",
 		"",
+		"",
 		map[string]string{
 			haProxyCertBundlePath:   strings.Join([]string{criEndpointCertificate, criEndpointPrivateKey}, ""),
 			haProxyClientCACertPath: hypervisor.ClientCACertificate.Certificate,
@@ -142,6 +143,7 @@ func (hypervisor *Hypervisor) StartRemoteCRIEndpoint() error {
 		return err
 	}
 	_, err = infraHypervisor.EnsurePod(
+		"",
 		"",
 		"cri-endpoint",
 		podapi.Pod{

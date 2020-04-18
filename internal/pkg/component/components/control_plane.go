@@ -128,25 +128,26 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return err
 	}
 	err = hypervisor.UploadFiles(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		map[string]string{
 			// etcd secrets
-			secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
 			// API server secrets
-			secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.crt"):           apiServerCertificate.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "apiserver.key"):           apiServerCertificate.PrivateKey,
-			secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccount.PublicKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"):           apiServerCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"):           apiServerCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccount.PublicKey,
 			// controller-manager secrets
-			secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
-			secretsPathFile(cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccount.PrivateKey,
-			secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.crt"):        cluster.CertificateAuthorities.CertificateSigner.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccount.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"):        cluster.CertificateAuthorities.CertificateSigner.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 			// scheduler secrets
-			secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
 		},
 	)
 	if err != nil {
@@ -165,6 +166,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	}
 	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	_, err = hypervisor.EnsurePod(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
@@ -180,21 +182,21 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						// future though, to reconfigure them pointing to all
 						// available etcd instances
 						"--etcd-servers", etcdServers.String(),
-						"--etcd-cafile", secretsPathFile(cluster.Name, component.Name, "etcd-ca.crt"),
-						"--etcd-certfile", secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.crt"),
-						"--etcd-keyfile", secretsPathFile(cluster.Name, component.Name, "apiserver-etcd-client.key"),
+						"--etcd-cafile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
+						"--etcd-certfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
+						"--etcd-keyfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
 						"--anonymous-auth", "false",
 						"--authorization-mode", "Node,RBAC",
 						"--enable-bootstrap-token-auth",
 						"--allow-privileged", "true",
-						"--tls-cert-file", secretsPathFile(cluster.Name, component.Name, "apiserver.crt"),
-						"--tls-private-key-file", secretsPathFile(cluster.Name, component.Name, "apiserver.key"),
-						"--client-ca-file", secretsPathFile(cluster.Name, component.Name, "apiserver-client-ca.crt"),
-						"--service-account-key-file", secretsPathFile(cluster.Name, component.Name, "service-account-pub.key"),
+						"--tls-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"),
+						"--tls-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
+						"--client-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
+						"--service-account-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
 						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,Hostname,InternalDNS,InternalIP",
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
+						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
 				},
 				{
@@ -202,14 +204,14 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   fmt.Sprintf(kubeControllerManagerImage, kubernetesVersion),
 					Command: []string{"kube-controller-manager"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "controller-manager.kubeconfig"),
+						"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"),
 						"--controllers=*,tokencleaner",
-						"--service-account-private-key-file", secretsPathFile(cluster.Name, component.Name, "service-account.key"),
-						"--cluster-signing-cert-file", secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.crt"),
-						"--cluster-signing-key-file", secretsPathFile(cluster.Name, component.Name, "cluster-signing-ca.key"),
+						"--service-account-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
+						"--cluster-signing-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"),
+						"--cluster-signing-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
+						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
 				},
 				{
@@ -217,10 +219,10 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   fmt.Sprintf(kubeSchedulerImage, kubernetesVersion),
 					Command: []string{"kube-scheduler"},
 					Args: []string{
-						"--kubeconfig", secretsPathFile(cluster.Name, component.Name, "scheduler.kubeconfig"),
+						"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"),
 					},
 					Mounts: map[string]string{
-						secretsPath(cluster.Name, component.Name): secretsPath(cluster.Name, component.Name),
+						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
 				},
 			},
@@ -241,6 +243,7 @@ func (controlPlane *ControlPlane) stopControlPlane(inquirer inquirer.ReconcilerI
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	err := hypervisor.DeletePod(
+		inquirer.Cluster().Namespace,
 		inquirer.Cluster().Name,
 		component.Name,
 		controlPlane.controlPlanePodName(inquirer),
@@ -274,10 +277,11 @@ func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquir
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	res := hypervisor.RunAndWaitForPod(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
-			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
+			fmt.Sprintf("%s-%s-%s-cleanup", cluster.Namespace, cluster.Name, component.Name),
 			[]pod.Container{
 				{
 					Name:    "etcd-cleanup",
@@ -286,10 +290,11 @@ func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquir
 					Args: []string{
 						"-c",
 						fmt.Sprintf(
-							"rm -rf %s && rmdir %s && (rmdir %s || true)",
-							storagePath(cluster.Name, component.Name, "etcd"),
-							componentStoragePath(cluster.Name, component.Name),
-							clusterStoragePath(cluster.Name),
+							"rm -rf %s && ((rmdir %s && rmdir %s && rmdir %s) || true)",
+							subcomponentStoragePath(cluster.Namespace, cluster.Name, component.Name, "etcd"),
+							componentStoragePath(cluster.Namespace, cluster.Name, component.Name),
+							clusterStoragePath(cluster.Namespace, cluster.Name),
+							namespacedClusterStoragePath(cluster.Namespace),
 						),
 					},
 					Mounts: map[string]string{
@@ -303,9 +308,10 @@ func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquir
 					Args: []string{
 						"-c",
 						fmt.Sprintf(
-							"rm -rf %s && (rmdir %s || true)",
-							secretsPath(cluster.Name, component.Name),
-							clusterSecretsPath(cluster.Name),
+							"rm -rf %s && ((rmdir %s && rmdir %s) || true)",
+							componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
+							clusterSecretsPath(cluster.Namespace, cluster.Name),
+							namespacedClusterSecretsPath(cluster.Namespace),
 						),
 					},
 					Mounts: map[string]string{
@@ -318,17 +324,7 @@ func (controlPlane *ControlPlane) hostCleanup(inquirer inquirer.ReconcilerInquir
 		),
 	)
 	if res == nil {
-		if hypervisor.Files == nil {
-			return nil
-		}
-		if hypervisor.Files[cluster.Name] == nil {
-			return nil
-		}
-		if len(hypervisor.Files[cluster.Name]) == 1 {
-			delete(hypervisor.Files, cluster.Name)
-		} else {
-			delete(hypervisor.Files[cluster.Name], component.Name)
-		}
+		cleanupHypervisorFileMap(hypervisor, cluster.Namespace, cluster.Name, component.Name)
 	}
 	return res
 }

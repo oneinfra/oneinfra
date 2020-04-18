@@ -221,6 +221,7 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetric
 		return err
 	}
 	return hypervisorRuntimeEndpoint.RunAndWaitForPod(
+		"",
 		nodeJoinRequest.Name,
 		"join",
 		podapi.Pod{

@@ -147,7 +147,7 @@ func (component *Component) RequestPort(hypervisor *infra.Hypervisor, name strin
 	if allocatedPort, exists := component.AllocatedHostPorts[name]; exists {
 		return allocatedPort, nil
 	}
-	allocatedPort, err := hypervisor.RequestPort(component.ClusterName, component.WithSubcomponentName(name))
+	allocatedPort, err := hypervisor.RequestPort(component.Namespace, component.ClusterName, component.WithSubcomponentName(name))
 	if err != nil {
 		return 0, err
 	}
@@ -160,7 +160,7 @@ func (component *Component) FreePort(hypervisor *infra.Hypervisor, name string) 
 	if _, exists := component.AllocatedHostPorts[name]; !exists {
 		return nil
 	}
-	if err := hypervisor.FreePort(component.ClusterName, component.WithSubcomponentName(name)); err != nil {
+	if err := hypervisor.FreePort(component.Namespace, component.ClusterName, component.WithSubcomponentName(name)); err != nil {
 		return errors.Wrapf(err, "could not free port %q on hypervisor %q", name, hypervisor.Name)
 	}
 	delete(component.AllocatedHostPorts, name)

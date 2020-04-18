@@ -103,15 +103,17 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		return err
 	}
 	err = hypervisor.UploadFile(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
-		secretsPathFile(cluster.Name, component.Name, "haproxy.cfg"),
+		componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "haproxy.cfg"),
 		haProxyConfig,
 	)
 	if err != nil {
 		return err
 	}
 	_, err = hypervisor.EnsurePod(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
@@ -121,7 +123,7 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 					Name:  "haproxy",
 					Image: haProxyImage,
 					Mounts: map[string]string{
-						secretsPathFile(cluster.Name, component.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
+						componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
 					},
 				},
 			},
@@ -174,6 +176,7 @@ func (ingress *ControlPlaneIngress) ingressPodName(inquirer inquirer.ReconcilerI
 
 func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInquirer) error {
 	err := inquirer.Hypervisor().DeletePod(
+		inquirer.Cluster().Namespace,
 		inquirer.Cluster().Name,
 		inquirer.Component().Name,
 		ingress.ingressPodName(inquirer),
@@ -207,10 +210,11 @@ func (ingress *ControlPlaneIngress) hostCleanup(inquirer inquirer.ReconcilerInqu
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
 	res := hypervisor.RunAndWaitForPod(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		pod.NewPod(
-			fmt.Sprintf("%q-%q-cleanup", cluster.Name, component.Name),
+			fmt.Sprintf("%s-%s-%s-cleanup", cluster.Namespace, cluster.Name, component.Name),
 			[]pod.Container{
 				{
 					Name:    "secrets-cleanup",
@@ -219,9 +223,10 @@ func (ingress *ControlPlaneIngress) hostCleanup(inquirer inquirer.ReconcilerInqu
 					Args: []string{
 						"-c",
 						fmt.Sprintf(
-							"rm -rf %s && (rmdir %s || true)",
-							secretsPath(cluster.Name, component.Name),
-							clusterSecretsPath(cluster.Name),
+							"rm -rf %s && ((rmdir %s && rmdir %s) || true)",
+							componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
+							clusterSecretsPath(cluster.Namespace, cluster.Name),
+							namespacedClusterSecretsPath(cluster.Namespace),
 						),
 					},
 					Mounts: map[string]string{
@@ -234,17 +239,7 @@ func (ingress *ControlPlaneIngress) hostCleanup(inquirer inquirer.ReconcilerInqu
 		),
 	)
 	if res == nil {
-		if hypervisor.Files == nil {
-			return nil
-		}
-		if hypervisor.Files[cluster.Name] == nil {
-			return nil
-		}
-		if len(hypervisor.Files[cluster.Name]) == 1 {
-			delete(hypervisor.Files, cluster.Name)
-		} else {
-			delete(hypervisor.Files[cluster.Name], component.Name)
-		}
+		cleanupHypervisorFileMap(hypervisor, cluster.Namespace, cluster.Name, component.Name)
 	}
 	return res
 }

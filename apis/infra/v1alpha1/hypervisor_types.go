@@ -65,6 +65,10 @@ type ComponentFileMap map[string]FileMap
 // keys, and component filemaps as values
 type ClusterFileMap map[string]ComponentFileMap
 
+// NamespacedClusterFileMap is a map of cluster filemaps, with
+// namespaces as keys, and cluster filemaps as values
+type NamespacedClusterFileMap map[string]ClusterFileMap
+
 // LocalHypervisorCRIEndpoint represents a local hypervisor CRI endpoint (unix socket)
 type LocalHypervisorCRIEndpoint struct {
 	// CRIEndpoint is the unix socket path
@@ -91,8 +95,8 @@ type HypervisorStatus struct {
 	AllocatedPorts []HypervisorPortAllocation `json:"allocatedPorts,omitempty"`
 	// FreedPorts is a list of ports available for usage, freed when
 	// components have been deleted
-	FreedPorts []int          `json:"freedPorts,omitempty"`
-	Files      ClusterFileMap `json:"files,omitempty"`
+	FreedPorts []int                    `json:"freedPorts,omitempty"`
+	Files      NamespacedClusterFileMap `json:"files,omitempty"`
 }
 
 // HypervisorPortRange represents a port range
@@ -103,9 +107,10 @@ type HypervisorPortRange struct {
 
 // HypervisorPortAllocation represents a port allocation in an hypervisor
 type HypervisorPortAllocation struct {
-	Cluster   string `json:"cluster,omitempty"`
-	Component string `json:"component,omitempty"`
-	Port      int    `json:"port,omitempty"`
+	ClusterNamespace string `json:"clusterNamespace,omitempty"`
+	Cluster          string `json:"cluster,omitempty"`
+	Component        string `json:"component,omitempty"`
+	Port             int    `json:"port,omitempty"`
 }
 
 // +kubebuilder:printcolumn:name="Public",type=boolean,JSONPath=`.spec.public`

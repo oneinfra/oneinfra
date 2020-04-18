@@ -326,15 +326,16 @@ func (controlPlane *ControlPlane) reconcileEtcdCertificatesAndKeys(inquirer inqu
 		return err
 	}
 	return hypervisor.UploadFiles(
+		cluster.Namespace,
 		cluster.Name,
 		component.Name,
 		map[string]string{
-			secretsPathFile(cluster.Name, component.Name, "etcd.crt"):           etcdServerCertificate.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd.key"):           etcdServerCertificate.PrivateKey,
-			secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"): cluster.CertificateAuthorities.EtcdClient.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"):   cluster.CertificateAuthorities.EtcdPeer.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate.Certificate,
-			secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"):      etcdPeerCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.crt"):           etcdServerCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.key"):           etcdServerCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-client-ca.crt"): cluster.CertificateAuthorities.EtcdClient.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer-ca.crt"):   cluster.CertificateAuthorities.EtcdPeer.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.crt"):      etcdPeerCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.key"):      etcdPeerCertificate.PrivateKey,
 		},
 	)
 }
@@ -388,7 +389,7 @@ func (controlPlane *ControlPlane) ensureEtcdPod(inquirer inquirer.ReconcilerInqu
 	if err != nil {
 		return err
 	}
-	if _, err = hypervisor.EnsurePod(cluster.Name, component.Name, etcdPod); err != nil {
+	if _, err = hypervisor.EnsurePod(cluster.Namespace, cluster.Name, component.Name, etcdPod); err != nil {
 		return err
 	}
 	return nil
@@ -416,12 +417,12 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 			"--client-cert-auth",
 			"--peer-cert-allowed-cn", fmt.Sprintf("%s.etcd.cluster", cluster.Name),
 			"--experimental-peer-skip-client-san-verification",
-			"--cert-file", secretsPathFile(cluster.Name, component.Name, "etcd.crt"),
-			"--key-file", secretsPathFile(cluster.Name, component.Name, "etcd.key"),
-			"--trusted-ca-file", secretsPathFile(cluster.Name, component.Name, "etcd-client-ca.crt"),
-			"--peer-trusted-ca-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer-ca.crt"),
-			"--peer-cert-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer.crt"),
-			"--peer-key-file", secretsPathFile(cluster.Name, component.Name, "etcd-peer.key"),
+			"--cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.crt"),
+			"--key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.key"),
+			"--trusted-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-client-ca.crt"),
+			"--peer-trusted-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer-ca.crt"),
+			"--peer-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.crt"),
+			"--peer-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.key"),
 			"--data-dir", etcdDataDir,
 			"--listen-client-urls", listenClientURLs.String(),
 			"--advertise-client-urls", advertiseClientURLs.String(),
@@ -430,8 +431,8 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 			"--enable-grpc-gateway=false",
 		},
 		Mounts: map[string]string{
-			secretsPath(cluster.Name, component.Name):         secretsPath(cluster.Name, component.Name),
-			storagePath(cluster.Name, component.Name, "etcd"): etcdDataDir,
+			componentSecretsPath(cluster.Namespace, cluster.Name, component.Name):            componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
+			subcomponentStoragePath(cluster.Namespace, cluster.Name, component.Name, "etcd"): etcdDataDir,
 		},
 	}
 	if len(cluster.StoragePeerEndpoints) == 1 {
@@ -517,6 +518,7 @@ func (controlPlane *ControlPlane) etcdPodName(inquirer inquirer.ReconcilerInquir
 
 func (controlPlane *ControlPlane) stopEtcd(inquirer inquirer.ReconcilerInquirer) error {
 	err := inquirer.Hypervisor().DeletePod(
+		inquirer.Cluster().Namespace,
 		inquirer.Cluster().Name,
 		inquirer.Component().Name,
 		controlPlane.etcdPodName(inquirer),

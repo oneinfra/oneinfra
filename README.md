@@ -157,7 +157,7 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
         ```console
         $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
         $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
-        Kubernetes master is running at https://172.17.0.5:30002
+        Kubernetes master is running at https://172.17.0.5:30001
         ```
 7. List clusters and components on the management cluster:
 

@@ -17,8 +17,8 @@
 package v1alpha1
 
 import (
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/utils"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"

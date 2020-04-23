@@ -24,8 +24,8 @@ import (
 
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // ReconcileNodeJoinRequests reconciles this cluster node join requests

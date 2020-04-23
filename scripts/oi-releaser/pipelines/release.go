@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines/azure"
 	"sigs.k8s.io/yaml"
 )

@@ -30,8 +30,8 @@ import (
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 func listHypervisors(ctx context.Context, client clientapi.Client, connectionPool *infra.HypervisorConnectionPool) (infra.HypervisorMap, error) {

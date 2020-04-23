@@ -31,8 +31,8 @@ import (
 	"k8s.io/klog"
 
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // Certificate represents a certificate

@@ -41,11 +41,11 @@ import (
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // Join joins a node to an existing cluster

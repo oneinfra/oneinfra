@@ -20,8 +20,8 @@ import (
 	"k8s.io/klog"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // InitializeCertificatesAndKeys initializes those certificates and

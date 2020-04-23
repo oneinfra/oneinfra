@@ -22,8 +22,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // KubernetesVersion returns the Kubernetes version for the given

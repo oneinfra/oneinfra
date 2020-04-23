@@ -16,4 +16,4 @@
 
 package constants
 
-//go:generate ../../../scripts/release-gen.sh
+//go:generate ../../scripts/release-gen.sh

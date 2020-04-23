@@ -22,7 +22,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines/azure"
 )
 

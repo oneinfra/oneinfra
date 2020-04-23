@@ -2,7 +2,7 @@
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/oneinfra/oneinfra v0.0.0-00010101000000-000000000000 => ../../
 ## explicit
-github.com/oneinfra/oneinfra/internal/pkg/constants
+github.com/oneinfra/oneinfra/pkg/constants
 # github.com/pkg/errors v0.8.1
 ## explicit
 github.com/pkg/errors

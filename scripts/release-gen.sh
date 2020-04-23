@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 BOILERPLATE="$(cat ${SCRIPT_DIR}/../hack/boilerplate.go.txt)"
 RELEASE_DATA=$(cat ${SCRIPT_DIR}/../RELEASE)
 
-cat <<EOF > ${SCRIPT_DIR}/../internal/pkg/constants/zz_generated.constants.go
+cat <<EOF > ${SCRIPT_DIR}/../pkg/constants/zz_generated.constants.go
 $BOILERPLATE
 
 package constants

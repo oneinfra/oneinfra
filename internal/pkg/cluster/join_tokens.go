@@ -30,7 +30,7 @@ import (
 	utiltokens "k8s.io/cluster-bootstrap/util/tokens"
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // ReconcileJoinTokens reconciles this cluster join tokens

@@ -25,10 +25,10 @@ import (
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/component/components"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/utils"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // ComponentReconciler represents a component reconciler

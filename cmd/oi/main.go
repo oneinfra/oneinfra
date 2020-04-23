@@ -30,7 +30,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 func main() {

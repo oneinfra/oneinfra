@@ -53,7 +53,6 @@ const (
 // Hypervisor represents an hypervisor
 type Hypervisor struct {
 	Name               string
-	Namespace          string
 	ResourceVersion    string
 	Labels             map[string]string
 	Annotations        map[string]string
@@ -88,7 +87,6 @@ func NewHypervisorFromv1alpha1(hypervisor *infrav1alpha1.Hypervisor, connectionP
 	}
 	res := Hypervisor{
 		Name:            hypervisor.Name,
-		Namespace:       hypervisor.Namespace,
 		ResourceVersion: hypervisor.ResourceVersion,
 		Labels:          hypervisor.Labels,
 		Annotations:     hypervisor.Annotations,
@@ -735,7 +733,6 @@ func (hypervisor *Hypervisor) Export() *infrav1alpha1.Hypervisor {
 	resHypervisor := infrav1alpha1.Hypervisor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            hypervisor.Name,
-			Namespace:       hypervisor.Namespace,
 			ResourceVersion: hypervisor.ResourceVersion,
 			Labels:          hypervisor.Labels,
 			Annotations:     hypervisor.Annotations,

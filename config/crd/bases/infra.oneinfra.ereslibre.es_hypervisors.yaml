@@ -30,7 +30,7 @@ spec:
     listKind: HypervisorList
     plural: hypervisors
     singular: hypervisor
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:

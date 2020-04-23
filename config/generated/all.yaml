@@ -446,7 +446,7 @@ spec:
     plural: hypervisors
     singular: hypervisor
   preserveUnknownFields: false
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:

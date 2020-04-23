@@ -119,6 +119,7 @@ type HypervisorPortAllocation struct {
 // +kubebuilder:printcolumn:name="Port High",type=integer,JSONPath=`.spec.portRange.high`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
 // +kubebuilder:subresource:status
 
 // Hypervisor is the Schema for the hypervisors API

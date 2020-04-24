@@ -202,6 +202,13 @@ func main() {
 							return jointoken.Inject(c.String("cluster"))
 						},
 					},
+					{
+						Name:  "generate",
+						Usage: "generates a random join token and prints it to stdout",
+						Action: func(c *cli.Context) error {
+							return jointoken.Generate()
+						},
+					},
 				},
 			},
 			{

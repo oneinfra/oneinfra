@@ -231,14 +231,14 @@ func main() {
 								Usage:    "node name of this node when joining",
 							},
 							&cli.StringFlag{
-								Name:     "container-runtime-endpoint",
-								Required: true,
-								Usage:    "container runtime endpoint of this node",
+								Name:  "container-runtime-endpoint",
+								Usage: "container runtime endpoint of this node",
+								Value: "unix:///run/containerd/containerd.sock",
 							},
 							&cli.StringFlag{
-								Name:     "image-service-endpoint",
-								Required: true,
-								Usage:    "image service endpoint of this node",
+								Name:  "image-service-endpoint",
+								Usage: "image service endpoint of this node",
+								Value: "unix:///run/containerd/containerd.sock",
 							},
 							&cli.StringFlag{
 								Name:     "apiserver-endpoint",

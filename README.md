@@ -17,11 +17,11 @@ You can [read more about its design here](docs/DESIGN.md).
 
 | Kubernetes version | Deployable with  | Default in       |                                                                                                                                                                            |                                                                                                                                                                             |
 |--------------------|------------------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `1.15.11`          | `20.04.0-alpha6` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20local%20CRI%20endpoints)        | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20remote%20CRI%20endpoints)        |
-| `1.16.9`           | `20.04.0-alpha6` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20remote%20CRI%20endpoints)         |
-| `1.17.5`           | `20.04.0-alpha6` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20remote%20CRI%20endpoints)         |
-| `1.18.2`           | `20.04.0-alpha6` | `20.04.0-alpha6` | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20remote%20CRI%20endpoints)         |
-| `1.19.0-alpha.1`   | `20.04.0-alpha6` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.1)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.1)%20with%20remote%20CRI%20endpoints) |
+| `1.15.11`          | `20.04.0-alpha7` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20local%20CRI%20endpoints)        | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.11)%20with%20remote%20CRI%20endpoints)        |
+| `1.16.9`           | `20.04.0-alpha7` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20remote%20CRI%20endpoints)         |
+| `1.17.5`           | `20.04.0-alpha7` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20remote%20CRI%20endpoints)         |
+| `1.18.2`           | `20.04.0-alpha7` | `20.04.0-alpha7` | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20remote%20CRI%20endpoints)         |
+| `1.19.0-alpha.2`   | `20.04.0-alpha7` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.2)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.2)%20with%20remote%20CRI%20endpoints) |
 
 
 ## Go install
@@ -29,14 +29,15 @@ You can [read more about its design here](docs/DESIGN.md).
 Build has been tested with go versions 1.13 and 1.14.
 
 ```console
-$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha6
+$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.04.0-alpha7
 ```
 
 This should have installed the following binaries:
 
 * `oi-local-hypervisor-set`: allows you to test `oneinfra` locally in
-  your machine, creating hypervisors as Docker containers. This is
-  where `oneinfra` will schedule control plane components.
+  your machine, creating hypervisors as Docker containers. Hypervisors
+  are where `oneinfra` will schedule control plane components. **This
+  command is only intended for ease of testing `oneinfra` locally**.
 
 * `oi`: CLI tool that allows you to test `oneinfra` locally in a
   standalone way, without requiring Kubernetes to store manifests.
@@ -105,7 +106,7 @@ step.
     ```console
     $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
     $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager --all
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha6/config/generated/all.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha7/config/generated/all.yaml
     $ kubectl wait --for=condition=Available deployment --timeout=2m -n oneinfra-system --all
     ```
 
@@ -131,7 +132,7 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
 4. Now, create a [managed cluster](config/samples/simple-cluster.yaml):
 
     ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha6/config/samples/simple-cluster.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha7/config/samples/simple-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
     ```
 
@@ -148,7 +149,7 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
    three control plane instances:
 
     ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha6/config/samples/ha-cluster.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.04.0-alpha7/config/samples/ha-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
     ```
 

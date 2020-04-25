@@ -10,7 +10,7 @@ TEST_WEBHOOK_CERTS_DIR ?= /tmp/k8s-webhook-server/serving-certs
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 # Project top level folders
-PROJECT_GO_FOLDERS = apis cmd controllers internal
+PROJECT_GO_FOLDERS = apis cmd controllers internal pkg
 
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)

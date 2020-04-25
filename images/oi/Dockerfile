@@ -8,6 +8,7 @@ COPY cmd/ cmd/
 COPY apis/ apis/
 COPY controllers/ controllers/
 COPY internal/ internal/
+COPY pkg/ pkg/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go install -mod=vendor github.com/oneinfra/oneinfra/cmd/oi
 
 

@@ -90,25 +90,25 @@ jobs:
     env:
       CONTAINER_IMAGE: kubelet-installer:1.18.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_19_0_alpha_1_container_image
-  displayName: Publish hypervisor:1.19.0-alpha.1 container image
+- job: publish_hypervisor_1_19_0_alpha_2_container_image
+  displayName: Publish hypervisor:1.19.0-alpha.2 container image
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_IMAGE: hypervisor:1.19.0-alpha.1
+      CONTAINER_IMAGE: hypervisor:1.19.0-alpha.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_kubelet_installer_1_19_0_alpha_1_container_image
-  displayName: Publish kubelet-installer:1.19.0-alpha.1 container image
+- job: publish_kubelet_installer_1_19_0_alpha_2_container_image
+  displayName: Publish kubelet-installer:1.19.0-alpha.2 container image
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_IMAGE: kubelet-installer:1.19.0-alpha.1
+      CONTAINER_IMAGE: kubelet-installer:1.19.0-alpha.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 trigger:
   branches:

@@ -50,6 +50,7 @@ import (
 
 // Join joins a node to an existing cluster
 func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+	klog.Info("loading or generating symmetric key")
 	symmetricKey, err := readOrGenerateSymmetricKey()
 	if err != nil {
 		return err
@@ -113,6 +114,7 @@ func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodenam
 }
 
 func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename string, timeout time.Duration) (*nodejoinrequests.NodeJoinRequest, error) {
+	klog.Infof("waiting for join request %q to be issued; will timeout in %s", nodename, timeout)
 	timeoutChan := time.After(timeout)
 	tickChan := time.Tick(time.Second)
 	for {
@@ -120,7 +122,7 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 		case <-timeoutChan:
 			return nil, errors.New("timed out waiting for issued condition")
 		case <-tickChan:
-			klog.V(2).Info("checking if the node join request has been issued")
+			klog.Info("waiting for the node join request to be issued")
 			nodeJoinRequest := nodev1alpha1.NodeJoinRequest{}
 			err := client.
 				Get().
@@ -212,12 +214,11 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetric
 	if err != nil {
 		return err
 	}
+	kubeletImage := fmt.Sprintf(kubeletInstallerImage, kubernetesVersion)
+	klog.Infof("installing the kubelet from %q", kubeletImage)
 	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ImageServiceEndpoint)
 	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ContainerRuntimeEndpoint)
-	err = hypervisorImageEndpoint.EnsureImage(
-		fmt.Sprintf(kubeletInstallerImage, kubernetesVersion),
-	)
-	if err != nil {
+	if err := hypervisorImageEndpoint.EnsureImage(kubeletImage); err != nil {
 		return err
 	}
 	return hypervisorRuntimeEndpoint.RunAndWaitForPod(
@@ -276,6 +277,7 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 	if err != nil {
 		return nil, err
 	}
+	klog.Info("downloading oneinfra public ConfigMap")
 	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(constants.OneInfraJoinConfigMap, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -292,6 +294,7 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 	if err != nil {
 		return nil, err
 	}
+	klog.Infof("creating node join request for nodename %q", nodename)
 	if err := createJoinRequest(client, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint); err != nil {
 		return nil, err
 	}
@@ -299,6 +302,7 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 }
 
 func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+	klog.Info("writing kubelet configuration and secrets")
 	if err := writeKubeConfig(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}

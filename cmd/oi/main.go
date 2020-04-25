@@ -219,6 +219,12 @@ func main() {
 						Name:  "join",
 						Usage: "joins a node to an existing cluster",
 						Flags: []cli.Flag{
+							&cli.IntFlag{
+								Name:    "verbosity",
+								Aliases: []string{"v"},
+								Usage:   "logging verbosity",
+								Value:   1,
+							},
 							&cli.StringFlag{
 								Name:     "nodename",
 								Required: true,
@@ -251,6 +257,9 @@ func main() {
 							},
 						},
 						Action: func(c *cli.Context) error {
+							flagSet := flag.FlagSet{}
+							klog.InitFlags(&flagSet)
+							flagSet.Set("v", strconv.Itoa(c.Int("verbosity")))
 							return node.Join(
 								c.String("nodename"),
 								c.String("apiserver-endpoint"),

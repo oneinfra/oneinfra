@@ -17,6 +17,7 @@
 package node
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/node"
@@ -28,5 +29,9 @@ func Join(nodename, apiServerEndpoint, caCertFile, token, containerRuntimeEndpoi
 	if err != nil {
 		return err
 	}
-	return node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint)
+	err = node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint)
+	if err == nil {
+		fmt.Printf("worker node %q was successfully configured\n", nodename)
+	}
+	return err
 }

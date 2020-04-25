@@ -47,7 +47,9 @@ func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
 	var componentReconcileErrs, clusterReconcileErrs reconciler.ReconcileErrors
 	for i := 0; i < maxRetries; i++ {
 		componentReconcileErrs = componentReconciler.Reconcile()
-		clusterReconcileErrs = clusterReconciler.Reconcile()
+		clusterReconcileErrs = clusterReconciler.Reconcile(clusterreconciler.OptionalReconcile{
+			ReconcileNodeJoinRequests: true,
+		})
 		if componentReconcileErrs == nil && clusterReconcileErrs == nil {
 			break
 		}

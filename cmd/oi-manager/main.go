@@ -121,6 +121,13 @@ func main() {
 		klog.Error("could not set cluster reconciler controller")
 		os.Exit(1)
 	}
+	if err = (&controllers.NodeJoinRequestReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error("could not set node join request reconciler controller")
+		os.Exit(1)
+	}
 	if err = (&clusterv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
 		klog.Error("could not set up cluster webhook")
 		os.Exit(1)

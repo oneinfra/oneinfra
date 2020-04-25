@@ -29,6 +29,12 @@ import (
 	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
+// OptionalReconcile represents what optional reconciliations should
+// or should not take place
+type OptionalReconcile struct {
+	ReconcileNodeJoinRequests bool
+}
+
 // ClusterReconciler represents a cluster reconciler
 type ClusterReconciler struct {
 	hypervisorMap infra.HypervisorMap
@@ -69,7 +75,7 @@ func (clusterReconciler *ClusterReconciler) IsClusterFullyScheduled(clusterNames
 }
 
 // Reconcile reconciles the provided clusters
-func (clusterReconciler *ClusterReconciler) Reconcile(clustersToReconcile ...*clusterapi.Cluster) reconciler.ReconcileErrors {
+func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile OptionalReconcile, clustersToReconcile ...*clusterapi.Cluster) reconciler.ReconcileErrors {
 	if len(clustersToReconcile) == 0 {
 		clustersToReconcile = []*clusterapi.Cluster{}
 		for _, cluster := range clusterReconciler.clusterMap {
@@ -103,7 +109,9 @@ func (clusterReconciler *ClusterReconciler) Reconcile(clustersToReconcile ...*cl
 		clusterReconciler.reconcileNamespaces(cluster, &reconcileErrors)
 		clusterReconciler.reconcilePermissions(cluster, &reconcileErrors)
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
-		clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
+		if optionalReconcile.ReconcileNodeJoinRequests {
+			clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
+		}
 		clusterReconciler.reconcileJoinPublicKeyConfigMap(cluster, &reconcileErrors)
 		if reconcileErrors.IsClusterErrorFree(cluster.Namespace, cluster.Name) {
 			cluster.Conditions.SetCondition(

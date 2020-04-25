@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	clusterreconciler "github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 )
 
@@ -67,7 +68,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	res := ctrl.Result{}
 
 	if cluster.DeletionTimestamp == nil {
-		if err := clusterReconciler.Reconcile(cluster); err != nil {
+		if err := clusterReconciler.Reconcile(clusterreconciler.OptionalReconcile{}, cluster); err != nil {
 			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
 		}

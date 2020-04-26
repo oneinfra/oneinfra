@@ -146,6 +146,7 @@ func (certificate *Certificate) init() error {
 
 // CreateCertificate generates a new certificate and key signed with the current CA
 func (certificate *Certificate) CreateCertificate(commonName string, organization []string, extraSANs []string) (string, string, error) {
+	klog.V(2).Infof("creating certificate with common name %q", commonName)
 	serialNumber, err := rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
 	if err != nil {
 		return "", "", err

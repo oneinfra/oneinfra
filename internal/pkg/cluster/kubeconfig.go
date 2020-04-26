@@ -144,11 +144,11 @@ func (cluster *Cluster) KubeConfigWithClientCertificate(apiServerEndpoint string
 }
 
 func (cluster *Cluster) kubeConfigObject(apiServerEndpoint, commonName string, organization []string) (*v1.Config, error) {
-	clientCertificate, clientCertificatePrivateKey, err := cluster.CertificateAuthorities.APIServerClient.CreateCertificate(commonName, organization, []string{})
+	certificate, err := cluster.ClientCertificate(cluster.CertificateAuthorities.APIServerClient, commonName, commonName, organization, []string{})
 	if err != nil {
 		return nil, err
 	}
-	return kubeConfigObjectWithClientCertificate(cluster.Name, apiServerEndpoint, cluster.APIServer.CA.Certificate, clientCertificate, clientCertificatePrivateKey), nil
+	return kubeConfigObjectWithClientCertificate(cluster.Name, apiServerEndpoint, cluster.APIServer.CA.Certificate, certificate.Certificate, certificate.PrivateKey), nil
 }
 
 func marshalKubeConfig(clusterName string, kubeConfig *v1.Config) (string, error) {

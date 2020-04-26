@@ -61,6 +61,7 @@ func (controlPlane *ControlPlane) etcdClient(inquirer inquirer.ReconcilerInquire
 }
 
 func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.ReconcilerInquirer, endpoints []string) (*clientv3.Client, error) {
+	component := inquirer.Component()
 	cluster := inquirer.Cluster()
 	if cluster.HasUninitializedCertificates() {
 		return nil, errors.Errorf("cluster has some uninitialized certificates")
@@ -73,7 +74,9 @@ func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.Reco
 	if err != nil {
 		return nil, err
 	}
-	etcdClientCert, etcdClientPrivateKey, err := cluster.CertificateAuthorities.EtcdClient.CreateCertificate(
+	etcdClientCert, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.EtcdClient,
+		"oneinfra-client",
 		"oneinfra-client",
 		[]string{cluster.Name},
 		[]string{},
@@ -81,7 +84,7 @@ func (controlPlane *ControlPlane) etcdClientWithEndpoints(inquirer inquirer.Reco
 	if err != nil {
 		return nil, err
 	}
-	etcdClient, err := tls.X509KeyPair([]byte(etcdClientCert), []byte(etcdClientPrivateKey))
+	etcdClient, err := tls.X509KeyPair([]byte(etcdClientCert.Certificate), []byte(etcdClientCert.PrivateKey))
 	if err != nil {
 		return nil, err
 	}

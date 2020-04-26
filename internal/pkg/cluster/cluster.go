@@ -32,6 +32,8 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
+	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 	"github.com/oneinfra/oneinfra/pkg/constants"
@@ -60,6 +62,7 @@ type Cluster struct {
 	CertificateAuthorities *CertificateAuthorities
 	EtcdServer             *EtcdServer
 	APIServer              *KubeAPIServer
+	ClientCertificates     map[string]*certificates.Certificate
 	StorageClientEndpoints []string
 	StoragePeerEndpoints   []string
 	VPN                    *VPN
@@ -83,6 +86,7 @@ func NewCluster(clusterName, kubernetesVersion string, controlPlaneReplicas int,
 		Name:                 clusterName,
 		KubernetesVersion:    kubernetesVersion,
 		ControlPlaneReplicas: controlPlaneReplicas,
+		ClientCertificates:   map[string]*certificates.Certificate{},
 		VPN: &VPN{
 			Enabled: vpnEnabled,
 		},
@@ -148,15 +152,37 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
 		Conditions:             conditions.NewConditionListFromv1alpha1(cluster.Status.Conditions),
 	}
+	res.ClientCertificates = map[string]*certificates.Certificate{}
+	for clientCertificateName, clientCertificate := range cluster.Status.ClientCertificates {
+		res.ClientCertificates[clientCertificateName] = certificates.NewCertificateFromv1alpha1(&clientCertificate)
+	}
 	if err := res.RefreshCachedSpecs(); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
+// ClientCertificate returns a client certificate with the given name
+func (cluster *Cluster) ClientCertificate(ca *certificates.Certificate, name, commonName string, organization []string, extraSANs []string) (*certificates.Certificate, error) {
+	// FIXME: not only check for existence, also that contents semantically match
+	if clientCertificate, exists := cluster.ClientCertificates[name]; exists {
+		return clientCertificate, nil
+	}
+	certificate, privateKey, err := ca.CreateCertificate(commonName, organization, extraSANs)
+	if err != nil {
+		return nil, err
+	}
+	clientCertificate := &certificates.Certificate{
+		Certificate: certificate,
+		PrivateKey:  privateKey,
+	}
+	cluster.ClientCertificates[name] = clientCertificate
+	return clientCertificate, nil
+}
+
 // Export exports the cluster to a versioned cluster
 func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
-	return &clusterv1alpha1.Cluster{
+	res := &clusterv1alpha1.Cluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              cluster.Name,
 			Namespace:         cluster.Namespace,
@@ -185,6 +211,11 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			Conditions:             cluster.Conditions.Export(),
 		},
 	}
+	res.Status.ClientCertificates = map[string]commonv1alpha1.Certificate{}
+	for clientCertificateName, clientCertificate := range cluster.ClientCertificates {
+		res.Status.ClientCertificates[clientCertificateName] = *clientCertificate.Export()
+	}
+	return res
 }
 
 // RefreshCachedSpecs refreshes the cached spec

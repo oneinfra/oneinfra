@@ -43,7 +43,7 @@ func AzureTest() error {
 						DisplayName: "Pull builder image",
 					},
 					{
-						Bash:        "make",
+						Bash:        "make oi-binaries",
 						DisplayName: "Build",
 					},
 				},

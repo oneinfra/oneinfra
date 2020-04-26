@@ -6,7 +6,7 @@ jobs:
       language: minimal
       script:
         - make pull-builder
-        - make
+        - make oi-binaries
     - stage: test
       name: unit and integration tests
       dist: bionic

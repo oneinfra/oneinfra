@@ -15,7 +15,9 @@ PROJECT_GO_FOLDERS = apis cmd controllers internal pkg
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)
 
-all: manager oi oi-local-hypervisor-set generate pipelines
+all: oi-binaries generate pipelines
+
+oi-binaries: manager oi oi-local-hypervisor-set
 
 # Run tests
 test: lint fmt vet

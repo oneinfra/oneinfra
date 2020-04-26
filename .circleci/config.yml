@@ -5,7 +5,7 @@ jobs:
     steps:
       - checkout
       - run: make pull-builder
-      - run: make
+      - run: make oi-binaries
   unit and integration tests:
     machine: true
     steps:

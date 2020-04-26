@@ -7,7 +7,7 @@ jobs:
   steps:
   - bash: make pull-builder
     displayName: Pull builder image
-  - bash: make
+  - bash: make oi-binaries
     displayName: Build
 - job: unit_and_integration_tests
   displayName: Unit and Integration tests

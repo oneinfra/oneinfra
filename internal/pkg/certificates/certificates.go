@@ -168,6 +168,10 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 		}
 		knownSans[extraSAN] = struct{}{}
 	}
+	privateKey, err := rsa.GenerateKey(rand.Reader, constants.DefaultKeyBitSize)
+	if err != nil {
+		return "", "", err
+	}
 	newCertificate := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
@@ -187,7 +191,7 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
-	certificateBytes, err := x509.CreateCertificate(rand.Reader, &newCertificate, certificate.certificate, &certificate.privateKey.PublicKey, certificate.privateKey)
+	certificateBytes, err := x509.CreateCertificate(rand.Reader, &newCertificate, certificate.certificate, &privateKey.PublicKey, certificate.privateKey)
 	if err != nil {
 		return "", "", err
 	}
@@ -202,7 +206,7 @@ func (certificate *Certificate) CreateCertificate(commonName string, organizatio
 	certificatePrivKeyPEM := new(bytes.Buffer)
 	err = pem.Encode(certificatePrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(certificate.privateKey),
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
 	if err != nil {
 		return "", "", err

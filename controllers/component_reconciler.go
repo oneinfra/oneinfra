@@ -110,6 +110,11 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err := componentReconciler.Reconcile(component); err != nil {
 			klog.Errorf("failed to reconcile component %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
+		} else {
+			if err := r.Status().Update(ctx, component.Export()); err != nil {
+				klog.Errorf("could not update component %q: %v", component.Name, err)
+				res = ctrl.Result{Requeue: true}
+			}
 		}
 	} else {
 		if err := componentReconciler.ReconcileDeletion(component); err != nil {

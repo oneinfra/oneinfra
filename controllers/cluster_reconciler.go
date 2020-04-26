@@ -71,6 +71,11 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err := clusterReconciler.Reconcile(clusterreconciler.OptionalReconcile{}, cluster); err != nil {
 			klog.Errorf("failed to reconcile cluster %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
+		} else {
+			if err := r.Status().Update(ctx, cluster.Export()); err != nil {
+				klog.Errorf("could not update cluster %q: %v", cluster.Name, err)
+				res = ctrl.Result{Requeue: true}
+			}
 		}
 	} else {
 		if err := clusterReconciler.ReconcileDeletion(cluster); err != nil {

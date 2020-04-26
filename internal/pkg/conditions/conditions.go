@@ -91,24 +91,32 @@ func (conditionList *ConditionList) DropCondition(conditionType ConditionType) {
 
 // SetCondition sets the condition type to the condition status
 func (conditionList *ConditionList) SetCondition(conditionType ConditionType, conditionStatus ConditionStatus) {
+	isTransitioning := true
 	newConditionList := ConditionList{}
 	for _, condition := range *conditionList {
 		if condition.Type == conditionType {
 			if condition.Status == conditionStatus {
-				condition.LastSetTime = metav1.Now()
-				return
+				isTransitioning = false
+				newConditionList = append(newConditionList, Condition{
+					Type:               condition.Type,
+					Status:             condition.Status,
+					LastTransitionTime: condition.LastTransitionTime,
+					LastSetTime:        metav1.Now(),
+				})
 			}
 		} else {
 			newConditionList = append(newConditionList, condition)
 		}
 	}
-	now := metav1.Now()
-	newConditionList = append(newConditionList, Condition{
-		Type:               conditionType,
-		Status:             conditionStatus,
-		LastTransitionTime: now,
-		LastSetTime:        now,
-	})
+	if isTransitioning {
+		now := metav1.Now()
+		newConditionList = append(newConditionList, Condition{
+			Type:               conditionType,
+			Status:             conditionStatus,
+			LastTransitionTime: now,
+			LastSetTime:        now,
+		})
+	}
 	*conditionList = newConditionList
 }
 

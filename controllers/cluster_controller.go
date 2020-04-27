@@ -97,7 +97,7 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		excessReplicaCount := len(currentUndeletedControlPlaneReplicas) - desiredControlPlaneReplicas
 		for i := 0; i < excessReplicaCount; i++ {
-			component, err := currentUndeletedControlPlaneReplicas.Sample()
+			component := currentUndeletedControlPlaneReplicas[i]
 			if err != nil {
 				klog.Error("could not get a component sample")
 				return ctrl.Result{RequeueAfter: time.Minute}, nil
@@ -140,7 +140,7 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else if len(currentUndeletedControlPlaneIngressReplicas) > 1 {
 		excessReplicaCount := len(currentUndeletedControlPlaneIngressReplicas) - 1
 		for i := 0; i < excessReplicaCount; i++ {
-			component, err := currentUndeletedControlPlaneIngressReplicas.Sample()
+			component := currentUndeletedControlPlaneIngressReplicas[i]
 			if err != nil {
 				klog.Error("could not get a component sample")
 				return ctrl.Result{RequeueAfter: time.Minute}, nil

@@ -163,6 +163,7 @@ func (controlPlane *ControlPlane) setupEtcdLearner(inquirer inquirer.ReconcilerI
 	if err != nil {
 		return err
 	}
+	defer etcdClient.Close()
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	for i := 0; i < 60; i++ {
@@ -194,6 +195,7 @@ func (controlPlane *ControlPlane) hasEtcdLearner(inquirer inquirer.ReconcilerInq
 	if err != nil {
 		return false, err
 	}
+	defer etcdClient.Close()
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	etcdMembers, err := etcdClient.MemberList(ctx)
@@ -220,6 +222,7 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 		if err != nil {
 			return err
 		}
+		defer etcdClient.Close()
 		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 		defer cancel()
 		etcdMembers, err := etcdClient.MemberList(ctx)
@@ -252,6 +255,7 @@ func (controlPlane *ControlPlane) promoteEtcdLearner(inquirer inquirer.Reconcile
 		if err != nil {
 			return err
 		}
+		defer etcdClient.Close()
 		if _, err = etcdClient.MemberPromote(ctx, newMemberID); err == nil {
 			klog.V(2).Infof("learner member %q successfully promoted", component.Name)
 			return nil
@@ -298,6 +302,7 @@ func (controlPlane *ControlPlane) etcdMembers(inquirer inquirer.ReconcilerInquir
 	if err != nil {
 		return nil, err
 	}
+	defer etcdClient.Close()
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	return etcdClient.MemberList(ctx)
@@ -504,6 +509,7 @@ func (controlPlane *ControlPlane) removeEtcdMember(inquirer inquirer.ReconcilerI
 		if err != nil {
 			return err
 		}
+		defer etcdClient.Close()
 		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 		defer cancel()
 		if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {

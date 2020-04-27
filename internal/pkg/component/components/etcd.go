@@ -433,6 +433,11 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 			"--initial-advertise-peer-urls", initialAdvertisePeerURLs.String(),
 			"--enable-grpc-gateway=false",
 		},
+		Env: map[string]string{
+			"ETCDCTL_CACERT": componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
+			"ETCDCTL_CERT":   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
+			"ETCDCTL_KEY":    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
+		},
 		Mounts: map[string]string{
 			componentSecretsPath(cluster.Namespace, cluster.Name, component.Name):            componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 			subcomponentStoragePath(cluster.Namespace, cluster.Name, component.Name, "etcd"): etcdDataDir,

@@ -51,6 +51,7 @@ type Container struct {
 	Image      string
 	Command    []string
 	Args       []string
+	Env        map[string]string
 	Mounts     map[string]string
 	Privileges Privileges
 }

@@ -394,6 +394,18 @@ func (hypervisor *Hypervisor) ensurePod(clusterNamespace, clusterName, component
 			},
 			SandboxConfig: &podSandboxConfig,
 		}
+		if len(container.Env) > 0 {
+			createContainerRequest.Config.Envs = []*criapi.KeyValue{}
+			for envVar, envValue := range container.Env {
+				createContainerRequest.Config.Envs = append(
+					createContainerRequest.Config.Envs,
+					&criapi.KeyValue{
+						Key:   envVar,
+						Value: envValue,
+					},
+				)
+			}
+		}
 		if container.Privileges == podapi.PrivilegesNetworkPrivileged {
 			createContainerRequest.Config.Linux = &criapi.LinuxContainerConfig{
 				SecurityContext: &criapi.LinuxContainerSecurityContext{

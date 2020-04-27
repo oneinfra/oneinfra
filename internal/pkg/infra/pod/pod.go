@@ -47,13 +47,14 @@ type Pod struct {
 
 // Container represents a container
 type Container struct {
-	Name       string
-	Image      string
-	Command    []string
-	Args       []string
-	Env        map[string]string
-	Mounts     map[string]string
-	Privileges Privileges
+	Name        string
+	Image       string
+	Command     []string
+	Args        []string
+	Env         map[string]string
+	Mounts      map[string]string
+	Privileges  Privileges
+	Annotations map[string]string
 }
 
 // NewPod returns a pod with name, containers, ports and privileges

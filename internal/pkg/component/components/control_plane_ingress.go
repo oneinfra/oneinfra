@@ -18,6 +18,7 @@ package components
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"fmt"
 	"net"
 	"strconv"
@@ -127,6 +128,9 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 					Image: haProxyImage,
 					Mounts: map[string]string{
 						componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "haproxy.cfg"): "/etc/haproxy/haproxy.cfg",
+					},
+					Annotations: map[string]string{
+						"oneinfra/haproxy-config-sha1sum": fmt.Sprintf("%x", sha1.Sum([]byte(haProxyConfig))),
 					},
 				},
 			},

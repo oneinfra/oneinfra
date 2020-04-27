@@ -93,6 +93,8 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	cluster.RefreshCachedSpecs()
+
 	if err := reconciler.UpdateResources(ctx, clusterReconciler, r); err != nil {
 		res = ctrl.Result{Requeue: true}
 	}

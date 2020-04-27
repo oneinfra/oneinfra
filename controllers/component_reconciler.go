@@ -90,7 +90,14 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				if err := componentReconciler.PreReconcile(component); err != nil {
 					return err
 				}
-				return reconciler.UpdateResources(ctx, componentReconciler, r)
+				isDirty, err := component.IsDirty()
+				if err != nil {
+					return err
+				}
+				if isDirty {
+					return reconciler.UpdateResources(ctx, componentReconciler, r)
+				}
+				return nil
 			},
 		)
 		if err != nil {
@@ -103,6 +110,7 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		klog.Errorf("could not create a component reconciler: %v", err)
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
+	component = componentReconciler.ComponentList().WithName(component.Name)
 
 	res := ctrl.Result{}
 
@@ -111,9 +119,15 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			klog.Errorf("failed to reconcile component %q: %v", req, err)
 			res = ctrl.Result{Requeue: true}
 		} else {
-			if err := r.Status().Update(ctx, component.Export()); err != nil {
-				klog.Errorf("could not update component %q: %v", component.Name, err)
-				res = ctrl.Result{Requeue: true}
+			isDirty, err := component.IsDirty()
+			if err != nil {
+				return ctrl.Result{Requeue: true}, nil
+			}
+			if isDirty {
+				if err := r.Status().Update(ctx, component.Export()); err != nil {
+					klog.Errorf("could not update component %q: %v", component.Name, err)
+					res = ctrl.Result{Requeue: true}
+				}
 			}
 		}
 	} else {
@@ -127,6 +141,8 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			}
 		}
 	}
+
+	component.RefreshCachedSpecs()
 
 	if err := reconciler.UpdateResources(ctx, componentReconciler, r); err != nil {
 		res = ctrl.Result{Requeue: true}

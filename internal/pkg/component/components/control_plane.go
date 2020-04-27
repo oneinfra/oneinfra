@@ -18,9 +18,7 @@ package components
 
 import (
 	"fmt"
-	"net"
-	"net/url"
-	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/klog"
@@ -33,10 +31,15 @@ import (
 )
 
 const (
+	// APIServerHostPortName represents the apiserver host port
+	// allocation name
+	APIServerHostPortName = "apiserver"
+)
+
+const (
 	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v%s"
 	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v%s"
 	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v%s"
-	apiServerHostPortName      = "apiserver"
 )
 
 // ControlPlane represents a complete control plane instance,
@@ -50,13 +53,13 @@ func (controlPlane *ControlPlane) PreReconcile(inquirer inquirer.ReconcilerInqui
 		return errors.Errorf("could not pre-reconcile component %q; no hypervisor assigned yet", component.Name)
 	}
 	hypervisor := inquirer.Hypervisor()
-	if _, err := component.RequestPort(hypervisor, apiServerHostPortName); err != nil {
+	if _, err := component.RequestPort(hypervisor, APIServerHostPortName); err != nil {
 		return err
 	}
-	if _, err := component.RequestPort(hypervisor, etcdPeerHostPortName); err != nil {
+	if _, err := component.RequestPort(hypervisor, EtcdPeerHostPortName); err != nil {
 		return err
 	}
-	if _, err := component.RequestPort(hypervisor, etcdClientHostPortName); err != nil {
+	if _, err := component.RequestPort(hypervisor, EtcdClientHostPortName); err != nil {
 		return err
 	}
 	return nil
@@ -153,18 +156,13 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	apiserverHostPort, err := component.RequestPort(hypervisor, apiServerHostPortName)
+	apiserverHostPort, err := component.RequestPort(hypervisor, APIServerHostPortName)
 	if err != nil {
 		return err
 	}
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
-	etcdClientHostPort, exists := component.AllocatedHostPorts[etcdClientHostPortName]
-	if !exists {
-		return errors.New("etcd client host port not found")
-	}
-	etcdServers := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
 	_, err = hypervisor.EnsurePod(
 		cluster.Namespace,
 		cluster.Name,
@@ -177,11 +175,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
 					Args: []string{
-						// Each API server accesses the local etcd component only, to
-						// avoid reconfigurations; this could be improved in the
-						// future though, to reconfigure them pointing to all
-						// available etcd instances
-						"--etcd-servers", etcdServers.String(),
+						"--etcd-servers", strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
 						"--etcd-cafile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
 						"--etcd-certfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
 						"--etcd-keyfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
@@ -249,8 +243,8 @@ func (controlPlane *ControlPlane) stopControlPlane(inquirer inquirer.ReconcilerI
 		controlPlane.controlPlanePodName(inquirer),
 	)
 	if err == nil {
-		if err := component.FreePort(hypervisor, apiServerHostPortName); err != nil {
-			return errors.Wrapf(err, "could not free port %q for hypervisor %q", apiServerHostPortName, hypervisor.Name)
+		if err := component.FreePort(hypervisor, APIServerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", APIServerHostPortName, hypervisor.Name)
 		}
 	}
 	return err

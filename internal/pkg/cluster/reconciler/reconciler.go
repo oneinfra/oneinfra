@@ -17,11 +17,17 @@
 package reconciler
 
 import (
+	"fmt"
+	"net"
+	"net/url"
+	"strconv"
+
 	"github.com/pkg/errors"
 	"k8s.io/klog"
 
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/component/components"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
@@ -93,9 +99,8 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("cluster is not fully scheduled"))
 			continue
 		}
-		if cluster.APIServerEndpoint == "" {
-			klog.Infof("cluster %q lacks an API server endpoint yet; skipping", cluster.Name)
-			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("cluster lacks an API server endpoint yet"))
+		clusterReconciler.reconcileAPIServerEndpoint(cluster, &reconcileErrors)
+		if !reconcileErrors.IsClusterErrorFree(cluster.Namespace, cluster.Name) {
 			continue
 		}
 		cluster.Conditions.SetCondition(
@@ -109,6 +114,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 		clusterReconciler.reconcileNamespaces(cluster, &reconcileErrors)
 		clusterReconciler.reconcilePermissions(cluster, &reconcileErrors)
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
+		clusterReconciler.reconcileStorageEndpoints(cluster, &reconcileErrors)
 		if optionalReconcile.ReconcileNodeJoinRequests {
 			clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
 		}
@@ -129,6 +135,31 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 		return nil
 	}
 	return reconcileErrors
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileAPIServerEndpoint(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
+	controlPlaneIngressList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneIngressRole)
+	if len(controlPlaneIngressList) == 0 {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("could not find any control plane ingress component"))
+		return
+	}
+	if len(controlPlaneIngressList) > 1 {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("more than one control plane ingress component was found"))
+		return
+	}
+	controlPlaneIngress := controlPlaneIngressList[0]
+	hypervisor, exists := clusterReconciler.hypervisorMap[controlPlaneIngress.HypervisorName]
+	if !exists {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("found one control plane ingress component, but it is assigned to an unknown hypervisor"))
+		return
+	}
+	apiserverHostPort, exists := controlPlaneIngress.AllocatedHostPorts[components.APIServerHostPortName]
+	if !exists {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("found one control plane ingress component, but it does not have a named host port %q yet", components.APIServerHostPortName))
+		return
+	}
+	url := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort))}
+	cluster.APIServerEndpoint = url.String()
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileMinimalVPNPeers(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
@@ -164,6 +195,42 @@ func (clusterReconciler *ClusterReconciler) reconcileJoinTokens(cluster *cluster
 		klog.Errorf("failed to reconcile join tokens for cluster %q: %v", cluster.Name, err)
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile join tokens"))
 	}
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileStorageEndpoints(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
+	controlPlaneList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneRole)
+	if cluster.ControlPlaneReplicas != len(controlPlaneList) {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("the number of control plane components does not match the number of desired replicas"))
+		return
+	}
+	storagePeerEndpoints := []string{}
+	storageClientEndpoints := []string{}
+	for _, controlPlane := range controlPlaneList {
+		if controlPlane.DeletionTimestamp != nil {
+			continue
+		}
+		hypervisor, exists := clusterReconciler.hypervisorMap[controlPlane.HypervisorName]
+		if !exists {
+			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("could not find hypervisor for component %s/%s", controlPlane.Namespace, controlPlane.Name))
+			return
+		}
+		etcdPeerHostPort, exists := controlPlane.AllocatedHostPorts[components.EtcdPeerHostPortName]
+		if !exists {
+			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("could not find etcd peer host port for component %s/%s", controlPlane.Namespace, controlPlane.Name))
+			return
+		}
+		storagePeerURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
+		storagePeerEndpoints = append(storagePeerEndpoints, fmt.Sprintf("%s=%s", controlPlane.Name, storagePeerURL.String()))
+		etcdClientHostPort, exists := controlPlane.AllocatedHostPorts[components.EtcdClientHostPortName]
+		if !exists {
+			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("could not find etcd client host port for component %s/%s", controlPlane.Namespace, controlPlane.Name))
+			return
+		}
+		clientPeerURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
+		storageClientEndpoints = append(storageClientEndpoints, fmt.Sprintf("%s=%s", controlPlane.Name, clientPeerURL.String()))
+	}
+	cluster.StoragePeerEndpoints = storagePeerEndpoints
+	cluster.StorageClientEndpoints = storageClientEndpoints
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileNodeJoinRequests(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {

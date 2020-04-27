@@ -69,7 +69,7 @@ func (ingress *ControlPlaneIngress) PreReconcile(inquirer inquirer.ReconcilerInq
 		return errors.Errorf("could not pre-reconcile component %q; no hypervisor assigned yet", component.Name)
 	}
 	hypervisor := inquirer.Hypervisor()
-	if _, err := component.RequestPort(hypervisor, apiServerHostPortName); err != nil {
+	if _, err := component.RequestPort(hypervisor, APIServerHostPortName); err != nil {
 		return err
 	}
 	cluster := inquirer.Cluster()
@@ -90,11 +90,14 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if !clusterComponents.AllWithHypervisorAssigned() {
 		return errors.Errorf("could not reconcile component %q, not all cluster components have an hypervisor assigned", component.Name)
 	}
+	if len(clusterComponents) != cluster.ControlPlaneReplicas {
+		return errors.Errorf("could not reconcile component %q, control plane replicas do not match with current listed number of components", component.Name)
+	}
 	klog.V(1).Infof("reconciling control plane ingress in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}
-	apiserverHostPort, err := component.RequestPort(hypervisor, apiServerHostPortName)
+	apiserverHostPort, err := component.RequestPort(hypervisor, APIServerHostPortName)
 	if err != nil {
 		return err
 	}
@@ -136,7 +139,6 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 	if err != nil {
 		return err
 	}
-	cluster.APIServerEndpoint = fmt.Sprintf("https://%s", net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort)))
 	if cluster.VPN.Enabled {
 		if err := ingress.reconcileWireguard(inquirer); err != nil {
 			return err
@@ -156,7 +158,7 @@ func (ingress *ControlPlaneIngress) haProxyConfiguration(inquirer inquirer.Recon
 		APIServers: map[string]string{},
 	}
 	for _, component := range clusterComponents {
-		apiserverHostPort, exists := component.AllocatedHostPorts[apiServerHostPortName]
+		apiserverHostPort, exists := component.AllocatedHostPorts[APIServerHostPortName]
 		if !exists {
 			return "", errors.New("apiserver host port not found")
 		}
@@ -185,8 +187,8 @@ func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInqu
 		component := inquirer.Component()
 		cluster := inquirer.Cluster()
 		hypervisor := inquirer.Hypervisor()
-		if err := component.FreePort(hypervisor, apiServerHostPortName); err != nil {
-			return errors.Wrapf(err, "could not free port %q for hypervisor %q", apiServerHostPortName, hypervisor.Name)
+		if err := component.FreePort(hypervisor, APIServerHostPortName); err != nil {
+			return errors.Wrapf(err, "could not free port %q for hypervisor %q", APIServerHostPortName, hypervisor.Name)
 		}
 		if cluster.VPN.Enabled {
 			if err := component.FreePort(hypervisor, wireguardHostPortName); err != nil {

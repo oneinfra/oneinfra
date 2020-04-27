@@ -18,6 +18,7 @@ package cluster
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"net"
@@ -220,7 +221,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 
 // RefreshCachedSpecs refreshes the cached spec
 func (cluster *Cluster) RefreshCachedSpecs() error {
-	specs, err := cluster.Specs()
+	specs, err := cluster.JSONSpecs()
 	if err != nil {
 		return err
 	}
@@ -231,12 +232,22 @@ func (cluster *Cluster) RefreshCachedSpecs() error {
 // IsDirty returns whether this cluster is dirty compared to when it
 // was loaded
 func (cluster *Cluster) IsDirty() (bool, error) {
-	specs, err := cluster.Specs()
+	specs, err := cluster.JSONSpecs()
 	if err != nil {
 		return false, err
 	}
 	currentContentsHash := fmt.Sprintf("%x", sha1.Sum([]byte(specs)))
 	return cluster.loadedContentsHash != currentContentsHash, nil
+}
+
+// JSONSpecs returns the versioned specs of this cluster in JSON format
+func (cluster *Cluster) JSONSpecs() (string, error) {
+	clusterObject := cluster.Export()
+	jsonSpecs, err := json.Marshal(clusterObject)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonSpecs), nil
 }
 
 // Specs returns the versioned specs of this cluster
@@ -248,6 +259,7 @@ func (cluster *Cluster) Specs() (string, error) {
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, clusterv1alpha1.GroupVersion)
 	clusterObject := cluster.Export()
+	clusterObject.Status.Conditions = commonv1alpha1.ConditionList{}
 	if encodedCluster, err := runtime.Encode(encoder, clusterObject); err == nil {
 		return string(encodedCluster), nil
 	}

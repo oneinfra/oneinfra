@@ -18,6 +18,7 @@ package component
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -272,7 +273,7 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 
 // RefreshCachedSpecs refreshes the cached spec
 func (component *Component) RefreshCachedSpecs() error {
-	specs, err := component.Specs()
+	specs, err := component.JSONSpecs()
 	if err != nil {
 		return err
 	}
@@ -283,7 +284,7 @@ func (component *Component) RefreshCachedSpecs() error {
 // IsDirty returns whether this component is dirty compared to when it
 // was loaded
 func (component *Component) IsDirty() (bool, error) {
-	specs, err := component.Specs()
+	specs, err := component.JSONSpecs()
 	if err != nil {
 		return false, err
 	}
@@ -297,6 +298,16 @@ func (component *Component) WithSubcomponentName(subcomponentName string) string
 	return fmt.Sprintf("%s-%s", component.Name, subcomponentName)
 }
 
+// JSONSpecs returns the versioned specs of this component in JSON format
+func (component *Component) JSONSpecs() (string, error) {
+	componentObject := component.Export()
+	jsonSpecs, err := json.Marshal(componentObject)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonSpecs), nil
+}
+
 // Specs returns the versioned specs of this component
 func (component *Component) Specs() (string, error) {
 	scheme := runtime.NewScheme()
@@ -306,6 +317,7 @@ func (component *Component) Specs() (string, error) {
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, clusterv1alpha1.GroupVersion)
 	componentObject := component.Export()
+	componentObject.Status.Conditions = commonv1alpha1.ConditionList{}
 	if encodedComponent, err := runtime.Encode(encoder, componentObject); err == nil {
 		return string(encodedComponent), nil
 	}

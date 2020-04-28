@@ -68,8 +68,8 @@ type VPN struct {
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
 	ClientCertificates     map[string]commonv1alpha1.Certificate `json:"clientCertificates,omitempty"`
-	StorageClientEndpoints []string                              `json:"storageClientEndpoints,omitempty"`
-	StoragePeerEndpoints   []string                              `json:"storagePeerEndpoints,omitempty"`
+	StorageClientEndpoints map[string]string                     `json:"storageClientEndpoints,omitempty"`
+	StoragePeerEndpoints   map[string]string                     `json:"storagePeerEndpoints,omitempty"`
 	VPNPeers               []VPNPeer                             `json:"vpnPeers,omitempty"`
 	APIServerEndpoint      string                                `json:"apiServerEndpoint,omitempty"`
 	JoinTokens             []string                              `json:"joinTokens,omitempty"`

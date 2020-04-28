@@ -64,8 +64,8 @@ type Cluster struct {
 	EtcdServer             *EtcdServer
 	APIServer              *KubeAPIServer
 	ClientCertificates     map[string]*certificates.Certificate
-	StorageClientEndpoints []string
-	StoragePeerEndpoints   []string
+	StorageClientEndpoints map[string]string
+	StoragePeerEndpoints   map[string]string
 	VPN                    *VPN
 	VPNPeers               VPNPeerMap
 	APIServerEndpoint      string

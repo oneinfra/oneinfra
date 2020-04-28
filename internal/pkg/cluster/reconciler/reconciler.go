@@ -17,7 +17,6 @@
 package reconciler
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -203,8 +202,8 @@ func (clusterReconciler *ClusterReconciler) reconcileStorageEndpoints(cluster *c
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("the number of control plane components does not match the number of desired replicas"))
 		return
 	}
-	storagePeerEndpoints := []string{}
-	storageClientEndpoints := []string{}
+	storagePeerEndpoints := map[string]string{}
+	storageClientEndpoints := map[string]string{}
 	for _, controlPlane := range controlPlaneList {
 		if controlPlane.DeletionTimestamp != nil {
 			continue
@@ -220,14 +219,14 @@ func (clusterReconciler *ClusterReconciler) reconcileStorageEndpoints(cluster *c
 			return
 		}
 		storagePeerURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdPeerHostPort))}
-		storagePeerEndpoints = append(storagePeerEndpoints, fmt.Sprintf("%s=%s", controlPlane.Name, storagePeerURL.String()))
+		storagePeerEndpoints[controlPlane.Name] = storagePeerURL.String()
 		etcdClientHostPort, exists := controlPlane.AllocatedHostPorts[components.EtcdClientHostPortName]
 		if !exists {
 			reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("could not find etcd client host port for component %s/%s", controlPlane.Namespace, controlPlane.Name))
 			return
 		}
-		clientPeerURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
-		storageClientEndpoints = append(storageClientEndpoints, fmt.Sprintf("%s=%s", controlPlane.Name, clientPeerURL.String()))
+		storageClientURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(etcdClientHostPort))}
+		storageClientEndpoints[controlPlane.Name] = storageClientURL.String()
 	}
 	cluster.StoragePeerEndpoints = storagePeerEndpoints
 	cluster.StorageClientEndpoints = storageClientEndpoints

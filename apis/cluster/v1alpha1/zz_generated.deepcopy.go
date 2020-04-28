@@ -181,13 +181,17 @@ func (in *ClusterStatus) DeepCopyInto(out *ClusterStatus) {
 	}
 	if in.StorageClientEndpoints != nil {
 		in, out := &in.StorageClientEndpoints, &out.StorageClientEndpoints
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.StoragePeerEndpoints != nil {
 		in, out := &in.StoragePeerEndpoints, &out.StoragePeerEndpoints
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.VPNPeers != nil {
 		in, out := &in.VPNPeers, &out.VPNPeers

@@ -241,13 +241,13 @@ spec:
                 type: string
               type: array
             storageClientEndpoints:
-              items:
+              additionalProperties:
                 type: string
-              type: array
+              type: object
             storagePeerEndpoints:
-              items:
+              additionalProperties:
                 type: string
-              type: array
+              type: object
             vpnPeers:
               items:
                 description: VPNPeer represents a VPN peer

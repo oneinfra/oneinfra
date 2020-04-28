@@ -41,7 +41,7 @@ func (r *NodeJoinRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 
 	cluster, err := getCluster(ctx, r, req)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	if len(cluster.CurrentJoinTokens) == 0 {
@@ -54,7 +54,7 @@ func (r *NodeJoinRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		klog.Errorf("failed to reconcile node join requests for cluster %s/%s", cluster.Namespace, cluster.Name)
 	}
 
-	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
 // SetupWithManager sets up the node join request reconciler with mgr manager

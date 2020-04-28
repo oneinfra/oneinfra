@@ -50,7 +50,7 @@ func (r *ClusterInitializer) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	if err := cluster.InitializeCertificatesAndKeys(); err != nil {
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	delete(cluster.Labels, constants.OneInfraClusterUninitializedCertificates)

@@ -48,14 +48,14 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, nil
 		}
 		klog.Errorf("could not get cluster %q: %v", req, err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	desiredControlPlaneReplicas := cluster.ControlPlaneReplicas
 	currentClusterComponents, err := listClusterComponents(ctx, r, cluster.Namespace, cluster.Name)
 	if err != nil {
 		klog.Errorf("could not list cluster %q components: %v", req, err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	// Reconcile cluster deletion
@@ -91,7 +91,7 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			)
 			if err := r.Create(ctx, component.Export()); err != nil {
 				klog.Error("could not create a component")
-				return ctrl.Result{RequeueAfter: time.Minute}, nil
+				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 			}
 		}
 	} else {
@@ -100,11 +100,11 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			component := currentUndeletedControlPlaneReplicas[i]
 			if err != nil {
 				klog.Error("could not get a component sample")
-				return ctrl.Result{RequeueAfter: time.Minute}, nil
+				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 			}
 			if err := r.Delete(ctx, component.Export()); err != nil {
 				klog.Error("could not delete excess component")
-				return ctrl.Result{RequeueAfter: time.Minute}, nil
+				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 			}
 		}
 	}
@@ -135,7 +135,7 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		)
 		if err := r.Create(ctx, component.Export()); err != nil {
 			klog.Error("could not create a component")
-			return ctrl.Result{RequeueAfter: time.Minute}, nil
+			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 		}
 	} else if len(currentUndeletedControlPlaneIngressReplicas) > 1 {
 		excessReplicaCount := len(currentUndeletedControlPlaneIngressReplicas) - 1
@@ -143,11 +143,11 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			component := currentUndeletedControlPlaneIngressReplicas[i]
 			if err != nil {
 				klog.Error("could not get a component sample")
-				return ctrl.Result{RequeueAfter: time.Minute}, nil
+				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 			}
 			if err := r.Delete(ctx, component.Export()); err != nil {
 				klog.Error("could not delete excess component")
-				return ctrl.Result{RequeueAfter: time.Minute}, nil
+				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 			}
 		}
 	}
@@ -158,7 +158,7 @@ func (r *ClusterController) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func (r *ClusterController) reconcileDeletion(ctx context.Context, req ctrl.Request, components component.List) (ctrl.Result, error) {
 	for _, component := range components {
 		if err := r.Delete(ctx, component.Export()); err != nil {
-			return ctrl.Result{RequeueAfter: time.Minute}, nil
+			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 		}
 	}
 	return ctrl.Result{}, nil

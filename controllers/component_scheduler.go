@@ -64,7 +64,7 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	r.hypervisorMap, err = listHypervisors(ctx, r, nil)
 	if err != nil {
-		return ctrl.Result{RequeueAfter: time.Minute}, err
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 
 	privateHypervisors := r.hypervisorMap.PrivateList()
@@ -88,7 +88,7 @@ func (r *ComponentScheduler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		scheduledHypervisor, err := hypervisorList.Sample()
 		if err != nil {
 			if component.Name == req.Name && component.Namespace == req.Namespace {
-				res = ctrl.Result{RequeueAfter: time.Minute}
+				res = ctrl.Result{RequeueAfter: 10 * time.Second}
 			}
 			klog.Errorf("could not assign an hypervisor to component %q", component.Name)
 			continue

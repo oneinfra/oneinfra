@@ -54,13 +54,13 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, nil
 		}
 		klog.Errorf("could not get cluster %q: %v", req, err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	clusterReconciler, err := newClusterReconciler(ctx, r, cluster)
 	if err != nil {
 		klog.Errorf("could not create a cluster reconciler: %v", err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 	clusterMap := clusterReconciler.ClusterMap()
 	cluster = clusterMap[cluster.Name]

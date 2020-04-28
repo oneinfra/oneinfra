@@ -51,7 +51,7 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			return ctrl.Result{}, nil
 		}
 		klog.Errorf("could not get component %q: %v", req, err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	cluster, err := getCluster(
@@ -66,10 +66,10 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{RequeueAfter: time.Minute}, nil
+			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 		}
 		klog.Errorf("could not get cluster %q: %v", component.ClusterName, err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	if component.DeletionTimestamp == nil {
@@ -108,7 +108,7 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	componentReconciler, err := newComponentReconciler(ctx, r, cluster, &r.ConnectionPool)
 	if err != nil {
 		klog.Errorf("could not create a component reconciler: %v", err)
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 	component = componentReconciler.ComponentList().WithName(component.Name)
 

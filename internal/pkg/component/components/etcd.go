@@ -134,6 +134,9 @@ func (controlPlane *ControlPlane) etcdClientEndpoints(inquirer inquirer.Reconcil
 	endpoints := []string{}
 	controlPlaneComponents := inquirer.ClusterComponents(component.ControlPlaneRole)
 	for _, controlPlaneComponent := range controlPlaneComponents {
+		if controlPlaneComponent.DeletionTimestamp != nil {
+			continue
+		}
 		componentHypervisor := inquirer.ComponentHypervisor(controlPlaneComponent)
 		if componentHypervisor == nil {
 			continue
@@ -500,29 +503,37 @@ func etcdEndpoint(inquirer inquirer.ReconcilerInquirer, hostPort int) string {
 }
 
 func (controlPlane *ControlPlane) removeEtcdMember(inquirer inquirer.ReconcilerInquirer) error {
-	if len(controlPlane.etcdClientEndpoints(inquirer)) > 0 {
-		memberFound, memberID, err := controlPlane.etcdMemberID(inquirer)
-		if err != nil || !memberFound {
-			return err
-		}
-		etcdClient, err := controlPlane.etcdClient(inquirer)
-		if err != nil {
-			return err
-		}
-		defer etcdClient.Close()
-		ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
-		defer cancel()
-		if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {
-			return errors.Wrap(err, "could not remove etcd member")
-		}
-	}
 	component := inquirer.Component()
-	hypervisor := inquirer.Hypervisor()
-	if err := component.FreePort(hypervisor, EtcdPeerHostPortName); err != nil {
-		return errors.Wrapf(err, "could not free port %q for hypervisor %q", EtcdPeerHostPortName, hypervisor.Name)
-	}
-	if err := component.FreePort(hypervisor, EtcdClientHostPortName); err != nil {
-		return errors.Wrapf(err, "could not free port %q for hypervisor %q", EtcdClientHostPortName, hypervisor.Name)
+	if len(controlPlane.etcdClientEndpoints(inquirer)) > 0 {
+		for i := 0; i < 60; i++ {
+			klog.V(2).Infof("removing etcd member %s/%s", component.Namespace, component.Name)
+			memberFound, memberID, err := controlPlane.etcdMemberID(inquirer)
+			if err == nil && !memberFound {
+				return nil
+			}
+			if err != nil {
+				klog.Errorf("error retrieving etcd member ID for %s/%s: %v", component.Namespace, component.Name, err)
+				time.Sleep(time.Second)
+				continue
+			}
+			etcdClient, err := controlPlane.etcdClient(inquirer)
+			if err != nil {
+				klog.Errorf("could not create an etcd client to remove member %s/%s", component.Namespace, component.Name)
+				time.Sleep(time.Second)
+				continue
+			}
+			defer etcdClient.Close()
+			ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+			defer cancel()
+			if _, err = etcdClient.MemberRemove(ctx, memberID); err != nil {
+				klog.Errorf("failed to remove member %s/%s: %v", component.Namespace, component.Name, err)
+				time.Sleep(time.Second)
+				continue
+			}
+			klog.Infof("etcd member %s/%s correctly removed", component.Namespace, component.Name)
+			return nil
+		}
+		return errors.Errorf("failed to remove etcd member %s/%s", component.Namespace, component.Name)
 	}
 	return nil
 }

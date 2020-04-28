@@ -70,6 +70,8 @@ type Component struct {
 	AllocatedHostPorts map[string]int
 	ClientCertificates map[string]*certificates.Certificate
 	ServerCertificates map[string]*certificates.Certificate
+	InputEndpoints     map[string]string
+	OutputEndpoints    map[string]string
 	Conditions         conditions.ConditionList
 	loadedContentsHash string
 }
@@ -88,6 +90,8 @@ func NewComponentWithRandomHypervisor(clusterName, componentName string, role Ro
 		AllocatedHostPorts: map[string]int{},
 		ClientCertificates: map[string]*certificates.Certificate{},
 		ServerCertificates: map[string]*certificates.Certificate{},
+		InputEndpoints:     map[string]string{},
+		OutputEndpoints:    map[string]string{},
 	}, nil
 }
 
@@ -101,6 +105,8 @@ func NewComponent(clusterNamespace, clusterName, componentGenerateName string, r
 		AllocatedHostPorts: map[string]int{},
 		ClientCertificates: map[string]*certificates.Certificate{},
 		ServerCertificates: map[string]*certificates.Certificate{},
+		InputEndpoints:     map[string]string{},
+		OutputEndpoints:    map[string]string{},
 	}
 }
 
@@ -117,6 +123,8 @@ func NewComponentFromv1alpha1(component *clusterv1alpha1.Component) (*Component,
 		DeletionTimestamp: component.DeletionTimestamp,
 		HypervisorName:    component.Spec.Hypervisor,
 		ClusterName:       component.Spec.Cluster,
+		InputEndpoints:    component.Status.InputEndpoints,
+		OutputEndpoints:   component.Status.OutputEndpoints,
 		Conditions:        conditions.NewConditionListFromv1alpha1(component.Status.Conditions),
 	}
 	switch component.Spec.Role {
@@ -241,7 +249,9 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 			Cluster:    component.ClusterName,
 		},
 		Status: clusterv1alpha1.ComponentStatus{
-			Conditions: component.Conditions.Export(),
+			InputEndpoints:  component.InputEndpoints,
+			OutputEndpoints: component.OutputEndpoints,
+			Conditions:      component.Conditions.Export(),
 		},
 	}
 	switch component.Role {

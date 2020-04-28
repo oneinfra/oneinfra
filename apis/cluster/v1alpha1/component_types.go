@@ -46,6 +46,8 @@ type ComponentStatus struct {
 	AllocatedHostPorts []ComponentHostPortAllocation         `json:"allocatedHostPorts,omitempty"`
 	ClientCertificates map[string]commonv1alpha1.Certificate `json:"clientCertificates,omitempty"`
 	ServerCertificates map[string]commonv1alpha1.Certificate `json:"serverCertificates,omitempty"`
+	InputEndpoints     map[string]string                     `json:"inputEndpoints,omitempty"`
+	OutputEndpoints    map[string]string                     `json:"outputEndpoints,omitempty"`
 	Conditions         commonv1alpha1.ConditionList          `json:"conditions,omitempty"`
 }
 

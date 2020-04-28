@@ -392,6 +392,14 @@ spec:
                     type: string
                 type: object
               type: array
+            inputEndpoints:
+              additionalProperties:
+                type: string
+              type: object
+            outputEndpoints:
+              additionalProperties:
+                type: string
+              type: object
             serverCertificates:
               additionalProperties:
                 description: Certificate represents a Certificate

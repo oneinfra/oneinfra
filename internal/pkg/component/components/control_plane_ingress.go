@@ -21,6 +21,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"text/template"
 
@@ -82,6 +83,37 @@ func (ingress *ControlPlaneIngress) PreReconcile(inquirer inquirer.ReconcilerInq
 	return nil
 }
 
+func (ingress *ControlPlaneIngress) reconcileInputAndOutputEndpoints(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	apiserverHostPort, err := component.RequestPort(hypervisor, APIServerHostPortName)
+	if err != nil {
+		return err
+	}
+	outputEndpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort))}
+	component.OutputEndpoints = map[string]string{
+		component.Name: outputEndpointURL.String(),
+	}
+	clusterComponents := inquirer.ClusterComponents(componentapi.ControlPlaneRole)
+	component.InputEndpoints = map[string]string{}
+	for _, clusterComponent := range clusterComponents {
+		if clusterComponent.DeletionTimestamp != nil {
+			continue
+		}
+		hypervisor := inquirer.ComponentHypervisor(clusterComponent)
+		if hypervisor == nil {
+			continue
+		}
+		apiserverHostPort, err := clusterComponent.RequestPort(hypervisor, APIServerHostPortName)
+		if err != nil {
+			return err
+		}
+		inputEndpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort))}
+		component.InputEndpoints[clusterComponent.Name] = inputEndpointURL.String()
+	}
+	return nil
+}
+
 // Reconcile reconciles the control plane ingress
 func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
@@ -95,6 +127,9 @@ func (ingress *ControlPlaneIngress) Reconcile(inquirer inquirer.ReconcilerInquir
 		return errors.Errorf("could not reconcile component %q, control plane replicas do not match with current listed number of components", component.Name)
 	}
 	klog.V(1).Infof("reconciling control plane ingress in component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
+	if err := ingress.reconcileInputAndOutputEndpoints(inquirer); err != nil {
+		return err
+	}
 	if err := hypervisor.EnsureImage(haProxyImage); err != nil {
 		return err
 	}

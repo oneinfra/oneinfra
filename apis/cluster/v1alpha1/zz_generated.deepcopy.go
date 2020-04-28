@@ -333,6 +333,20 @@ func (in *ComponentStatus) DeepCopyInto(out *ComponentStatus) {
 			(*out)[key] = val
 		}
 	}
+	if in.InputEndpoints != nil {
+		in, out := &in.InputEndpoints, &out.InputEndpoints
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.OutputEndpoints != nil {
+		in, out := &in.OutputEndpoints, &out.OutputEndpoints
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
 		*out = make(commonv1alpha1.ConditionList, len(*in))

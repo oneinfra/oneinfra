@@ -18,6 +18,9 @@ package components
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -65,6 +68,21 @@ func (controlPlane *ControlPlane) PreReconcile(inquirer inquirer.ReconcilerInqui
 	return nil
 }
 
+func (controlPlane *ControlPlane) reconcileInputAndOutputEndpoints(inquirer inquirer.ReconcilerInquirer) error {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	apiserverHostPort, err := component.RequestPort(hypervisor, APIServerHostPortName)
+	if err != nil {
+		return err
+	}
+	outputEndpointURL := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort))}
+	component.OutputEndpoints = map[string]string{
+		component.Name: outputEndpointURL.String(),
+	}
+	component.InputEndpoints = map[string]string{}
+	return nil
+}
+
 // Reconcile reconciles the control plane component
 func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
@@ -80,6 +98,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		return errors.Errorf("could not retrieve version bundle for version %q", kubernetesVersion)
 	}
 	klog.V(1).Infof("reconciling component %q, present in hypervisor %q, belonging to cluster %q", component.Name, hypervisor.Name, cluster.Name)
+	if err := controlPlane.reconcileInputAndOutputEndpoints(inquirer); err != nil {
+		return err
+	}
 	err = hypervisor.EnsureImages(
 		fmt.Sprintf(etcdImage, versionBundle.EtcdVersion),
 		fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),

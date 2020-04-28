@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
+	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 )
@@ -113,6 +114,13 @@ func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	component = componentReconciler.ComponentList().WithName(component.Name)
 
 	res := ctrl.Result{}
+
+	if cluster.DeletionTimestamp == nil && component.Role != componentapi.ControlPlaneIngressRole {
+		ingressComponents := componentReconciler.ComponentList().WithRole(componentapi.ControlPlaneIngressRole)
+		if err := componentReconciler.Reconcile(ingressComponents...); err != nil {
+			res = ctrl.Result{Requeue: true}
+		}
+	}
 
 	if component.DeletionTimestamp == nil {
 		if err := componentReconciler.Reconcile(component); err != nil {

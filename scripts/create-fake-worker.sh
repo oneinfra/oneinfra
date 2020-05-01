@@ -34,6 +34,8 @@ APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cl
 CONTAINERD_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} component --component containerd)
 CONTAINER_ID=$(docker run --privileged -v /dev/null:/proc/swaps:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
 
+docker exec ${CONTAINER_ID} sh -c "rm /etc/cni/net.d/*"
+
 echo "creating new join token"
 JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
 NODENAME=$(echo ${CONTAINER_ID} | head -c 10)

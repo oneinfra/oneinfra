@@ -240,6 +240,10 @@ func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInqu
 
 // ReconcileDeletion reconciles the control plane ingress deletion
 func (ingress *ControlPlaneIngress) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
+	hypervisor := inquirer.Hypervisor()
+	if hypervisor == nil {
+		return nil
+	}
 	if err := ingress.stopIngress(inquirer); err != nil {
 		return err
 	}

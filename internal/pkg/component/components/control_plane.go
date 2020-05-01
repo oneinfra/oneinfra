@@ -273,6 +273,10 @@ func (controlPlane *ControlPlane) stopControlPlane(inquirer inquirer.ReconcilerI
 
 // ReconcileDeletion reconciles the kube-apiserver deletion
 func (controlPlane *ControlPlane) ReconcileDeletion(inquirer inquirer.ReconcilerInquirer) error {
+	hypervisor := inquirer.Hypervisor()
+	if hypervisor == nil {
+		return nil
+	}
 	if err := controlPlane.stopControlPlane(inquirer); err != nil {
 		return err
 	}

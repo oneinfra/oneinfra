@@ -153,6 +153,11 @@ func (cluster *Cluster) ReconcileKubeProxy() error {
 							},
 						},
 					},
+					Tolerations: []corev1.Toleration{
+						{
+							Operator: corev1.TolerationOpExists,
+						},
+					},
 				},
 			},
 		},

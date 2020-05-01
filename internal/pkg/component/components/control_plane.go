@@ -248,6 +248,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--client-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
 						"--service-account-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
 						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,Hostname,InternalDNS,InternalIP",
+						"--service-cluster-ip-range", cluster.ServiceCIDR,
 					},
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),

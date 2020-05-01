@@ -120,11 +120,19 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
+	advertiseAddressHost := ""
+	advertiseAddressPort := 0
 	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
 	// Add all load balancer IP addresses. This is necessary if the
 	// ingress is operating at L4
 	for _, clusterLoadBalancer := range clusterLoadBalancers {
 		loadBalancerHypervisor := inquirer.ComponentHypervisor(clusterLoadBalancer)
+		advertiseAddressHost = loadBalancerHypervisor.IPAddress
+		var err error
+		advertiseAddressPort, err = clusterLoadBalancer.RequestPort(loadBalancerHypervisor, APIServerHostPortName)
+		if err != nil {
+			continue
+		}
 		if loadBalancerHypervisor == nil {
 			continue
 		}
@@ -143,11 +151,12 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	controllerManagerKubeConfig, err := component.KubeConfig(cluster, "https://127.0.0.1:6443", "controller-manager")
+	apiserverURL := url.URL{Scheme: "https", Host: net.JoinHostPort("127.0.0.1", strconv.Itoa(advertiseAddressPort))}
+	controllerManagerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "controller-manager")
 	if err != nil {
 		return err
 	}
-	schedulerKubeConfig, err := component.KubeConfig(cluster, "https://127.0.0.1:6443", "scheduler")
+	schedulerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "scheduler")
 	if err != nil {
 		return err
 	}
@@ -196,6 +205,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
 					Args: []string{
+						"--advertise-address", advertiseAddressHost,
+						"--secure-port", strconv.Itoa(advertiseAddressPort),
 						"--etcd-servers", strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
 						"--etcd-cafile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
 						"--etcd-certfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
@@ -242,7 +253,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 				},
 			},
 			map[int]int{
-				apiserverHostPort: 6443,
+				apiserverHostPort: advertiseAddressPort,
 			},
 			pod.PrivilegesUnprivileged,
 		),

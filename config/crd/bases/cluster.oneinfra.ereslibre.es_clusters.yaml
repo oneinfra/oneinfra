@@ -135,6 +135,20 @@ spec:
                       type: string
                   type: object
               type: object
+            clusterNetworking:
+              description: ClusterNetworking represents the cluster networking settings
+              properties:
+                clusterCIDR:
+                  type: string
+                nodeCIDRMaskSize:
+                  type: integer
+                nodeCIDRMaskSizeIPv4:
+                  type: integer
+                nodeCIDRMaskSizeIPv6:
+                  type: integer
+                serviceCIDR:
+                  type: string
+              type: object
             controlPlaneReplicas:
               description: The number of control plane replicas this cluster will
                 manage. One control plane replica if not provided.

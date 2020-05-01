@@ -23,6 +23,10 @@ import (
 const (
 	// DefaultKeyBitSize is the default key bit size
 	DefaultKeyBitSize = 4096
+	// DefaultClusterCIDR is the default cluster CIDR
+	DefaultClusterCIDR = "10.244.0.0/16"
+	// DefaultServiceCIDR is the default service CIDR
+	DefaultServiceCIDR = "10.96.0.0/12"
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
 	// OneInfraJoinConfigMap is the name of the ConfigMap used to

@@ -50,6 +50,9 @@ type ClusterSpec struct {
 
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
+
+	// +optional
+	Networking *ClusterNetworking `json:"clusterNetworking,omitempty"`
 }
 
 // VPN defines the VPN configuration for this cluster
@@ -112,6 +115,15 @@ type KubeAPIServer struct {
 type EtcdServer struct {
 	// +optional
 	CA *commonv1alpha1.Certificate `json:"ca,omitempty"`
+}
+
+// ClusterNetworking represents the cluster networking settings
+type ClusterNetworking struct {
+	ClusterCIDR          string `json:"clusterCIDR,omitempty"`
+	ServiceCIDR          string `json:"serviceCIDR,omitempty"`
+	NodeCIDRMaskSize     int    `json:"nodeCIDRMaskSize,omitempty"`
+	NodeCIDRMaskSizeIPv4 int    `json:"nodeCIDRMaskSizeIPv4,omitempty"`
+	NodeCIDRMaskSizeIPv6 int    `json:"nodeCIDRMaskSizeIPv6,omitempty"`
 }
 
 // +genclient

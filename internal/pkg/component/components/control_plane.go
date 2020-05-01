@@ -193,6 +193,34 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
+	kubeControllerManagerArguments := []string{
+		"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"),
+		"--controllers=*,tokencleaner",
+		"--service-account-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
+		"--cluster-signing-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"),
+		"--cluster-signing-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
+		"--cluster-cidr", cluster.ClusterCIDR,
+		"--service-cluster-ip-range", cluster.ServiceCIDR,
+		"--allocate-node-cidrs", "true",
+	}
+	if cluster.NodeCIDRMaskSize > 0 {
+		kubeControllerManagerArguments = append(
+			kubeControllerManagerArguments,
+			"--node-cidr-mask-size", strconv.Itoa(cluster.NodeCIDRMaskSize),
+		)
+	}
+	if cluster.NodeCIDRMaskSizeIPv4 > 0 {
+		kubeControllerManagerArguments = append(
+			kubeControllerManagerArguments,
+			"--node-cidr-mask-size-ipv4", strconv.Itoa(cluster.NodeCIDRMaskSizeIPv4),
+		)
+	}
+	if cluster.NodeCIDRMaskSizeIPv6 > 0 {
+		kubeControllerManagerArguments = append(
+			kubeControllerManagerArguments,
+			"--node-cidr-mask-size-ipv6", strconv.Itoa(cluster.NodeCIDRMaskSizeIPv6),
+		)
+	}
 	_, err = hypervisor.EnsurePod(
 		cluster.Namespace,
 		cluster.Name,
@@ -229,13 +257,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Name:    "kube-controller-manager",
 					Image:   fmt.Sprintf(kubeControllerManagerImage, kubernetesVersion),
 					Command: []string{"kube-controller-manager"},
-					Args: []string{
-						"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"),
-						"--controllers=*,tokencleaner",
-						"--service-account-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
-						"--cluster-signing-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"),
-						"--cluster-signing-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
-					},
+					Args:    kubeControllerManagerArguments,
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},

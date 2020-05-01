@@ -73,6 +73,11 @@ type Cluster struct {
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
 	Conditions             conditions.ConditionList
+	ClusterCIDR            string
+	ServiceCIDR            string
+	NodeCIDRMaskSize       int
+	NodeCIDRMaskSizeIPv4   int
+	NodeCIDRMaskSizeIPv6   int
 	clientSet              clientset.Interface
 	extensionsClientSet    apiextensionsclientset.Interface
 	loadedContentsHash     string
@@ -91,7 +96,9 @@ func NewCluster(clusterName, kubernetesVersion string, controlPlaneReplicas int,
 		VPN: &VPN{
 			Enabled: vpnEnabled,
 		},
-		VPNPeers: VPNPeerMap{},
+		VPNPeers:    VPNPeerMap{},
+		ClusterCIDR: constants.DefaultClusterCIDR,
+		ServiceCIDR: constants.DefaultServiceCIDR,
 	}
 	if vpnEnabled {
 		_, vpnCIDRNet, err := net.ParseCIDR(vpnCIDR)
@@ -152,6 +159,11 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
 		Conditions:             conditions.NewConditionListFromv1alpha1(cluster.Status.Conditions),
+		ClusterCIDR:            cluster.Spec.Networking.ClusterCIDR,
+		ServiceCIDR:            cluster.Spec.Networking.ServiceCIDR,
+		NodeCIDRMaskSize:       cluster.Spec.Networking.NodeCIDRMaskSize,
+		NodeCIDRMaskSizeIPv4:   cluster.Spec.Networking.NodeCIDRMaskSizeIPv4,
+		NodeCIDRMaskSizeIPv6:   cluster.Spec.Networking.NodeCIDRMaskSizeIPv6,
 	}
 	res.ClientCertificates = map[string]*certificates.Certificate{}
 	for clientCertificateName, clientCertificate := range cluster.Status.ClientCertificates {
@@ -202,6 +214,13 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			VPN:                    cluster.VPN.Export(),
 			JoinKey:                cluster.JoinKey.Export(),
 			JoinTokens:             cluster.DesiredJoinTokens,
+			Networking: &clusterv1alpha1.ClusterNetworking{
+				ClusterCIDR:          cluster.ClusterCIDR,
+				ServiceCIDR:          cluster.ServiceCIDR,
+				NodeCIDRMaskSize:     cluster.NodeCIDRMaskSize,
+				NodeCIDRMaskSizeIPv4: cluster.NodeCIDRMaskSizeIPv4,
+				NodeCIDRMaskSizeIPv6: cluster.NodeCIDRMaskSizeIPv6,
+			},
 		},
 		Status: clusterv1alpha1.ClusterStatus{
 			StorageClientEndpoints: cluster.StorageClientEndpoints,

@@ -46,6 +46,7 @@ func (cluster *Cluster) Default() {
 	cluster.defaultControlPlaneReplicas()
 	cluster.defaultVPN()
 	cluster.defaultUninitializedCertificatesLabel()
+	cluster.defaultNetworking()
 }
 
 func (cluster *Cluster) addFinalizer() {
@@ -87,6 +88,18 @@ func (cluster *Cluster) defaultUninitializedCertificatesLabel() {
 			cluster.Labels = map[string]string{}
 		}
 		cluster.Labels[constants.OneInfraClusterUninitializedCertificates] = ""
+	}
+}
+
+func (cluster *Cluster) defaultNetworking() {
+	if cluster.Spec.Networking == nil {
+		cluster.Spec.Networking = &ClusterNetworking{}
+	}
+	if len(cluster.Spec.Networking.ClusterCIDR) == 0 {
+		cluster.Spec.Networking.ClusterCIDR = constants.DefaultClusterCIDR
+	}
+	if len(cluster.Spec.Networking.ServiceCIDR) == 0 {
+		cluster.Spec.Networking.ServiceCIDR = constants.DefaultServiceCIDR
 	}
 }
 

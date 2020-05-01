@@ -236,6 +236,9 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetric
 					},
 				},
 			},
+			// This will make the container runtime skip CNI when creating
+			// the kubelet installer container.
+			Privileges: podapi.PrivilegesNetworkPrivileged,
 		})
 }
 

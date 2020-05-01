@@ -114,6 +114,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 		clusterReconciler.reconcilePermissions(cluster, &reconcileErrors)
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
 		clusterReconciler.reconcileStorageEndpoints(cluster, &reconcileErrors)
+		clusterReconciler.reconcileKubeProxy(cluster, &reconcileErrors)
 		if optionalReconcile.ReconcileNodeJoinRequests {
 			clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
 		}
@@ -230,6 +231,13 @@ func (clusterReconciler *ClusterReconciler) reconcileStorageEndpoints(cluster *c
 	}
 	cluster.StoragePeerEndpoints = storagePeerEndpoints
 	cluster.StorageClientEndpoints = storageClientEndpoints
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileKubeProxy(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
+	if err := cluster.ReconcileKubeProxy(); err != nil {
+		klog.Errorf("failed to reconcile kube-proxy for cluster %q: %v", cluster.Name, err)
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile kube-proxy"))
+	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileNodeJoinRequests(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {

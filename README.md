@@ -36,8 +36,9 @@ This should have installed the following binaries:
 
 * `oi-local-hypervisor-set`: allows you to test `oneinfra` locally in
   your machine, creating hypervisors as Docker containers. Hypervisors
-  are where `oneinfra` will schedule control plane components. **This
-  command is only intended for ease of testing `oneinfra` locally**.
+  are where `oneinfra` will schedule control plane
+  components. **Note:** this command is only meant for ease of testing
+  `oneinfra` in your local machine.
 
 * `oi`: CLI tool that allows you to test `oneinfra` locally in a
   standalone way, without requiring Kubernetes to store manifests.
@@ -76,7 +77,8 @@ And access it:
 ```console
 $ cat cluster-manifests.conf | oi cluster admin-kubeconfig > cluster-kubeconfig.conf
 $ kubectl --kubeconfig=cluster-kubeconfig.conf cluster-info
-Kubernetes master is running at https://172.17.0.4:30000
+Kubernetes master is running at https://172.17.0.3:30000
+CoreDNS is running at https://172.17.0.3:30000/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
 
 In this mode it's very important to understand that `oi` will read
@@ -141,7 +143,8 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
     ```console
     $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster-kubeconfig.conf
     $ kubectl --kubeconfig=simple-cluster-kubeconfig.conf cluster-info
-    Kubernetes master is running at https://172.17.0.5:30000
+    Kubernetes master is running at https://172.17.0.4:30000
+    CoreDNS is running at https://172.17.0.4:30000/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
     ```
 
 6. (optional) You can then create a [second managed
@@ -158,26 +161,27 @@ own set of hypervisors](docs/hypervisors.md) if you prefer.
         ```console
         $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
         $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
-        Kubernetes master is running at https://172.17.0.5:30001
+        Kubernetes master is running at https://172.17.0.4:30001
+        CoreDNS is running at https://172.17.0.4:30001/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
         ```
 7. List clusters and components on the management cluster:
 
     ```console
     $ kubectl get clusters -A
     NAMESPACE   NAME             KUBERNETES VERSION   API SERVER ENDPOINT        VPN     VPN CIDR   AGE
-    default     ha-cluster       1.18.2               https://172.17.0.5:30001   false              62s
-    default     simple-cluster   1.18.2               https://172.17.0.5:30000   false              2m7s
+    default     ha-cluster       1.18.2               https://172.17.0.4:30001   false              3m10s
+    default     simple-cluster   1.18.2               https://172.17.0.4:30000   false              6m40s
     ```
 
     ```console
     $ kubectl get components -A
     NAMESPACE   NAME                                         CLUSTER          ROLE                    HYPERVISOR                  AGE
-    default     ha-cluster-control-plane-hvz2h               ha-cluster       control-plane           test-private-hypervisor-0   65s
-    default     ha-cluster-control-plane-ingress-8scc5       ha-cluster       control-plane-ingress   test-public-hypervisor-0    65s
-    default     ha-cluster-control-plane-j52xp               ha-cluster       control-plane           test-private-hypervisor-0   65s
-    default     ha-cluster-control-plane-l4flc               ha-cluster       control-plane           test-private-hypervisor-0   65s
-    default     simple-cluster-control-plane-bcx9g           simple-cluster   control-plane           test-private-hypervisor-0   2m10s
-    default     simple-cluster-control-plane-ingress-5sdfh   simple-cluster   control-plane-ingress   test-public-hypervisor-0    2m10s
+    default     ha-cluster-control-plane-4v5ft               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
+    default     ha-cluster-control-plane-9d9hq               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
+    default     ha-cluster-control-plane-ingress-vffm9       ha-cluster       control-plane-ingress   test-public-hypervisor-0    3m32s
+    default     ha-cluster-control-plane-md6dv               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
+    default     simple-cluster-control-plane-ingress-28wwd   simple-cluster   control-plane-ingress   test-public-hypervisor-0    7m1s
+    default     simple-cluster-control-plane-jqwtz           simple-cluster   control-plane           test-private-hypervisor-0   7m1s
     ```
 
 Then play as much as you want by creating new clusters, deleting

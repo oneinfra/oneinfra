@@ -133,12 +133,12 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 	if cluster.Spec.APIServer == nil {
 		cluster.Spec.APIServer = &clusterv1alpha1.KubeAPIServer{}
 	}
-	if cluster.Spec.Networking == nil {
-		cluster.Spec.Networking = &clusterv1alpha1.ClusterNetworking{}
-	}
 	kubeAPIServer, err := newKubeAPIServerFromv1alpha1(cluster.Spec.APIServer)
 	if err != nil {
 		return nil, err
+	}
+	if cluster.Spec.Networking == nil {
+		cluster.Spec.Networking = &clusterv1alpha1.ClusterNetworking{}
 	}
 	res := Cluster{
 		Name:                   cluster.Name,

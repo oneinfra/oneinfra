@@ -51,6 +51,9 @@ type ClusterSpec struct {
 
 	// +optional
 	JoinTokens []string `json:"joinTokens,omitempty"`
+
+	// +optional
+	Networking *ClusterNetworking `json:"networking,omitempty"`
 }
 ```
 

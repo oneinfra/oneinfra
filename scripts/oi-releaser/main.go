@@ -24,6 +24,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"k8s.io/klog"
 
+	"github.com/oneinfra/oneinfra/scripts/oi-releaser/binaries"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/images"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines"
 )
@@ -33,12 +34,44 @@ func main() {
 		Usage: "oneinfra releaser CLI tool",
 		Commands: []*cli.Command{
 			{
+				Name:  "binaries",
+				Usage: "binaries operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "build",
+						Usage: "build binaries",
+						Flags: []cli.Flag{
+							&cli.StringSliceFlag{
+								Name:  "binary",
+								Usage: "binaries to build; can be provided several times, all if not provided",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return binaries.BuildBinaries(c.StringSlice("binary"))
+						},
+					},
+					{
+						Name:  "publish",
+						Usage: "publish binaries",
+						Flags: []cli.Flag{
+							&cli.StringSliceFlag{
+								Name:  "binary",
+								Usage: "binaries to publish; can be provided several times, all if not provided",
+							},
+						},
+						Action: func(c *cli.Context) error {
+							return binaries.PublishBinaries(c.StringSlice("binary"))
+						},
+					},
+				},
+			},
+			{
 				Name:  "container-images",
 				Usage: "container images operations",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "build",
-						Usage: "build all container image artifacts",
+						Usage: "build container image artifacts",
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "image",

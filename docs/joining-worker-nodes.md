@@ -13,15 +13,15 @@ Requirements on the worker node to be joined:
 Running the command `oi node join` allows you to join this node to a
 cluster, these are the arguments you will need:
 
-| Argument                       | Description                                                                                                                                                               |
-|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--nodename`                   | The name that this node will use to join the Kubernetes cluster                                                                                                           |
-| `--container-runtime-endpoint` | The CRI endpoint for the container runtime service in this worker node. Defaults to `unix:///run/containerd/containerd.sock`                                              |
-| `--image-service-endpoint`     | The CRI endpoint for the image service in this worker node (usually the same as `--container-runtime-endpoint`). Defaults to `unix:///run/containerd/containerd.sock`     |
-| `--apiserver-endpoint`         | The API server endpoint of the cluster that this node will join                                                                                                           |
-| `--apiserver-ca-cert-file`     | The file containing the CA certificate to validate the API server endpoint connection                                                                                     |
-| `--join-token`                 | The join token that will be used for the joining process                                                                                                                  |
-| `--extra-san`                  | Adds the provided Subject Alternative Name (SAN) to the request that will generate the kubelet server certificate. This argument can be provided as many times as needed. |
+| Argument                       |          | Description                                                                                                                                                               |
+|--------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--nodename`                   | Required | The name that this node will use to join the Kubernetes cluster                                                                                                           |
+| `--apiserver-endpoint`         | Required | The API server endpoint of the cluster that this node will join                                                                                                           |
+| `--apiserver-ca-cert-file`     | Required | The file containing the CA certificate to validate the API server endpoint connection                                                                                     |
+| `--join-token`                 | Required | The join token that will be used for the joining process                                                                                                                  |
+| `--container-runtime-endpoint` | Optional | The CRI endpoint for the container runtime service in this worker node. Defaults to `unix:///run/containerd/containerd.sock`                                              |
+| `--image-service-endpoint`     | Optional | The CRI endpoint for the image service in this worker node (usually the same as `--container-runtime-endpoint`). Defaults to `unix:///run/containerd/containerd.sock`     |
+| `--extra-san`                  | Optional | Adds the provided Subject Alternative Name (SAN) to the request that will generate the kubelet server certificate. This argument can be provided as many times as needed. |
 
 When you execute the `oi node join` command, this is the sequence of
 actions that will take place:

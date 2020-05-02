@@ -55,7 +55,7 @@ type NodeJoinRequestSpec struct {
 	ImageServiceEndpoint string `json:"imageServiceEndpoint,omitempty"`
 
 	// A list of extra Subject Alternative Names (SAN's) that will be
-	// included in the Kubelet server certificate issued by oneinfra
+	// included in the Kubelet server certificate issued by oneinfra.
 	//
 	// +optional
 	ExtraSANs []string `json:"extraSANs,omitempty"`

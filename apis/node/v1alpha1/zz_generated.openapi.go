@@ -48,7 +48,7 @@ properties:
         type: string
       extraSANs:
         description: A list of extra Subject Alternative Names (SAN's) that will be
-          included in the Kubelet server certificate issued by oneinfra
+          included in the Kubelet server certificate issued by oneinfra.
         items:
           type: string
         type: array

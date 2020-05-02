@@ -32,22 +32,24 @@ const (
 
 // NodeJoinRequest represents a node join request
 type NodeJoinRequest struct {
-	Name                     string
-	SymmetricKey             crypto.SymmetricKey
-	APIServerEndpoint        string
-	ContainerRuntimeEndpoint string
-	ImageServiceEndpoint     string
-	KubernetesVersion        string
-	VPNEnabled               bool
-	VPNAddress               string
-	VPNPeers                 []string
-	KubeConfig               string
-	KubeletConfig            string
-	KubeletServerCertificate string
-	KubeletServerPrivateKey  string
-	Conditions               conditions.ConditionList
-	ResourceVersion          string
-	joinKey                  *crypto.KeyPair
+	Name                       string
+	SymmetricKey               crypto.SymmetricKey
+	APIServerEndpoint          string
+	ContainerRuntimeEndpoint   string
+	ImageServiceEndpoint       string
+	KubernetesVersion          string
+	VPNEnabled                 bool
+	VPNAddress                 string
+	VPNPeers                   []string
+	KubeConfig                 string
+	KubeletConfig              string
+	KubeletServerCertificate   string
+	KubeletServerPrivateKey    string
+	KubeletClientCACertificate string
+	ExtraSANs                  []string
+	Conditions                 conditions.ConditionList
+	ResourceVersion            string
+	joinKey                    *crypto.KeyPair
 }
 
 // NewNodeJoinRequestFromv1alpha1 returns a node join request based on a versioned node join request
@@ -61,22 +63,24 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		symmetricKey = key
 	}
 	return &NodeJoinRequest{
-		Name:                     nodeJoinRequest.Name,
-		SymmetricKey:             crypto.SymmetricKey(symmetricKey),
-		APIServerEndpoint:        nodeJoinRequest.Spec.APIServerEndpoint,
-		ContainerRuntimeEndpoint: nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
-		ImageServiceEndpoint:     nodeJoinRequest.Spec.ImageServiceEndpoint,
-		KubernetesVersion:        nodeJoinRequest.Status.KubernetesVersion,
-		VPNEnabled:               nodeJoinRequest.Status.VPNEnabled,
-		VPNAddress:               nodeJoinRequest.Status.VPNAddress,
-		VPNPeers:                 nodeJoinRequest.Status.VPNPeers,
-		KubeConfig:               nodeJoinRequest.Status.KubeConfig,
-		KubeletConfig:            nodeJoinRequest.Status.KubeletConfig,
-		KubeletServerCertificate: nodeJoinRequest.Status.KubeletServerCertificate,
-		KubeletServerPrivateKey:  nodeJoinRequest.Status.KubeletServerPrivateKey,
-		Conditions:               conditions.NewConditionListFromv1alpha1(nodeJoinRequest.Status.Conditions),
-		ResourceVersion:          nodeJoinRequest.ResourceVersion,
-		joinKey:                  joinKey,
+		Name:                       nodeJoinRequest.Name,
+		SymmetricKey:               crypto.SymmetricKey(symmetricKey),
+		APIServerEndpoint:          nodeJoinRequest.Spec.APIServerEndpoint,
+		ContainerRuntimeEndpoint:   nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
+		ImageServiceEndpoint:       nodeJoinRequest.Spec.ImageServiceEndpoint,
+		KubernetesVersion:          nodeJoinRequest.Status.KubernetesVersion,
+		VPNEnabled:                 nodeJoinRequest.Status.VPNEnabled,
+		VPNAddress:                 nodeJoinRequest.Status.VPNAddress,
+		VPNPeers:                   nodeJoinRequest.Status.VPNPeers,
+		KubeConfig:                 nodeJoinRequest.Status.KubeConfig,
+		KubeletConfig:              nodeJoinRequest.Status.KubeletConfig,
+		KubeletServerCertificate:   nodeJoinRequest.Status.KubeletServerCertificate,
+		KubeletServerPrivateKey:    nodeJoinRequest.Status.KubeletServerPrivateKey,
+		KubeletClientCACertificate: nodeJoinRequest.Status.KubeletClientCACertificate,
+		ExtraSANs:                  nodeJoinRequest.Spec.ExtraSANs,
+		Conditions:                 conditions.NewConditionListFromv1alpha1(nodeJoinRequest.Status.Conditions),
+		ResourceVersion:            nodeJoinRequest.ResourceVersion,
+		joinKey:                    joinKey,
 	}, nil
 }
 
@@ -100,17 +104,19 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 			APIServerEndpoint:        nodeJoinRequest.APIServerEndpoint,
 			ContainerRuntimeEndpoint: nodeJoinRequest.ContainerRuntimeEndpoint,
 			ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
+			ExtraSANs:                nodeJoinRequest.ExtraSANs,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
-			KubernetesVersion:        nodeJoinRequest.KubernetesVersion,
-			VPNEnabled:               nodeJoinRequest.VPNEnabled,
-			VPNAddress:               nodeJoinRequest.VPNAddress,
-			VPNPeers:                 nodeJoinRequest.VPNPeers,
-			KubeConfig:               nodeJoinRequest.KubeConfig,
-			KubeletConfig:            nodeJoinRequest.KubeletConfig,
-			KubeletServerCertificate: nodeJoinRequest.KubeletServerCertificate,
-			KubeletServerPrivateKey:  nodeJoinRequest.KubeletServerPrivateKey,
-			Conditions:               nodeJoinRequest.Conditions.Export(),
+			KubernetesVersion:          nodeJoinRequest.KubernetesVersion,
+			VPNEnabled:                 nodeJoinRequest.VPNEnabled,
+			VPNAddress:                 nodeJoinRequest.VPNAddress,
+			VPNPeers:                   nodeJoinRequest.VPNPeers,
+			KubeConfig:                 nodeJoinRequest.KubeConfig,
+			KubeletConfig:              nodeJoinRequest.KubeletConfig,
+			KubeletServerCertificate:   nodeJoinRequest.KubeletServerCertificate,
+			KubeletServerPrivateKey:    nodeJoinRequest.KubeletServerPrivateKey,
+			KubeletClientCACertificate: nodeJoinRequest.KubeletClientCACertificate,
+			Conditions:                 nodeJoinRequest.Conditions.Export(),
 		},
 	}, nil
 }

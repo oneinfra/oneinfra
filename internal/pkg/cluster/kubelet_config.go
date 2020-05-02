@@ -37,6 +37,11 @@ func (cluster *Cluster) KubeletConfig() (string, error) {
 		TLSPrivateKeyFile: constants.KubeletServerPrivateKeyPath,
 		ClusterDNS:        []string{coreDNSServiceIP},
 		ClusterDomain:     "cluster.local",
+		Authentication: kubeletconfigv1beta1.KubeletAuthentication{
+			X509: kubeletconfigv1beta1.KubeletX509Authentication{
+				ClientCAFile: constants.KubeletClientCACertificatePath,
+			},
+		},
 	}
 	return marshalKubeletConfig(&kubeletConfig)
 }

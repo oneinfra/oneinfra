@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	oneInfraNodeJoinRequesterRoleName = "oneinfra:node:join-requester"
+	oneInfraNodeJoinRequesterRoleName    = "oneinfra:node:join-requester"
+	kubeletProxierClusterRoleBindingName = "oneinfra:kubelet-proxier"
 )
 
 // ReconcilePermissions reconciles this cluster namespaces
@@ -39,7 +40,10 @@ func (cluster *Cluster) ReconcilePermissions() error {
 	if err := cluster.reconcileNodeJoinRequestsPermissions(client); err != nil {
 		return err
 	}
-	return cluster.reconcileNodeJoinConfigMapPermissions(client)
+	if err := cluster.reconcileNodeJoinConfigMapPermissions(client); err != nil {
+		return err
+	}
+	return cluster.reconcileKubeletProxierPermissions(client)
 }
 
 func (cluster *Cluster) reconcileNodeJoinRequestsPermissions(client clientset.Interface) error {
@@ -115,6 +119,30 @@ func (cluster *Cluster) reconcileNodeJoinConfigMapPermissions(client clientset.I
 			APIGroup: rbacv1.GroupName,
 			Kind:     "Role",
 			Name:     oneInfraNodeJoinRequesterRoleName,
+		},
+	})
+	if err != nil && apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
+}
+
+func (cluster *Cluster) reconcileKubeletProxierPermissions(client clientset.Interface) error {
+	_, err := client.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: kubeletProxierClusterRoleBindingName,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				APIGroup: rbacv1.GroupName,
+				Kind:     "Group",
+				Name:     constants.OneInfraKubeletProxierExtraGroups,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "ClusterRole",
+			Name:     "system:kubelet-api-admin",
 		},
 	})
 	if err != nil && apierrors.IsAlreadyExists(err) {

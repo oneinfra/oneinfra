@@ -53,6 +53,12 @@ type NodeJoinRequestSpec struct {
 	// the container runtime endpoint.
 	// (e.g. unix:///run/containerd/containerd.sock)
 	ImageServiceEndpoint string `json:"imageServiceEndpoint,omitempty"`
+
+	// A list of extra Subject Alternative Names (SAN's) that will be
+	// included in the Kubelet server certificate issued by oneinfra
+	//
+	// +optional
+	ExtraSANs []string `json:"extraSANs,omitempty"`
 }
 
 // NodeJoinRequestStatus defines the observed state of NodeJoinRequest
@@ -97,6 +103,12 @@ type NodeJoinRequestStatus struct {
 	// using the provided SymmetricKey in the request spec. Base64
 	// encoded.
 	KubeletServerPrivateKey string `json:"kubeletServerPrivateKey,omitempty"`
+
+	// KubeletClientCACertificate contains the contents of the Kubelet
+	// client CA certificate to be used. Filled by `oneinfra`, and ciphered
+	// using the provided SymmetricKey in the request spec. Base64
+	// encoded.
+	KubeletClientCACertificate string `json:"kubeletClientCACertificate,omitempty"`
 
 	// Conditions contains a list of conditions for this
 	// request. `oneinfra` will set the `Issued` condition to `True`

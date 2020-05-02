@@ -43,6 +43,11 @@ func (in *CertificateAuthorities) DeepCopyInto(out *CertificateAuthorities) {
 		*out = new(commonv1alpha1.Certificate)
 		**out = **in
 	}
+	if in.KubeletClient != nil {
+		in, out := &in.KubeletClient, &out.KubeletClient
+		*out = new(commonv1alpha1.Certificate)
+		**out = **in
+	}
 	if in.EtcdClient != nil {
 		in, out := &in.EtcdClient, &out.EtcdClient
 		*out = new(commonv1alpha1.Certificate)

@@ -24,12 +24,12 @@ import (
 )
 
 // Join joins a node to an existing cluster
-func Join(nodename, apiServerEndpoint, caCertFile, token, containerRuntimeEndpoint, imageServiceEndpoint string) error {
+func Join(nodename, apiServerEndpoint, caCertFile, token, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string) error {
 	caCert, err := ioutil.ReadFile(caCertFile)
 	if err != nil {
 		return err
 	}
-	err = node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint)
+	err = node.Join(nodename, apiServerEndpoint, string(caCert), token, containerRuntimeEndpoint, imageServiceEndpoint, extraSANs)
 	if err == nil {
 		fmt.Printf("worker node %q was successfully configured\n", nodename)
 	}

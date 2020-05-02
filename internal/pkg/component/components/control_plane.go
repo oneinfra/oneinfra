@@ -168,6 +168,16 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
+	kubeletClientCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.KubeletClient,
+		"kube-apiserver-kubelet-client",
+		"kube-apiserver-kubelet-client",
+		[]string{constants.OneInfraKubeletProxierExtraGroups},
+		[]string{},
+	)
+	if err != nil {
+		return err
+	}
 	err = hypervisor.UploadFiles(
 		cluster.Namespace,
 		cluster.Name,
@@ -178,10 +188,12 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
 			// API server secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"): cluster.CertificateAuthorities.APIServerClient.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"):           apiServerCertificate.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"):           apiServerCertificate.PrivateKey,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"): cluster.APIServer.ServiceAccount.PublicKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"):      cluster.CertificateAuthorities.APIServerClient.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"):                apiServerCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"):                apiServerCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"):      cluster.APIServer.ServiceAccount.PublicKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"): kubeletClientCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"): kubeletClientCertificate.PrivateKey,
 			// controller-manager secrets
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccount.PrivateKey,
@@ -189,6 +201,8 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
 			// scheduler secrets
 			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
+			// kubelet secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"): cluster.CertificateAuthorities.Kubelet.Certificate,
 		},
 	)
 	if err != nil {
@@ -255,7 +269,10 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 						"--tls-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
 						"--client-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
 						"--service-account-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
-						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,Hostname,InternalDNS,InternalIP",
+						"--kubelet-certificate-authority", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"),
+						"--kubelet-client-certificate", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"),
+						"--kubelet-client-key", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"),
+						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,InternalIP,InternalDNS,Hostname",
 						"--service-cluster-ip-range", cluster.ServiceCIDR,
 					},
 					Mounts: map[string]string{

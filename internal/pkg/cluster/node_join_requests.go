@@ -76,6 +76,10 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			klog.Errorf("cannot fill kubelet server certificate for node join request %q: %v", nodeJoinRequest.Name, err)
 			continue
 		}
+		if err := cluster.fillNodeJoinRequestKubeletClientCACertificate(nodeJoinRequest); err != nil {
+			klog.Errorf("cannot fill kubelet client CA certificate for node join request %q: %v", nodeJoinRequest.Name, err)
+			continue
+		}
 		nodeJoinRequest.Conditions.SetCondition(nodejoinrequests.Issued, conditions.ConditionTrue)
 		versionedNodeJoinRequest, err := nodeJoinRequest.Export()
 		if err != nil {
@@ -167,10 +171,15 @@ func (cluster *Cluster) fillNodeJoinRequestKubeletConfig(nodeJoinRequest *nodejo
 }
 
 func (cluster *Cluster) fillNodeJoinRequestKubeletServerCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	extraSANs := nodeJoinRequest.ExtraSANs
+	extraSANs = append(
+		extraSANs,
+		nodeJoinRequest.Name,
+	)
 	certificate, privateKey, err := cluster.CertificateAuthorities.Kubelet.CreateCertificate(
 		nodeJoinRequest.Name,
 		[]string{cluster.Name},
-		[]string{nodeJoinRequest.Name},
+		extraSANs,
 	)
 	if err != nil {
 		return err
@@ -185,5 +194,14 @@ func (cluster *Cluster) fillNodeJoinRequestKubeletServerCertificate(nodeJoinRequ
 		return err
 	}
 	nodeJoinRequest.KubeletServerPrivateKey = kubeletServerPrivateKey
+	return nil
+}
+
+func (cluster *Cluster) fillNodeJoinRequestKubeletClientCACertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+	kubeletClientCACertificate, err := nodeJoinRequest.Encrypt(cluster.CertificateAuthorities.KubeletClient.Certificate)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.KubeletClientCACertificate = kubeletClientCACertificate
 	return nil
 }

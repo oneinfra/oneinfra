@@ -38,6 +38,9 @@ const (
 	// OneInfraNodeJoinTokenExtraGroups represents the bootstrap token
 	// extra groups used to identify oneinfra bootstrap tokens
 	OneInfraNodeJoinTokenExtraGroups = "system:bootstrappers:oneinfra"
+	// OneInfraKubeletProxierExtraGroups represents the kubelet proxier
+	// extra groups used to identify kubelet proxying requests
+	OneInfraKubeletProxierExtraGroups = "oneinfra:kubelet-proxier"
 	// OneInfraConfigDir represents the configuration directory for oneinfra
 	OneInfraConfigDir = "/etc/oneinfra"
 	// OneInfraClusterNameLabelName is the name of the label for the
@@ -62,6 +65,8 @@ var (
 	KubeletServerCertificatePath = filepath.Join(OneInfraConfigDir, "kubelet.crt")
 	// KubeletServerPrivateKeyPath represents the kubelet server private key path
 	KubeletServerPrivateKeyPath = filepath.Join(OneInfraConfigDir, "kubelet.key")
+	// KubeletClientCACertificatePath represents the kubelet server certificate path
+	KubeletClientCACertificatePath = filepath.Join(OneInfraConfigDir, "kubelet-client-ca.crt")
 	// KubeletConfigPath represents the kubelet configuration path
 	KubeletConfigPath = filepath.Join(KubeletDir, "config.yaml")
 )

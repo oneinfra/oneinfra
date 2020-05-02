@@ -46,6 +46,12 @@ properties:
       containerRuntimeEndpoint:
         description: The local node container runtime endpoint. (e.g. unix:///run/containerd/containerd.sock)
         type: string
+      extraSANs:
+        description: A list of extra Subject Alternative Names (SAN's) that will be
+          included in the Kubelet server certificate issued by oneinfra
+        items:
+          type: string
+        type: array
       imageServiceEndpoint:
         description: The local node image service endpoint. It's usually the same
           as the container runtime endpoint. (e.g. unix:///run/containerd/containerd.sock)
@@ -90,6 +96,11 @@ properties:
         description: KubeConfig has the kubeconfig contents that the kubelet should
           use. Filled by "oneinfra", and ciphered using the provided SymmetricKey
           in the request spec. Base64 encoded.
+        type: string
+      kubeletClientCACertificate:
+        description: KubeletClientCACertificate contains the contents of the Kubelet
+          client CA certificate to be used. Filled by "oneinfra", and ciphered using
+          the provided SymmetricKey in the request spec. Base64 encoded.
         type: string
       kubeletConfig:
         description: KubeletConfig has the kubelet configuration contents that the

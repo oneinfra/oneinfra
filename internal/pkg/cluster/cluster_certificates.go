@@ -65,6 +65,13 @@ func (cluster *Cluster) initializeCertificateAuthorities() error {
 		}
 		cluster.CertificateAuthorities.Kubelet = kubeletAuthority
 	}
+	if cluster.CertificateAuthorities.KubeletClient == nil {
+		kubeletClientAuthority, err := certificates.NewCertificateAuthority("kubelet-client-authority")
+		if err != nil {
+			return err
+		}
+		cluster.CertificateAuthorities.KubeletClient = kubeletClientAuthority
+	}
 	if cluster.CertificateAuthorities.EtcdClient == nil {
 		etcdClientAuthority, err := certificates.NewCertificateAuthority("etcd-client-authority")
 		if err != nil {

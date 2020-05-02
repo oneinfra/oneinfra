@@ -255,6 +255,10 @@ func main() {
 								Required: true,
 								Usage:    "token to use for joining",
 							},
+							&cli.StringSliceFlag{
+								Name:  "extra-san",
+								Usage: "extra Subject Alternative Names (SAN's) for the Kubelet server certificate. You can provide this argument many times.",
+							},
 						},
 						Action: func(c *cli.Context) error {
 							flagSet := flag.FlagSet{}
@@ -267,6 +271,7 @@ func main() {
 								c.String("join-token"),
 								c.String("container-runtime-endpoint"),
 								c.String("image-service-endpoint"),
+								c.StringSlice("extra-san"),
 							)
 						},
 					},

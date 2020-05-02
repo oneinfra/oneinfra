@@ -43,9 +43,13 @@ NODENAME=$(echo ${CONTAINER_ID} | head -c 10)
 echo "reconciling join tokens"
 cat "${CLUSTER_CONF}.new" | oi reconcile > ${CLUSTER_CONF} 2> /dev/null
 
+# Get the IP address of the fake worker, so we can request a SAN for
+# its kubelet server certificate
+FAKE_WORKER_IP_SAN=$(docker inspect ${CONTAINER_ID} | jq -r '.[0].NetworkSettings.IPAddress')
+
 echo "joining new node in background"
 docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster apiserver-ca --cluster ${CLUSTER_NAME} > /etc/oneinfra/apiserver-ca.crt"
-docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
+docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --extra-san ${FAKE_WORKER_IP_SAN} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
 
 echo -n "waiting for node join request to be created by the new node"
 until kubectl get njr ${NODENAME} -n oneinfra-system &> /dev/null

@@ -96,6 +96,8 @@ type CertificateAuthorities struct {
 	// +optional
 	Kubelet *commonv1alpha1.Certificate `json:"kubelet,omitempty"`
 	// +optional
+	KubeletClient *commonv1alpha1.Certificate `json:"kubeletClient,omitempty"`
+	// +optional
 	EtcdClient *commonv1alpha1.Certificate `json:"etcdClient,omitempty"`
 	// +optional
 	EtcdPeer *commonv1alpha1.Certificate `json:"etcdPeer,omitempty"`

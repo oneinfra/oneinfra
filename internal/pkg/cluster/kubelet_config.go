@@ -28,9 +28,15 @@ import (
 
 // KubeletConfig returns a default kubelet config
 func (cluster *Cluster) KubeletConfig() (string, error) {
+	coreDNSServiceIP, err := cluster.CoreDNSServiceIP()
+	if err != nil {
+		return "", err
+	}
 	kubeletConfig := kubeletconfigv1beta1.KubeletConfiguration{
 		TLSCertFile:       constants.KubeletServerCertificatePath,
 		TLSPrivateKeyFile: constants.KubeletServerPrivateKeyPath,
+		ClusterDNS:        []string{coreDNSServiceIP},
+		ClusterDomain:     "cluster.local",
 	}
 	return marshalKubeletConfig(&kubeletConfig)
 }

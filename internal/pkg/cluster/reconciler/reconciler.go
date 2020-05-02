@@ -115,6 +115,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 		clusterReconciler.reconcileJoinTokens(cluster, &reconcileErrors)
 		clusterReconciler.reconcileStorageEndpoints(cluster, &reconcileErrors)
 		clusterReconciler.reconcileKubeProxy(cluster, &reconcileErrors)
+		clusterReconciler.reconcileCoreDNS(cluster, &reconcileErrors)
 		if optionalReconcile.ReconcileNodeJoinRequests {
 			clusterReconciler.reconcileNodeJoinRequests(cluster, &reconcileErrors)
 		}
@@ -237,6 +238,13 @@ func (clusterReconciler *ClusterReconciler) reconcileKubeProxy(cluster *clustera
 	if err := cluster.ReconcileKubeProxy(); err != nil {
 		klog.Errorf("failed to reconcile kube-proxy for cluster %q: %v", cluster.Name, err)
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile kube-proxy"))
+	}
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileCoreDNS(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
+	if err := cluster.ReconcileCoreDNS(); err != nil {
+		klog.Errorf("failed to reconcile CoreDNS for cluster %q: %v", cluster.Name, err)
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile CoreDNS"))
 	}
 }
 

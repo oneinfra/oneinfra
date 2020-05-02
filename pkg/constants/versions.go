@@ -37,6 +37,8 @@ const (
 	Etcd Component = "etcd"
 	// Pause is the pause component
 	Pause Component = "pause"
+	// CoreDNS is the CoreDNS component
+	CoreDNS Component = "coredns"
 )
 
 var (
@@ -65,6 +67,7 @@ type KubernetesVersion struct {
 	ContainerdVersion string `json:"containerdVersion"`
 	EtcdVersion       string `json:"etcdVersion"`
 	PauseVersion      string `json:"pauseVersion"`
+	CoreDNSVersion    string `json:"coreDNSVersion"`
 }
 
 var (
@@ -119,6 +122,8 @@ func KubernetesComponentVersion(version string, component Component) (string, er
 		return kubernetesVersionBundle.EtcdVersion, nil
 	case Pause:
 		return kubernetesVersionBundle.PauseVersion, nil
+	case CoreDNS:
+		return kubernetesVersionBundle.CoreDNSVersion, nil
 	}
 	return "", errors.Errorf("could not find component %q in version %q", component, version)
 }

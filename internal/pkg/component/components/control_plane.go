@@ -141,15 +141,13 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 			loadBalancerHypervisor.IPAddress,
 		)
 	}
-	_, kubernetesServiceIP, err := net.ParseCIDR(cluster.ServiceCIDR)
+	kubernetesServiceIP, err := cluster.KubernetesServiceIP()
 	if err != nil {
 		return err
 	}
-	// The kubernetes service IP is the first IP address on the service CIDR
-	kubernetesServiceIP.IP[len(kubernetesServiceIP.IP)-1] = kubernetesServiceIP.IP[len(kubernetesServiceIP.IP)-1] + 1
 	kubeAPIServerExtraSANs = append(
 		kubeAPIServerExtraSANs,
-		kubernetesServiceIP.IP.String(),
+		kubernetesServiceIP,
 	)
 	apiServerCertificate, err := component.ServerCertificate(
 		cluster.APIServer.CA,

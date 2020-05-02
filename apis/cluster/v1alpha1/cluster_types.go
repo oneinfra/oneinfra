@@ -52,7 +52,7 @@ type ClusterSpec struct {
 	JoinTokens []string `json:"joinTokens,omitempty"`
 
 	// +optional
-	Networking *ClusterNetworking `json:"clusterNetworking,omitempty"`
+	Networking *ClusterNetworking `json:"networking,omitempty"`
 }
 
 // VPN defines the VPN configuration for this cluster

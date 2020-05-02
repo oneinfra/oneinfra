@@ -95,10 +95,10 @@ func (cluster *Cluster) defaultNetworking() {
 	if cluster.Spec.Networking == nil {
 		cluster.Spec.Networking = &ClusterNetworking{}
 	}
-	if len(cluster.Spec.Networking.ClusterCIDR) == 0 {
+	if cluster.Spec.Networking.ClusterCIDR == "" {
 		cluster.Spec.Networking.ClusterCIDR = constants.DefaultClusterCIDR
 	}
-	if len(cluster.Spec.Networking.ServiceCIDR) == 0 {
+	if cluster.Spec.Networking.ServiceCIDR == "" {
 		cluster.Spec.Networking.ServiceCIDR = constants.DefaultServiceCIDR
 	}
 }

@@ -34,10 +34,13 @@ import (
 	"k8s.io/klog"
 )
 
+// GithubRelease represents a Github release
 type GithubRelease struct {
 	Id int `json:"id"`
 }
 
+// BuildBinaries builds the provided binaries in a release matching
+// the current tag
 func BuildBinaries(binaries []string) error {
 	if err := cleanBinDirectory(); err != nil {
 		return err
@@ -45,6 +48,8 @@ func BuildBinaries(binaries []string) error {
 	return buildBinaries(binaries, tagName())
 }
 
+// PublishBinaries publishes the provided binaries in a release
+// matching the current tag
 func PublishBinaries(binaries []string) error {
 	if err := BuildBinaries(binaries); err != nil {
 		return err

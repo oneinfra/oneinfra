@@ -24,27 +24,42 @@ You can [read more about its design here](docs/DESIGN.md).
 | `1.19.0-alpha.2`   | `20.05.0-alpha10` |                  | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.2)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.2)%20with%20remote%20CRI%20endpoints) |
 
 
-## Go install
+## Install
+
+The `oneinfra` installation has two main binaries, along with a
+Kubernetes controller manager (released as a container image).
+
+* `oi`: `oneinfra` main CLI tool.
+
+* `oi-local-hypervisor-set`: allows you to create fake hypervisors
+  running as docker containers. **You should never use this command in
+  production environments**.
+
+`oi-manager` is `oneinfra`'s Kubernetes controller manager. The
+`oi-manager` is released as a container image and published in the
+Docker Hub.
+
+
+### From released binaries
+
+```console
+$ wget -O oi https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha10/oi-linux-amd64-20.05.0-alpha10
+$ chmod +x oi
+$ wget -O oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha10/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha10
+$ chmod +x oi-local-hypervisor-set
+```
+
+You can now move these binaries to any place in your `$PATH`, or
+execute them with their full path if you prefer.
+
+
+### From source
 
 Build has been tested with go versions 1.13 and 1.14.
 
 ```console
 $ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.05.0-alpha10
 ```
-
-This should have installed the following binaries:
-
-* `oi-local-hypervisor-set`: allows you to test `oneinfra` locally in
-  your machine, creating hypervisors as Docker containers. Hypervisors
-  are where `oneinfra` will schedule control plane
-  components. **Note:** this command is only meant for ease of testing
-  `oneinfra` in your local machine.
-
-* `oi`: CLI tool that allows you to test `oneinfra` locally in a
-  standalone way, without requiring Kubernetes to store manifests.
-
-* `oi-manager`: Kubernetes set of controllers that reconcile defined
-  clusters.
 
 
 ## Quick start

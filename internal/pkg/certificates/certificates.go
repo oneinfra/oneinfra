@@ -45,7 +45,7 @@ type Certificate struct {
 
 // NewCertificateAuthority creates a new certificate authority
 func NewCertificateAuthority(authorityName string) (*Certificate, error) {
-	privateKey, err := crypto.NewPrivateKey(constants.DefaultKeyBitSize)
+	privateKey, err := crypto.NewPrivateKey(constants.DefaultCAKeyBitSize)
 	if err != nil {
 		return nil, err
 	}

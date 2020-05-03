@@ -21,8 +21,10 @@ import (
 )
 
 const (
-	// DefaultKeyBitSize is the default key bit size
-	DefaultKeyBitSize = 4096
+	// DefaultCAKeyBitSize is the default key bit size for CA certificates
+	DefaultCAKeyBitSize = 4096
+	// DefaultKeyBitSize is the default key bit size for non-CA certificates
+	DefaultKeyBitSize = 2048
 	// DefaultClusterCIDR is the default cluster CIDR
 	DefaultClusterCIDR = "10.244.0.0/16"
 	// DefaultServiceCIDR is the default service CIDR

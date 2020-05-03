@@ -82,6 +82,18 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRD(client apiextensionsclients
 					Subresources: &extensionsv1.CustomResourceSubresources{
 						Status: &extensionsv1.CustomResourceSubresourceStatus{},
 					},
+					AdditionalPrinterColumns: []extensionsv1.CustomResourceColumnDefinition{
+						{
+							Name:     "SANs",
+							Type:     "string",
+							JSONPath: ".spec.extraSANs",
+						},
+						{
+							Name:     "Age",
+							Type:     "date",
+							JSONPath: ".metadata.creationTimestamp",
+						},
+					},
 				},
 			},
 		},
@@ -118,6 +130,18 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRDLegacy(client apiextensionsc
 			},
 			Subresources: &extensionsv1beta1.CustomResourceSubresources{
 				Status: &extensionsv1beta1.CustomResourceSubresourceStatus{},
+			},
+			AdditionalPrinterColumns: []extensionsv1beta1.CustomResourceColumnDefinition{
+				{
+					Name:     "SANs",
+					Type:     "string",
+					JSONPath: ".spec.extraSANs",
+				},
+				{
+					Name:     "Age",
+					Type:     "date",
+					JSONPath: ".metadata.creationTimestamp",
+				},
 			},
 			PreserveUnknownFields: &falseVar,
 		},

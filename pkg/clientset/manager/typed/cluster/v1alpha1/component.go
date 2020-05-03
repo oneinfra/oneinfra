@@ -24,7 +24,6 @@ import (
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	scheme "github.com/oneinfra/oneinfra/pkg/clientset/manager/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
 )
@@ -37,14 +36,11 @@ type ComponentsGetter interface {
 
 // ComponentInterface has methods to work with Component resources.
 type ComponentInterface interface {
-	Create(*v1alpha1.Component) (*v1alpha1.Component, error)
-	Update(*v1alpha1.Component) (*v1alpha1.Component, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.Component, error)
 	List(opts v1.ListOptions) (*v1alpha1.ComponentList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.Component, err error)
 	ComponentExpansion
 }
 
@@ -107,31 +103,6 @@ func (c *components) Watch(opts v1.ListOptions) (watch.Interface, error) {
 		Watch()
 }
 
-// Create takes the representation of a component and creates it.  Returns the server's representation of the component, and an error, if there is any.
-func (c *components) Create(component *v1alpha1.Component) (result *v1alpha1.Component, err error) {
-	result = &v1alpha1.Component{}
-	err = c.client.Post().
-		Namespace(c.ns).
-		Resource("components").
-		Body(component).
-		Do().
-		Into(result)
-	return
-}
-
-// Update takes the representation of a component and updates it. Returns the server's representation of the component, and an error, if there is any.
-func (c *components) Update(component *v1alpha1.Component) (result *v1alpha1.Component, err error) {
-	result = &v1alpha1.Component{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("components").
-		Name(component.Name).
-		Body(component).
-		Do().
-		Into(result)
-	return
-}
-
 // Delete takes name of the component and deletes it. Returns an error if one occurs.
 func (c *components) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
@@ -157,18 +128,4 @@ func (c *components) DeleteCollection(options *v1.DeleteOptions, listOptions v1.
 		Body(options).
 		Do().
 		Error()
-}
-
-// Patch applies the patch and returns the patched component.
-func (c *components) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.Component, err error) {
-	result = &v1alpha1.Component{}
-	err = c.client.Patch(pt).
-		Namespace(c.ns).
-		Resource("components").
-		SubResource(subresources...).
-		Name(name).
-		Body(data).
-		Do().
-		Into(result)
-	return
 }

@@ -23,7 +23,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
 )
@@ -84,16 +83,6 @@ func (c *FakeNodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest)
 	return obj.(*v1alpha1.NodeJoinRequest), err
 }
 
-// Update takes the representation of a nodeJoinRequest and updates it. Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
-func (c *FakeNodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(nodejoinrequestsResource, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeJoinRequest), err
-}
-
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
 func (c *FakeNodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
@@ -107,14 +96,4 @@ func (c *FakeNodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listO
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.NodeJoinRequestList{})
 	return err
-}
-
-// Patch applies the patch and returns the patched nodeJoinRequest.
-func (c *FakeNodeJoinRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeJoinRequest, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(nodejoinrequestsResource, name, pt, data, subresources...), &v1alpha1.NodeJoinRequest{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.NodeJoinRequest), err
 }

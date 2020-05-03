@@ -24,7 +24,6 @@ import (
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	scheme "github.com/oneinfra/oneinfra/pkg/clientset/managed/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
 )
@@ -38,13 +37,11 @@ type NodeJoinRequestsGetter interface {
 // NodeJoinRequestInterface has methods to work with NodeJoinRequest resources.
 type NodeJoinRequestInterface interface {
 	Create(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
-	Update(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.NodeJoinRequest, error)
 	List(opts v1.ListOptions) (*v1alpha1.NodeJoinRequestList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeJoinRequest, err error)
 	NodeJoinRequestExpansion
 }
 
@@ -113,18 +110,6 @@ func (c *nodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (re
 	return
 }
 
-// Update takes the representation of a nodeJoinRequest and updates it. Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
-func (c *nodeJoinRequests) Update(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
-	result = &v1alpha1.NodeJoinRequest{}
-	err = c.client.Put().
-		Resource("nodejoinrequests").
-		Name(nodeJoinRequest.Name).
-		Body(nodeJoinRequest).
-		Do().
-		Into(result)
-	return
-}
-
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
 func (c *nodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
@@ -148,17 +133,4 @@ func (c *nodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptio
 		Body(options).
 		Do().
 		Error()
-}
-
-// Patch applies the patch and returns the patched nodeJoinRequest.
-func (c *nodeJoinRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.NodeJoinRequest, err error) {
-	result = &v1alpha1.NodeJoinRequest{}
-	err = c.client.Patch(pt).
-		Resource("nodejoinrequests").
-		SubResource(subresources...).
-		Name(name).
-		Body(data).
-		Do().
-		Into(result)
-	return
 }

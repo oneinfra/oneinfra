@@ -23,7 +23,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
 )
@@ -78,28 +77,6 @@ func (c *FakeComponents) Watch(opts v1.ListOptions) (watch.Interface, error) {
 
 }
 
-// Create takes the representation of a component and creates it.  Returns the server's representation of the component, and an error, if there is any.
-func (c *FakeComponents) Create(component *v1alpha1.Component) (result *v1alpha1.Component, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(componentsResource, c.ns, component), &v1alpha1.Component{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.Component), err
-}
-
-// Update takes the representation of a component and updates it. Returns the server's representation of the component, and an error, if there is any.
-func (c *FakeComponents) Update(component *v1alpha1.Component) (result *v1alpha1.Component, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(componentsResource, c.ns, component), &v1alpha1.Component{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.Component), err
-}
-
 // Delete takes name of the component and deletes it. Returns an error if one occurs.
 func (c *FakeComponents) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
@@ -114,15 +91,4 @@ func (c *FakeComponents) DeleteCollection(options *v1.DeleteOptions, listOptions
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ComponentList{})
 	return err
-}
-
-// Patch applies the patch and returns the patched component.
-func (c *FakeComponents) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.Component, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(componentsResource, c.ns, name, pt, data, subresources...), &v1alpha1.Component{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1alpha1.Component), err
 }

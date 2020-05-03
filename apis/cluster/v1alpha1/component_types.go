@@ -59,6 +59,7 @@ type ComponentHostPortAllocation struct {
 
 // +genclient
 // +genclient:noStatus
+// +genclient:onlyVerbs=list,watch,get,delete,deleteCollection
 // +kubebuilder:printcolumn:name="Cluster",type=string,JSONPath=`.spec.cluster`
 // +kubebuilder:printcolumn:name="Role",type=string,JSONPath=`.spec.role`
 // +kubebuilder:printcolumn:name="Hypervisor",type=string,JSONPath=`.spec.hypervisor`

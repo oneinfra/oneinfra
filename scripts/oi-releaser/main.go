@@ -43,7 +43,7 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "binary",
-								Usage: "binaries to build; can be provided several times, all if not provided",
+								Usage: "binaries to build; can be provided several times",
 							},
 						},
 						Action: func(c *cli.Context) error {
@@ -56,7 +56,7 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "binary",
-								Usage: "binaries to publish; can be provided several times, all if not provided",
+								Usage: "binaries to publish; can be provided several times",
 							},
 						},
 						Action: func(c *cli.Context) error {

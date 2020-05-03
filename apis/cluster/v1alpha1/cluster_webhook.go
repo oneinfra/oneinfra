@@ -108,6 +108,7 @@ func (cluster *Cluster) needsCertificateInitialization() bool {
 		cluster.Spec.CertificateAuthorities.APIServerClient == nil ||
 		cluster.Spec.CertificateAuthorities.CertificateSigner == nil ||
 		cluster.Spec.CertificateAuthorities.Kubelet == nil ||
+		cluster.Spec.CertificateAuthorities.KubeletClient == nil ||
 		cluster.Spec.CertificateAuthorities.EtcdClient == nil ||
 		cluster.Spec.CertificateAuthorities.EtcdPeer == nil {
 		return true

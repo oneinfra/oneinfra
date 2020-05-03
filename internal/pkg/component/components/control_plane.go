@@ -88,10 +88,6 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	clusterLoadBalancers := inquirer.ClusterComponents(componentapi.ControlPlaneIngressRole)
-	if !clusterLoadBalancers.AllWithHypervisorAssigned() {
-		return errors.Errorf("could not reconcile component %q, not all load balancers have an hypervisor assigned", component.Name)
-	}
 	kubernetesVersion := inquirer.Cluster().KubernetesVersion
 	versionBundle, err := constants.KubernetesVersionBundle(kubernetesVersion)
 	if err != nil {
@@ -110,102 +106,11 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err != nil {
 		return err
 	}
-	etcdAPIServerClientCertificate, err := component.ClientCertificate(
-		cluster.CertificateAuthorities.EtcdClient,
-		"apiserver-etcd-client",
-		fmt.Sprintf("apiserver-etcd-client-%s", component.Name),
-		[]string{cluster.Name},
-		[]string{},
-	)
+	advertiseAddressHost, advertiseAddressPort, err := controlPlane.kubeAPIServerAdvertiseAddressAndPort(inquirer)
 	if err != nil {
 		return err
 	}
-	advertiseAddressHost := ""
-	advertiseAddressPort := 0
-	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
-	// Add all load balancer IP addresses. This is necessary if the
-	// ingress is operating at L4
-	for _, clusterLoadBalancer := range clusterLoadBalancers {
-		loadBalancerHypervisor := inquirer.ComponentHypervisor(clusterLoadBalancer)
-		advertiseAddressHost = loadBalancerHypervisor.IPAddress
-		var err error
-		advertiseAddressPort, err = clusterLoadBalancer.RequestPort(loadBalancerHypervisor, APIServerHostPortName)
-		if err != nil {
-			continue
-		}
-		if loadBalancerHypervisor == nil {
-			continue
-		}
-		kubeAPIServerExtraSANs = append(
-			kubeAPIServerExtraSANs,
-			loadBalancerHypervisor.IPAddress,
-		)
-	}
-	kubernetesServiceIP, err := cluster.KubernetesServiceIP()
-	if err != nil {
-		return err
-	}
-	kubeAPIServerExtraSANs = append(
-		kubeAPIServerExtraSANs,
-		kubernetesServiceIP,
-	)
-	apiServerCertificate, err := component.ServerCertificate(
-		cluster.APIServer.CA,
-		"kube-apiserver",
-		"kube-apiserver",
-		[]string{"kube-apiserver"},
-		kubeAPIServerExtraSANs,
-	)
-	if err != nil {
-		return err
-	}
-	apiserverURL := url.URL{Scheme: "https", Host: net.JoinHostPort("127.0.0.1", strconv.Itoa(advertiseAddressPort))}
-	controllerManagerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "controller-manager")
-	if err != nil {
-		return err
-	}
-	schedulerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "scheduler")
-	if err != nil {
-		return err
-	}
-	kubeletClientCertificate, err := component.ClientCertificate(
-		cluster.CertificateAuthorities.KubeletClient,
-		"kube-apiserver-kubelet-client",
-		"kube-apiserver-kubelet-client",
-		[]string{constants.OneInfraKubeletProxierExtraGroups},
-		[]string{},
-	)
-	if err != nil {
-		return err
-	}
-	err = hypervisor.UploadFiles(
-		cluster.Namespace,
-		cluster.Name,
-		component.Name,
-		map[string]string{
-			// etcd secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
-			// API server secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"):      cluster.CertificateAuthorities.APIServerClient.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"):                apiServerCertificate.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"):                apiServerCertificate.PrivateKey,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"):      cluster.APIServer.ServiceAccount.PublicKey,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"): kubeletClientCertificate.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"): kubeletClientCertificate.PrivateKey,
-			// controller-manager secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccount.PrivateKey,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"):        cluster.CertificateAuthorities.CertificateSigner.Certificate,
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
-			// scheduler secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
-			// kubelet secrets
-			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"): cluster.CertificateAuthorities.Kubelet.Certificate,
-		},
-	)
-	if err != nil {
+	if err := controlPlane.uploadFiles(inquirer); err != nil {
 		return err
 	}
 	apiserverHostPort, err := component.RequestPort(hypervisor, APIServerHostPortName)
@@ -307,6 +212,138 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		),
 	)
 	return err
+}
+
+func (controlPlane *ControlPlane) kubeAPIServerSANs(inquirer inquirer.ReconcilerInquirer) ([]string, error) {
+	cluster := inquirer.Cluster()
+	clusterLoadBalancers := inquirer.ClusterComponents(componentapi.ControlPlaneIngressRole)
+	if !clusterLoadBalancers.AllWithHypervisorAssigned() {
+		return []string{}, errors.New("not all load balancers have an hypervisor assigned")
+	}
+	kubeAPIServerExtraSANs := cluster.APIServer.ExtraSANs
+	// Add all load balancer IP addresses. This is necessary if the
+	// ingress is operating at L4
+	for _, clusterLoadBalancer := range clusterLoadBalancers {
+		loadBalancerHypervisor := inquirer.ComponentHypervisor(clusterLoadBalancer)
+		if loadBalancerHypervisor == nil {
+			continue
+		}
+		kubeAPIServerExtraSANs = append(
+			kubeAPIServerExtraSANs,
+			loadBalancerHypervisor.IPAddress,
+		)
+	}
+	kubernetesServiceIP, err := cluster.KubernetesServiceIP()
+	if err != nil {
+		return []string{}, err
+	}
+	kubeAPIServerExtraSANs = append(
+		kubeAPIServerExtraSANs,
+		kubernetesServiceIP,
+	)
+	return kubeAPIServerExtraSANs, nil
+}
+
+func (controlPlane *ControlPlane) uploadFiles(inquirer inquirer.ReconcilerInquirer) error {
+	cluster := inquirer.Cluster()
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	etcdAPIServerClientCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.EtcdClient,
+		"apiserver-etcd-client",
+		fmt.Sprintf("apiserver-etcd-client-%s", component.Name),
+		[]string{cluster.Name},
+		[]string{},
+	)
+	if err != nil {
+		return err
+	}
+	kubeAPIServerExtraSANs, err := controlPlane.kubeAPIServerSANs(inquirer)
+	if err != nil {
+		return err
+	}
+	apiServerCertificate, err := component.ServerCertificate(
+		cluster.APIServer.CA,
+		"kube-apiserver",
+		"kube-apiserver",
+		[]string{"kube-apiserver"},
+		kubeAPIServerExtraSANs,
+	)
+	if err != nil {
+		return err
+	}
+	kubeletClientCertificate, err := component.ClientCertificate(
+		cluster.CertificateAuthorities.KubeletClient,
+		"kube-apiserver-kubelet-client",
+		"kube-apiserver-kubelet-client",
+		[]string{constants.OneInfraKubeletProxierExtraGroups},
+		[]string{},
+	)
+	if err != nil {
+		return err
+	}
+	_, advertiseAddressPort, err := controlPlane.kubeAPIServerAdvertiseAddressAndPort(inquirer)
+	if err != nil {
+		return err
+	}
+	apiserverURL := url.URL{Scheme: "https", Host: net.JoinHostPort("127.0.0.1", strconv.Itoa(advertiseAddressPort))}
+	controllerManagerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "controller-manager")
+	if err != nil {
+		return err
+	}
+	schedulerKubeConfig, err := component.KubeConfig(cluster, apiserverURL.String(), "scheduler")
+	if err != nil {
+		return err
+	}
+	return hypervisor.UploadFiles(
+		cluster.Namespace,
+		cluster.Name,
+		component.Name,
+		map[string]string{
+			// etcd secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"):               cluster.EtcdServer.CA.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"): etcdAPIServerClientCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"): etcdAPIServerClientCertificate.PrivateKey,
+			// API server secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"):      cluster.CertificateAuthorities.APIServerClient.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"):                apiServerCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"):                apiServerCertificate.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"):      cluster.APIServer.ServiceAccount.PublicKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"): kubeletClientCertificate.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"): kubeletClientCertificate.PrivateKey,
+			// controller-manager secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"): controllerManagerKubeConfig,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"):           cluster.APIServer.ServiceAccount.PrivateKey,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"):        cluster.CertificateAuthorities.CertificateSigner.Certificate,
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"):        cluster.CertificateAuthorities.CertificateSigner.PrivateKey,
+			// scheduler secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"): schedulerKubeConfig,
+			// kubelet secrets
+			componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"): cluster.CertificateAuthorities.Kubelet.Certificate,
+		},
+	)
+}
+
+func (controlPlane *ControlPlane) kubeAPIServerAdvertiseAddressAndPort(inquirer inquirer.ReconcilerInquirer) (string, int, error) {
+	advertiseAddressHost := ""
+	advertiseAddressPort := 0
+	clusterLoadBalancers := inquirer.ClusterComponents(componentapi.ControlPlaneIngressRole)
+	if !clusterLoadBalancers.AllWithHypervisorAssigned() {
+		return "", 0, errors.New("not all load balancers have an hypervisor assigned")
+	}
+	for _, clusterLoadBalancer := range clusterLoadBalancers {
+		loadBalancerHypervisor := inquirer.ComponentHypervisor(clusterLoadBalancer)
+		if loadBalancerHypervisor == nil {
+			continue
+		}
+		advertiseAddressHost = loadBalancerHypervisor.IPAddress
+		var err error
+		advertiseAddressPort, err = clusterLoadBalancer.RequestPort(loadBalancerHypervisor, APIServerHostPortName)
+		if err != nil {
+			continue
+		}
+	}
+	return advertiseAddressHost, advertiseAddressPort, nil
 }
 
 func (controlPlane *ControlPlane) controlPlanePodName(inquirer inquirer.ReconcilerInquirer) string {

@@ -30,6 +30,7 @@ import (
 	v1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
+	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientset/managed"
 )
 
 // RESTClientFromKubeConfig creates a rest client from a kubeconfig file
@@ -45,13 +46,24 @@ func RESTClientFromKubeConfig(kubeConfig string, groupVersion *schema.GroupVersi
 	return restclient.RESTClientFor(restConfig)
 }
 
-// KubernetesClientFromKubeConfig returns a kubernetes clientset from a kubeconfig file
+// KubernetesClientFromKubeConfig returns a kubernetes clientset from
+// a kubeconfig file
 func KubernetesClientFromKubeConfig(kubeConfig string) (clientset.Interface, error) {
 	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
 	if err != nil {
 		return nil, err
 	}
 	return clientset.NewForConfig(restConfig)
+}
+
+// OneInfraManagedClientFromKubeConfig returns a oneinfra managed
+// clientset from a kubeconfig file
+func OneInfraManagedClientFromKubeConfig(kubeConfig string) (oneinframanagedclientset.Interface, error) {
+	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeConfig))
+	if err != nil {
+		return nil, err
+	}
+	return oneinframanagedclientset.NewForConfig(restConfig)
 }
 
 // KubeConfigWithToken returns a kubeconfig with token auth

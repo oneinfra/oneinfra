@@ -23,11 +23,11 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"text/template"
 	"time"
 
 	"github.com/pkg/errors"
@@ -45,6 +45,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
+	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientset/managed"
 	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
@@ -89,7 +90,15 @@ func createKubernetesClient(apiServerEndpoint, caCertificate, token string) (cli
 	return cluster.KubernetesClientFromKubeConfig(kubeConfig)
 }
 
-func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string) error {
+func createOneInfraManagedClient(apiServerEndpoint, caCertificate, token string) (oneinframanagedclientset.Interface, error) {
+	kubeConfig, err := cluster.KubeConfigWithToken("cluster", apiServerEndpoint, caCertificate, token)
+	if err != nil {
+		return nil, err
+	}
+	return cluster.OneInfraManagedClientFromKubeConfig(kubeConfig)
+}
+
+func createJoinRequest(client oneinframanagedclientset.Interface, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string) error {
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nodename,
@@ -102,19 +111,16 @@ func createJoinRequest(client *restclient.RESTClient, apiServerEndpoint, nodenam
 			ExtraSANs:                extraSANs,
 		},
 	}
-	err := client.
-		Post().
-		Resource("nodejoinrequests").
-		Body(&nodeJoinRequest).
-		Do().
-		Error()
+	_, err := client.NodeV1alpha1().NodeJoinRequests().Create(
+		&nodeJoinRequest,
+	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	return nil
 }
 
-func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename string, timeout time.Duration) (*nodejoinrequests.NodeJoinRequest, error) {
+func waitForJoinRequestIssuedCondition(client oneinframanagedclientset.Interface, nodename string, timeout time.Duration) (*nodejoinrequests.NodeJoinRequest, error) {
 	klog.Infof("waiting for join request %q to be issued; will timeout in %s", nodename, timeout)
 	timeoutChan := time.After(timeout)
 	tickChan := time.Tick(time.Second)
@@ -124,18 +130,15 @@ func waitForJoinRequestIssuedCondition(client *restclient.RESTClient, nodename s
 			return nil, errors.New("timed out waiting for issued condition")
 		case <-tickChan:
 			klog.Info("waiting for the node join request to be issued")
-			nodeJoinRequest := nodev1alpha1.NodeJoinRequest{}
-			err := client.
-				Get().
-				Resource("nodejoinrequests").
-				Name(nodename).
-				Do().
-				Into(&nodeJoinRequest)
+			nodeJoinRequest, err := client.NodeV1alpha1().NodeJoinRequests().Get(
+				nodename,
+				metav1.GetOptions{},
+			)
 			if err != nil {
 				continue
 			}
 			if nodeJoinRequest.Status.Conditions.IsCondition(nodev1alpha1.Issued, commonv1alpha1.ConditionTrue) {
-				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(&nodeJoinRequest, nil)
+				nodeJoinRequestInternal, err := nodejoinrequests.NewNodeJoinRequestFromv1alpha1(nodeJoinRequest, nil)
 				if err != nil {
 					return nil, errors.New("could not convert node join request")
 				}
@@ -284,7 +287,7 @@ func startKubelet() error {
 }
 
 func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint, symmetricKey string, extraSANs []string) (*nodejoinrequests.NodeJoinRequest, error) {
-	client, err := createClient(apiServerEndpoint, caCertificate, token)
+	oneinfraManagedClient, err := createOneInfraManagedClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return nil, err
 	}
@@ -310,10 +313,10 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 		return nil, err
 	}
 	klog.Infof("creating node join request for nodename %q", nodename)
-	if err := createJoinRequest(client, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint, extraSANs); err != nil {
+	if err := createJoinRequest(oneinfraManagedClient, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint, extraSANs); err != nil {
 		return nil, err
 	}
-	return waitForJoinRequestIssuedCondition(client, nodename, 5*time.Minute)
+	return waitForJoinRequestIssuedCondition(oneinfraManagedClient, nodename, 5*time.Minute)
 }
 
 func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {

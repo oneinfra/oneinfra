@@ -160,6 +160,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
 					Args: []string{
+						"--insecure-port", "0",
 						"--advertise-address", advertiseAddressHost,
 						"--secure-port", strconv.Itoa(advertiseAddressPort),
 						"--etcd-servers", strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),

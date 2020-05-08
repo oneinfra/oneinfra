@@ -204,6 +204,83 @@ Then play as much as you want by creating new clusters, deleting
 existing ones, or anything you want to try. Have fun!
 
 
+## Deploy the Web console (optional)
+
+`oneinfra` provides you a simple web console that supports different
+authentication methods:
+
+* Kubernetes secrets: this is a **just for testing** authentication
+  method. You can create secrets in a namespace called
+  `oneinfra-users` in your management cluster.
+
+* GitHub OAuth: you need to register a new OAuth application in
+  Github.
+
+More authentication methods will be added over time.
+
+By default, authentication mechanisms are provided in isolation as
+generated manifests, but the console backend allows you to enable as
+many authentication mechanisms as you want. The login page will show
+means to login in all the enabled ones.
+
+
+#### Kubernetes secrets as authentication mechanism
+
+This is an only for testing authentication mechanism. **DO NOT USE
+THIS AUTHENTICATION MECHANISM IN PRODUCTION ENVIRONMENTS.**
+
+Deploy the console:
+
+    ```console
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-kubernetes-secrets.yaml
+    ```
+
+A user named `sample-user` with password `sample-user` will have been
+created.
+
+Now you will have to [generate a JWT key](#generate-a-jwt-key).
+
+
+#### Github OAauth as authentication mechanism
+
+Deploy the console:
+
+    ```console
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-github-oauth.yaml
+    ```
+
+Populate your Github OAuth client ID and token:
+
+    ```console
+    $ kubectl create secret generic -n oneinfra-system github-oauth --from-literal=client-id=<Github OAuth Client ID> --from-literal=client-secret=<Github OAuth Secret>
+    ```
+
+Now you will have to [generate a JWT key](#generate-a-jwt-key).
+
+
+### Generate a JWT key
+
+Regardless of the authentication methods that you decide to enable,
+you will have to create a JWT key that the console backend will use to
+generate your JWT tokens when authenticating users. Let's do that:
+
+    ```console
+    $ kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+    ```
+
+### Access the service
+
+You can use any regular Kubernetes means to expose the console, for
+ease of testing you can access it by using a port forward:
+
+    ```console
+    $ kubectl port-forward -n oneinfra-system svc/oneinfra-console 8000:80
+    ```
+
+You can now access the console by visiting `http://localhost:8000` in
+your browser.
+
+
 ## Defining clusters
 
 You can have a more detailed [read at the documentation on how to

@@ -1,7 +1,7 @@
 ARG GOLANG_VERSION=1.14
 
 FROM golang:${GOLANG_VERSION} AS builder
-ARG CONTROLLER_GEN_VERSION=0.2.5
+ARG CONTROLLER_GEN_VERSION=0.3.0
 ENV GO111MODULE=on
 RUN echo "Installing dependencies" \
   && GOBIN=/usr/local/bin go get -u github.com/mikefarah/yq/v3 \

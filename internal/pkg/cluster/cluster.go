@@ -265,6 +265,7 @@ func (cluster *Cluster) IsDirty() (bool, error) {
 // JSONSpecs returns the versioned specs of this cluster in JSON format
 func (cluster *Cluster) JSONSpecs() (string, error) {
 	clusterObject := cluster.Export()
+	clusterObject.Status.Conditions = commonv1alpha1.ConditionList{}
 	jsonSpecs, err := json.Marshal(clusterObject)
 	if err != nil {
 		return "", err
@@ -280,9 +281,7 @@ func (cluster *Cluster) Specs() (string, error) {
 	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, clusterv1alpha1.GroupVersion)
-	clusterObject := cluster.Export()
-	clusterObject.Status.Conditions = commonv1alpha1.ConditionList{}
-	if encodedCluster, err := runtime.Encode(encoder, clusterObject); err == nil {
+	if encodedCluster, err := runtime.Encode(encoder, cluster.Export()); err == nil {
 		return string(encodedCluster), nil
 	}
 	return "", errors.Errorf("could not encode cluster %q", cluster.Name)

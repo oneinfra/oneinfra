@@ -317,6 +317,7 @@ func (component *Component) WithSubcomponentName(subcomponentName string) string
 // JSONSpecs returns the versioned specs of this component in JSON format
 func (component *Component) JSONSpecs() (string, error) {
 	componentObject := component.Export()
+	componentObject.Status.Conditions = commonv1alpha1.ConditionList{}
 	jsonSpecs, err := json.Marshal(componentObject)
 	if err != nil {
 		return "", err
@@ -332,9 +333,7 @@ func (component *Component) Specs() (string, error) {
 	}
 	info, _ := runtime.SerializerInfoForMediaType(serializer.NewCodecFactory(scheme).SupportedMediaTypes(), runtime.ContentTypeYAML)
 	encoder := serializer.NewCodecFactory(scheme).EncoderForVersion(info.Serializer, clusterv1alpha1.GroupVersion)
-	componentObject := component.Export()
-	componentObject.Status.Conditions = commonv1alpha1.ConditionList{}
-	if encodedComponent, err := runtime.Encode(encoder, componentObject); err == nil {
+	if encodedComponent, err := runtime.Encode(encoder, component.Export()); err == nil {
 		return string(encodedComponent), nil
 	}
 	return "", errors.Errorf("could not encode component %q", component.Name)

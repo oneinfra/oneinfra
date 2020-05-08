@@ -20,6 +20,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/pkg/errors"
 
@@ -260,13 +261,18 @@ func (component *Component) Export() *clusterv1alpha1.Component {
 	case ControlPlaneIngressRole:
 		res.Spec.Role = clusterv1alpha1.ControlPlaneIngressRole
 	}
+	allocatedHostPortNames := []string{}
+	for hostPortName := range component.AllocatedHostPorts {
+		allocatedHostPortNames = append(allocatedHostPortNames, hostPortName)
+	}
+	sort.Strings(allocatedHostPortNames)
 	res.Status.AllocatedHostPorts = []clusterv1alpha1.ComponentHostPortAllocation{}
-	for hostPortName, hostPort := range component.AllocatedHostPorts {
+	for _, hostPortName := range allocatedHostPortNames {
 		res.Status.AllocatedHostPorts = append(
 			res.Status.AllocatedHostPorts,
 			clusterv1alpha1.ComponentHostPortAllocation{
 				Name: hostPortName,
-				Port: hostPort,
+				Port: component.AllocatedHostPorts[hostPortName],
 			},
 		)
 	}

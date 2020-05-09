@@ -86,9 +86,9 @@ step.
     $ kind create cluster
     ```
 
-    Note: please, make sure that you have `kind` `v0.7.0`, and **not a
-    newer version**. Anything newer than `v0.7.0` [won't work at this
-    time due to this
+    **Important**: please, make sure that you have `kind` `v0.7.0`,
+    and **not a newer version**. Anything newer than `v0.7.0` [won't
+    work at this time due to this
     issue](https://github.com/oneinfra/oneinfra/issues/57).
 
 2. Deploy `cert-manager` and `oneinfra`.

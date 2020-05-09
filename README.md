@@ -8,7 +8,7 @@
 provide or consume Kubernetes clusters at scale, on any platform or
 service provider. You decide.
 
-You can [read more about its design here](docs/DESIGN.md).
+[Read more about its design here](docs/DESIGN.md).
 
 
 ## Managed Kubernetes versions
@@ -96,9 +96,8 @@ step.
     ```
 
 3. Create a local set of fake hypervisors, so `oneinfra` can schedule
-cluster control plane components somewhere. You can [also provision
-and define your own set of hypervisors](docs/hypervisors.md) if you
-prefer.
+managed control plane components. You can [also provision and define
+your own set of hypervisors](docs/hypervisors.md) if you prefer.
 
     ```console
     $ oi-local-hypervisor-set create --tcp | kubectl apply -f -
@@ -118,22 +117,7 @@ prefer.
 ## Deploy the Web console (optional)
 
 `oneinfra` provides you a [simple web
-console](https://github.com/oneinfra/console) that supports different
-authentication methods:
-
-* Kubernetes secrets: this is a **just for testing** authentication
-  method. You can create secrets in a namespace called
-  `oneinfra-users` in your management cluster.
-
-* GitHub OAuth: you need to register a new OAuth application in
-  Github.
-
-More authentication methods will be added over time.
-
-By default, authentication mechanisms are provided in isolation as
-generated manifests, but the console backend allows you to enable as
-many authentication mechanisms as you want. The login page will show
-means to login in all the enabled ones.
+console](https://github.com/oneinfra/console).
 
 ### Generate a JWT key for the Web console
 
@@ -150,14 +134,13 @@ $ kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-ke
 This is an only for testing authentication mechanism. Secrets inside a
 namespace `oneinfra-users` resemble users.
 
-Deploy the console:
-
 ```console
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-kubernetes-secrets.yaml
 ```
 
-A user named `sample-user` with password `sample-user` will have been
-automatically created.
+A user named `sample-user` with password `sample-user` has been
+automatically created. Refer to the console inline help to learn how
+to manage users with this authentication mechanism.
 
 If you prefer to enable other authentication mechanisms that are
 production ready, please [read the instructions
@@ -178,7 +161,7 @@ You can now access the console by visiting `http://localhost:8000` in
 your browser.
 
 
-## Joining worker nodes to a cluster
+## Joining worker nodes to a managed cluster
 
 You can read more details about the [worker joining process
 here](docs/joining-worker-nodes.md).

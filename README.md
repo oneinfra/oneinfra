@@ -75,21 +75,24 @@ prefer.](docs/quick-start-without-kubernetes.md)
   * The `oneinfra` controller manager running in the management
     cluster needs to be able to reach the hypervisors you define
   * Docker, if you want to create fake local hypervisors using
-    `oi-fake-local-hypervisor-set`
+    `oi-fake-local-hypervisor-set`, or if you are going to use `kind`
 
-1. [Install
-`kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage). If
-you already have a Kubernetes cluster you can use, you can skip this
-step.
+1. Install kind and create the management cluster. If you already have
+a Kubernetes cluster you can use, you can skip this step.
 
     ```console
-    $ kind create cluster
+    $ GO111MODULE="on" go get sigs.k8s.io/kind@v0.7.0
     ```
 
     **Important**: please, make sure that you have `kind` `v0.7.0`,
     and **not a newer version**. Anything newer than `v0.7.0` [won't
     work at this time due to this
-    issue](https://github.com/oneinfra/oneinfra/issues/57).
+    issue](https://github.com/oneinfra/oneinfra/issues/57) if you are
+    using `oi-fake-local-hypervisor-set` to create fake hypervisors.
+
+    ```console
+    $ kind create cluster
+    ```
 
 2. Deploy `cert-manager` and `oneinfra`.
 

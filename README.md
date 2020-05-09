@@ -8,8 +8,6 @@
 provide or consume Kubernetes clusters at scale, on any platform or
 service provider. You decide.
 
-![Architecture diagram](docs/architecture.png)
-
 You can [read more about its design here](docs/DESIGN.md).
 
 
@@ -26,18 +24,23 @@ You can [read more about its design here](docs/DESIGN.md).
 
 ## Install
 
-The `oneinfra` installation has two main binaries, along with a
-Kubernetes controller manager (released as a container image).
+The `oneinfra` installation has several components:
 
-* `oi`: `oneinfra` main CLI tool.
+* `oi`: `oneinfra` main CLI tool. This binary allows you to join new
+  worker nodes, generate administrative kubeconfig files...
 
 * `oi-local-hypervisor-set`: allows you to create fake hypervisors
-  running as docker containers. **You should never use this command in
-  production environments**.
+  running as docker containers. This command is only meant to be used
+  in test environments, never in production.
 
-`oi-manager` is `oneinfra`'s Kubernetes controller manager. The
-`oi-manager` is released as a container image and published in the
-Docker Hub.
+* `oi-manager` is `oneinfra`'s Kubernetes controller manager. The
+  `oi-manager` is released as a container image and published in the
+  Docker Hub.
+
+* `oi-console` is `oneinfra`'s web console [living in a separate
+  repository](https://github.com/oneinfra/console). The `oi-console`
+  is released as a container image and published in the Docker Hub. It
+  is optional to deploy.
 
 
 ### From released binaries
@@ -52,63 +55,27 @@ $ chmod +x oi-local-hypervisor-set
 You can now move these binaries to any place in your `$PATH`, or
 execute them with their full path if you prefer.
 
-
-### From source
-
-If you prefer to build `oneinfra` from source, you can either clone
-this repository and run `make`, or use `go get` directly.
-
-```console
-$ GO111MODULE=on go get github.com/oneinfra/oneinfra/...@20.05.0-alpha10
-```
+As an alternative you can [install from source if you
+prefer](docs/installing-from-source.md).
 
 
 ## Quick start
 
-For the quick start you can either leverage Kubernetes as a management
-cluster, or you can go with the standalone approach if you don't want
-to use Kubernetes.
-
-* [Without Kubernetes (for testing purposes
-  only)](#without-kubernetes-for-testing-purposes-only)
-* [With Kubernetes as a management
-  cluster](#with-kubernetes-as-a-management-cluster)
-
-
-### Without Kubernetes (for testing purposes only)
-
-* Requirements
-  * Docker
-
-If you don't want to deploy Kubernetes to test `oneinfra`, you can use
-the `oi` CLI tool that will allow you to test the reconciliation
-processes of `oneinfra` without the need of a Kubernetes cluster.
-
-```console
-$ oi-local-hypervisor-set create | oi cluster inject | oi reconcile > cluster-manifests.conf
-```
-
-And access it:
-
-```console
-$ cat cluster-manifests.conf | oi cluster admin-kubeconfig > cluster-kubeconfig.conf
-$ kubectl --kubeconfig=cluster-kubeconfig.conf cluster-info
-Kubernetes master is running at https://172.17.0.3:30000
-CoreDNS is running at https://172.17.0.3:30000/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-```
-
-In this mode it's very important to understand that `oi` will read
-manifests from `stdin` and output them into `stdout`, make sure you
-keep a file up to date with the latest reconciled resources -- this is
-why this model is not suitable for production.
+For the quick start we will leverage Kubernetes as a management
+cluster, but [you can also try `oneinfra` without the need of having
+Kubernetes as a management cluster if you
+prefer.](docs/quick-start-without-kubernetes.md)
 
 
 ### With Kubernetes as a management cluster
 
 * Requirements
-  * A Kubernetes cluster that will be the management cluster
-  * The management cluster needs to reach the hypervisors you create
-  * Docker, for creating fake local hypervisors
+  * A Kubernetes cluster that will be the management cluster, where we
+    will deploy the `oneinfra` controller manager
+  * The `oneinfra` controller manager running in the management
+    cluster needs to be able to reach the hypervisors you define
+  * Docker, if you want to create fake local hypervisors using
+    `oi-fake-local-hypervisor-set`
 
 1. [Install
 `kind`](https://github.com/kubernetes-sigs/kind#installation-and-usage). If
@@ -129,79 +96,23 @@ step.
     ```
 
 3. Create a local set of fake hypervisors, so `oneinfra` can schedule
-cluster control plane components somewhere. You can [also define your
-own set of hypervisors](docs/hypervisors.md) if you prefer.
+cluster control plane components somewhere. You can [also provision
+and define your own set of hypervisors](docs/hypervisors.md) if you
+prefer.
 
     ```console
     $ oi-local-hypervisor-set create --tcp | kubectl apply -f -
     ```
 
-    In this case, we need to use the `--tcp` flag, so the `oneinfra`
-    controller manager can talk to the CRI endpoints of the fake
-    hypervisors.
+    Note that `oi-local-hypervisor-set` **should not** be used to
+    provision hypervisors for production environments -- this tool is
+    just to easily test `oneinfra`. In production environments you
+    will have to provision the hypervisors and define them as
+    [described here](docs/hypervisors.md).
 
-    Hadn't we provided the `--tcp` flag here, we would have needed to
-    mount the UNIX sockets of the different hypervisors inside the
-    controller manager, leading to an even more artificial setup.
 
-    In production environments, it is a user responsibility to manage
-    the `Hypervisor` resources with remote CRI endpoints.
-
-4. Now, create a [managed cluster](config/samples/simple-cluster.yaml):
-
-    ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha10/config/samples/simple-cluster.yaml
-    $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
-    ```
-
-5. And access it:
-
-    ```console
-    $ kubectl get cluster simple-cluster -o yaml | oi cluster admin-kubeconfig > simple-cluster-kubeconfig.conf
-    $ kubectl --kubeconfig=simple-cluster-kubeconfig.conf cluster-info
-    Kubernetes master is running at https://172.17.0.4:30000
-    CoreDNS is running at https://172.17.0.4:30000/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-    ```
-
-6. (optional) You can then create a [second managed
-   cluster](config/samples/ha-cluster.yaml), this one comprised by
-   three control plane instances:
-
-    ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha10/config/samples/ha-cluster.yaml
-    $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
-    ```
-
-    1. And access it:
-
-        ```console
-        $ kubectl get cluster ha-cluster -o yaml | oi cluster admin-kubeconfig > ha-cluster-kubeconfig.conf
-        $ kubectl --kubeconfig=ha-cluster-kubeconfig.conf cluster-info
-        Kubernetes master is running at https://172.17.0.4:30001
-        CoreDNS is running at https://172.17.0.4:30001/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-        ```
-7. List clusters and components on the management cluster:
-
-    ```console
-    $ kubectl get clusters -A
-    NAMESPACE   NAME             KUBERNETES VERSION   API SERVER ENDPOINT        VPN     VPN CIDR   AGE
-    default     ha-cluster       1.18.2               https://172.17.0.4:30001   false              3m10s
-    default     simple-cluster   1.18.2               https://172.17.0.4:30000   false              6m40s
-    ```
-
-    ```console
-    $ kubectl get components -A
-    NAMESPACE   NAME                                         CLUSTER          ROLE                    HYPERVISOR                  AGE
-    default     ha-cluster-control-plane-4v5ft               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
-    default     ha-cluster-control-plane-9d9hq               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
-    default     ha-cluster-control-plane-ingress-vffm9       ha-cluster       control-plane-ingress   test-public-hypervisor-0    3m32s
-    default     ha-cluster-control-plane-md6dv               ha-cluster       control-plane           test-private-hypervisor-0   3m32s
-    default     simple-cluster-control-plane-ingress-28wwd   simple-cluster   control-plane-ingress   test-public-hypervisor-0    7m1s
-    default     simple-cluster-control-plane-jqwtz           simple-cluster   control-plane           test-private-hypervisor-0   7m1s
-    ```
-
-Then play as much as you want by creating new clusters, deleting
-existing ones, or anything you want to try. Have fun!
+4. You can now create [as many managed clusters as you want using
+   `oneinfra` API's](docs/quick-start-creating-managed-clusters.md).
 
 
 ## Deploy the Web console (optional)
@@ -223,11 +134,20 @@ generated manifests, but the console backend allows you to enable as
 many authentication mechanisms as you want. The login page will show
 means to login in all the enabled ones.
 
+### Generate a JWT key for the Web console
 
-#### Kubernetes secrets as authentication mechanism
+You will have to create a JWT key that the console backend will use to
+generate your JWT tokens when authenticating users. Let's do that:
 
-This is an only for testing authentication mechanism. **DO NOT USE
-THIS AUTHENTICATION MECHANISM IN PRODUCTION ENVIRONMENTS.**
+```console
+$ kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+```
+
+
+### Kubernetes secrets as authentication mechanism
+
+This is an only for testing authentication mechanism. Secrets inside a
+namespace `oneinfra-users` resemble users.
 
 Deploy the console:
 
@@ -236,47 +156,17 @@ $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-al
 ```
 
 A user named `sample-user` with password `sample-user` will have been
-created.
+automatically created.
 
-Now you will have to [generate a JWT key](#generate-a-jwt-key).
-
-
-#### Github OAauth as authentication mechanism
-
-Deploy the console:
-
-```console
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-github-oauth.yaml
-```
-
-Create a new OAuth app in the Github settings page. Make sure that the
-authorization callback URL points to
-`https://<host>:<port>/api/auth/github`.
-
-Populate your Github OAuth client ID and token in a `github-oauth`
-secret inside the `oneinfra-system` namespace:
-
-```console
-$ kubectl create secret generic -n oneinfra-system github-oauth --from-literal=client-id=<Github OAuth Client ID> --from-literal=client-secret=<Github OAuth Secret>
-```
-
-Now you will have to [generate a JWT key](#generate-a-jwt-key).
+If you prefer to enable other authentication mechanisms that are
+production ready, please read the instructions here.
 
 
-### Generate a JWT key
+### Access the web console service
 
-Regardless of the authentication methods that you decide to enable,
-you will have to create a JWT key that the console backend will use to
-generate your JWT tokens when authenticating users. Let's do that:
-
-```console
-$ kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
-```
-
-### Access the service
-
-You can use any regular Kubernetes means to expose the console, for
-ease of testing you can access it by using a port forward:
+You can use any regular Kubernetes means to expose the web console
+service; for ease of testing you can access it by using a port
+forward:
 
 ```console
 $ kubectl port-forward -n oneinfra-system svc/oneinfra-console 8000:80
@@ -284,12 +174,6 @@ $ kubectl port-forward -n oneinfra-system svc/oneinfra-console 8000:80
 
 You can now access the console by visiting `http://localhost:8000` in
 your browser.
-
-
-## Defining clusters
-
-You can have a more detailed [read at the documentation on how to
-define clusters](docs/clusters.md) once you have set up `oneinfra`.
 
 
 ## Joining worker nodes to a cluster

@@ -109,7 +109,6 @@ based on the desired number of control plane replicas. At this time, a
 control plane ingress is always created along with a `Cluster`
 resource, and only one. This will be improved in the near future.
 
+# Architecture diagram
 
-# Conceptual architecture diagram
-
-![Conceptual architecture diagram](conceptual-architecture.svg)
+![Architecture diagram](architecture.png)

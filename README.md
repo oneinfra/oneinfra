@@ -118,8 +118,11 @@ your own set of hypervisors](docs/hypervisors.md) if you prefer.
     [described here](docs/hypervisors.md).
 
 
-4. You can now create [as many managed clusters as you want using
-   `oneinfra` API's](docs/quick-start-creating-managed-clusters.md).
+4. Create [as many managed clusters as you want using `oneinfra`
+   API's](docs/quick-start-creating-managed-clusters.md). You can
+   [also deploy the Web console](#deploy-the-web-console-optional)
+   that will allow you to create clusters through an intuitive web
+   interface.
 
 
 ## Deploy the Web console (optional)

@@ -2,7 +2,7 @@
 
 ## Creating managed clusters
 
-1. Create a [managed cluster](config/samples/simple-cluster.yaml):
+1. Create a [managed cluster](../config/samples/simple-cluster.yaml):
 
     ```console
     $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha10/config/samples/simple-cluster.yaml
@@ -19,7 +19,7 @@
     ```
 
 3. (optional) You can then create a [second managed
-   cluster](config/samples/ha-cluster.yaml), this one comprised by
+   cluster](../config/samples/ha-cluster.yaml), this one comprised by
    three control plane instances:
 
     ```console
@@ -62,4 +62,4 @@ existing ones, or anything you want to try. Have fun!
 ## Defining clusters
 
 You can have a more detailed [read at the documentation on how to
-define clusters](docs/clusters.md).
+define clusters](clusters.md).

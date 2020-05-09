@@ -56,7 +56,7 @@ You can now move these binaries to any place in your `$PATH`, or
 execute them with their full path if you prefer.
 
 As an alternative you can [install from source if you
-prefer](docs/installing-from-source.md).
+prefer](docs/install-from-source.md).
 
 
 ## Quick start
@@ -117,7 +117,8 @@ prefer.
 
 ## Deploy the Web console (optional)
 
-`oneinfra` provides you a simple web console that supports different
+`oneinfra` provides you a [simple web
+console](https://github.com/oneinfra/console) that supports different
 authentication methods:
 
 * Kubernetes secrets: this is a **just for testing** authentication
@@ -159,7 +160,8 @@ A user named `sample-user` with password `sample-user` will have been
 automatically created.
 
 If you prefer to enable other authentication mechanisms that are
-production ready, please read the instructions here.
+production ready, please [read the instructions
+here](docs/web-console-oauth.md).
 
 
 ### Access the web console service

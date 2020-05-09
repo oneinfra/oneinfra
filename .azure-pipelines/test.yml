@@ -44,32 +44,32 @@ jobs:
     displayName: Run end to end tests
     env:
       KUBERNETES_VERSION: default
-- job: e2e_1_15_11_with_local_cri_endpoints
-  displayName: e2e tests (1.15.11) with local CRI endpoints
+- job: e2e_1_15_12_with_local_cri_endpoints
+  displayName: e2e tests (1.15.12) with local CRI endpoints
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
     env:
-      KUBERNETES_VERSION: 1.15.11
+      KUBERNETES_VERSION: 1.15.12
   - bash: make e2e
     displayName: Run end to end tests
     env:
-      KUBERNETES_VERSION: 1.15.11
-- job: e2e_1_15_11_with_remote_cri_endpoints
-  displayName: e2e tests (1.15.11) with remote CRI endpoints
+      KUBERNETES_VERSION: 1.15.12
+- job: e2e_1_15_12_with_remote_cri_endpoints
+  displayName: e2e tests (1.15.12) with remote CRI endpoints
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
     env:
-      KUBERNETES_VERSION: 1.15.11
+      KUBERNETES_VERSION: 1.15.12
   - bash: make e2e-remote
     displayName: Run end to end tests
     env:
-      KUBERNETES_VERSION: 1.15.11
+      KUBERNETES_VERSION: 1.15.12
 - job: e2e_1_16_9_with_local_cri_endpoints
   displayName: e2e tests (1.16.9) with local CRI endpoints
   pool:
@@ -148,31 +148,31 @@ jobs:
     displayName: Run end to end tests
     env:
       KUBERNETES_VERSION: 1.18.2
-- job: e2e_1_19_0_alpha_2_with_local_cri_endpoints
-  displayName: e2e tests (1.19.0-alpha.2) with local CRI endpoints
+- job: e2e_1_19_0_alpha_3_with_local_cri_endpoints
+  displayName: e2e tests (1.19.0-alpha.3) with local CRI endpoints
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
     env:
-      KUBERNETES_VERSION: 1.19.0-alpha.2
+      KUBERNETES_VERSION: 1.19.0-alpha.3
   - bash: make e2e
     displayName: Run end to end tests
     env:
-      KUBERNETES_VERSION: 1.19.0-alpha.2
-- job: e2e_1_19_0_alpha_2_with_remote_cri_endpoints
-  displayName: e2e tests (1.19.0-alpha.2) with remote CRI endpoints
+      KUBERNETES_VERSION: 1.19.0-alpha.3
+- job: e2e_1_19_0_alpha_3_with_remote_cri_endpoints
+  displayName: e2e tests (1.19.0-alpha.3) with remote CRI endpoints
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
     env:
-      KUBERNETES_VERSION: 1.19.0-alpha.2
+      KUBERNETES_VERSION: 1.19.0-alpha.3
   - bash: make e2e-remote
     displayName: Run end to end tests
     env:
-      KUBERNETES_VERSION: 1.19.0-alpha.2
+      KUBERNETES_VERSION: 1.19.0-alpha.3
 variables:
   CI: "1"

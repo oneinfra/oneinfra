@@ -27,11 +27,6 @@ containerdVersions:
   criToolsVersion: 1.17.0
   cniPluginsVersion: 0.8.5
 kubernetesVersions:
-- version: 1.15.11
-  containerdVersion: 1.3.3
-  etcdVersion: 3.4.3
-  pauseVersion: 3.1
-  coreDNSVersion: 1.3.1
 - version: 1.15.12
   containerdVersion: 1.3.3
   etcdVersion: 3.4.3
@@ -48,11 +43,6 @@ kubernetesVersions:
   pauseVersion: 3.1
   coreDNSVersion: 1.6.7
 - version: 1.18.2
-  containerdVersion: 1.3.3
-  etcdVersion: 3.4.3
-  pauseVersion: 3.1
-  coreDNSVersion: 1.6.7
-- version: 1.19.0-alpha.2
   containerdVersion: 1.3.3
   etcdVersion: 3.4.3
   pauseVersion: 3.1

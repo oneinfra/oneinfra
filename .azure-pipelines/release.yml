@@ -10,26 +10,6 @@ jobs:
     env:
       CONTAINER_IMAGE: containerd:1.3.3
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_15_11_container_image
-  displayName: Publish hypervisor:1.15.11 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.15.11
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_kubelet_installer_1_15_11_container_image
-  displayName: Publish kubelet-installer:1.15.11 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: kubelet-installer:1.15.11
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_15_12_container_image
   displayName: Publish hypervisor:1.15.12 container image
   pool:
@@ -109,26 +89,6 @@ jobs:
     displayName: Publish container image
     env:
       CONTAINER_IMAGE: kubelet-installer:1.18.2
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_19_0_alpha_2_container_image
-  displayName: Publish hypervisor:1.19.0-alpha.2 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.19.0-alpha.2
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_kubelet_installer_1_19_0_alpha_2_container_image
-  displayName: Publish kubelet-installer:1.19.0-alpha.2 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: kubelet-installer:1.19.0-alpha.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_19_0_alpha_3_container_image
   displayName: Publish hypervisor:1.19.0-alpha.3 container image

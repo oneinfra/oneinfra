@@ -8,6 +8,8 @@
 provide or consume Kubernetes clusters at scale, on any platform or
 service provider. You decide.
 
+| ![Cluster list](screenshots/cluster-list.png)  | ![Cluster details](screenshots/cluster-details.png)  |
+
 [Read more about its design here](docs/DESIGN.md).
 
 

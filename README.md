@@ -150,7 +150,7 @@ This is an only for testing authentication mechanism. Secrets inside a
 namespace `oneinfra-users` resemble users.
 
 ```console
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-kubernetes-secrets.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha3/config/generated/all-kubernetes-secrets.yaml
 ```
 
 A user named `sample-user` with password `sample-user` has been

@@ -7,7 +7,7 @@ This is the list of the OAuth backends supported by the web console.
 Deploy the console:
 
 ```console
-$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha2/config/generated/all-github-oauth.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha3/config/generated/all-github-oauth.yaml
 ```
 
 Create a new OAuth app in the Github settings page. Make sure that the

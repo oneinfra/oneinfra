@@ -93,8 +93,7 @@ func (hypervisor *Hypervisor) Create() error {
 			return err
 		}
 	}
-	klog.Infof("running fake hypervisor with name %q\n", hypervisor.fullName())
-	return exec.Command("docker", []string{
+	dockerCommandArgs := []string{
 		"run", "-d", "--privileged",
 		"--name", hypervisor.fullName(),
 		"-v", fmt.Sprintf("%s:%s", hypervisor.runtimeDirectory(), hypervisor.localContainerdSockDirectory()),
@@ -102,8 +101,19 @@ func (hypervisor *Hypervisor) Create() error {
 		"-e", fmt.Sprintf("CONTAINERD_SOCK_GID=%s", currentUser.Gid),
 		"-e", fmt.Sprintf("CONTAINER_RUNTIME_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
 		"-e", fmt.Sprintf("IMAGE_SERVICE_ENDPOINT=%s", hypervisor.localContainerdSockPath()),
+	}
+	if len(hypervisor.HypervisorSet.NetworkName) > 0 {
+		dockerCommandArgs = append(
+			dockerCommandArgs,
+			"--network", hypervisor.HypervisorSet.NetworkName,
+		)
+	}
+	dockerCommandArgs = append(
+		dockerCommandArgs,
 		hypervisor.HypervisorSet.NodeImage,
-	}...).Run()
+	)
+	klog.Infof("running fake hypervisor with name %q\n", hypervisor.fullName())
+	return exec.Command("docker", dockerCommandArgs...).Run()
 }
 
 // StartRemoteCRIEndpoint initializes the remote CRI endpoint on this
@@ -220,13 +230,26 @@ func (hypervisor *Hypervisor) fullName() string {
 }
 
 // InternalIPAddress returns the internal IP address for the given
-// container name
-func InternalIPAddress(containerName string) (string, error) {
-	ipAddress, err := exec.Command(
-		"docker",
-		"inspect", "-f", "{{ .NetworkSettings.IPAddress }}",
+// container name and network name
+func InternalIPAddress(containerName, networkName string) (string, error) {
+	dockerCommandArgs := []string{"inspect", "-f"}
+	if networkName == "" {
+		dockerCommandArgs = append(
+			dockerCommandArgs,
+			"{{ .NetworkSettings.IPAddress }}",
+		)
+	} else {
+		dockerCommandArgs = append(
+			dockerCommandArgs,
+			fmt.Sprintf("{{ .NetworkSettings.Networks.%s.IPAddress }}", networkName),
+		)
+
+	}
+	dockerCommandArgs = append(
+		dockerCommandArgs,
 		containerName,
-	).Output()
+	)
+	ipAddress, err := exec.Command("docker", dockerCommandArgs...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -234,7 +257,7 @@ func InternalIPAddress(containerName string) (string, error) {
 }
 
 func (hypervisor *Hypervisor) internalIPAddress() (string, error) {
-	return InternalIPAddress(hypervisor.fullName())
+	return InternalIPAddress(hypervisor.fullName(), hypervisor.HypervisorSet.NetworkName)
 }
 
 func (hypervisor *Hypervisor) createCACertificates() error {

@@ -59,13 +59,17 @@ func main() {
 						Value: false,
 						Usage: "whether remote hypervisors (CRI exposed through TCP) will be used. If not, local hypervisors (CRI exposed through a UNIX socket) will be used",
 					},
+					&cli.StringFlag{
+						Name:  "network-name",
+						Usage: "network name to connect the containers to (if not provided will use a network named \"kind\" if exists)",
+					},
 				},
 				Action: func(c *cli.Context) error {
 					kubernetesVersion := c.String("kubernetes-version")
 					if kubernetesVersion == "" || kubernetesVersion == "default" {
 						kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 					}
-					return localhypervisorset.Create(c.String("name"), kubernetesVersion, c.Int("size-private"), c.Int("size-public"), c.Bool("tcp"))
+					return localhypervisorset.Create(c.String("name"), kubernetesVersion, c.Int("size-private"), c.Int("size-public"), c.Bool("tcp"), c.String("network-name"))
 				},
 			},
 			{
@@ -77,9 +81,13 @@ func main() {
 						Required: true,
 						Usage:    "test cluster name",
 					},
+					&cli.StringFlag{
+						Name:  "network-name",
+						Usage: "network name to retrieve the endpoint from (if not provided will use a network named \"kind\" if exists)",
+					},
 				},
 				Action: func(c *cli.Context) error {
-					return localhypervisorset.Endpoint(c.String("cluster"))
+					return localhypervisorset.Endpoint(c.String("cluster"), c.String("network-name"))
 				},
 			},
 			{

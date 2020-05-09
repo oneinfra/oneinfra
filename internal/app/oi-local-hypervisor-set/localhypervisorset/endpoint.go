@@ -31,7 +31,7 @@ import (
 )
 
 // Endpoint prints the provided cluster endpoint
-func Endpoint(clusterName string) error {
+func Endpoint(clusterName, networkName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func Endpoint(clusterName string) error {
 	}
 	for _, component := range components {
 		if component.ClusterName == clusterName && component.Role == componentapi.ControlPlaneIngressRole {
-			internalHypervisorIP, err := localhypervisorsetpkg.InternalIPAddress(component.HypervisorName)
+			internalHypervisorIP, err := localhypervisorsetpkg.InternalIPAddress(component.HypervisorName, networkName)
 			if err != nil {
 				return errors.Errorf("could not retrieve the internal IP address for hypervisor %q", component.HypervisorName)
 			}

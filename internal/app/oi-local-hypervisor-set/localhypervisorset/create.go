@@ -25,8 +25,8 @@ import (
 // Create creates an hypervisor set with name hypervisorSetName, with
 // private size privateHypervisorSetSize and public size
 // publicHypervisorSetSize
-func Create(hypervisorSetName, kubernetesVersion string, privateHypervisorSetSize, publicHypervisorSetSize int, remote bool) error {
-	hypervisorSet := localhypervisorsetpkg.NewHypervisorSet(hypervisorSetName, kubernetesVersion, privateHypervisorSetSize, publicHypervisorSetSize, remote)
+func Create(hypervisorSetName, kubernetesVersion string, privateHypervisorSetSize, publicHypervisorSetSize int, remote bool, networkName string) error {
+	hypervisorSet := localhypervisorsetpkg.NewHypervisorSet(hypervisorSetName, kubernetesVersion, privateHypervisorSetSize, publicHypervisorSetSize, remote, networkName)
 	if err := hypervisorSet.Create(); err != nil {
 		return err
 	}

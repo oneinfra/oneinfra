@@ -25,6 +25,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/klog"
 
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 )
@@ -34,15 +35,21 @@ type HypervisorSet struct {
 	Name        string
 	NodeImage   string
 	Remote      bool
+	NetworkName string
 	Hypervisors []*Hypervisor
 }
 
 // NewHypervisorSet creates a new set of local hypervisors
-func NewHypervisorSet(name, kubernetesVersion string, privateHypervisorSetSize, publicHypervisorSetSize int, remote bool) *HypervisorSet {
+func NewHypervisorSet(name, kubernetesVersion string, privateHypervisorSetSize, publicHypervisorSetSize int, remote bool, networkName string) *HypervisorSet {
+	networkName, err := NetworkName(networkName)
+	if err != nil {
+		klog.Fatal(err)
+	}
 	set := HypervisorSet{
 		Name:        name,
 		NodeImage:   fmt.Sprintf("oneinfra/hypervisor:%s", kubernetesVersion),
 		Remote:      remote,
+		NetworkName: networkName,
 		Hypervisors: []*Hypervisor{},
 	}
 	for i := 0; i < privateHypervisorSetSize; i++ {
@@ -81,7 +88,7 @@ func LoadHypervisorSet(name string) (*HypervisorSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewHypervisorSet(name, "", len(privateHypervisors), len(publicHypervisors), false), nil
+	return NewHypervisorSet(name, "", len(privateHypervisors), len(publicHypervisors), false, ""), nil
 }
 
 func (hypervisorSet *HypervisorSet) addHypervisor(hypervisor *Hypervisor) {

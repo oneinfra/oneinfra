@@ -101,7 +101,7 @@ vet:
 generate: replace-text-placeholders manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-replace-text-placeholders:
+replace-text-placeholders: oi-releaser
 	@./scripts/replace-text-placeholders.sh
 
 deps: pull-builder oi pull-hypervisor kubectl crictl wg

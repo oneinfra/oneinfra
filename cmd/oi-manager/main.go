@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 	"strconv"
@@ -36,6 +37,7 @@ import (
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/controllers"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	"github.com/oneinfra/oneinfra/internal/pkg/versions"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -83,6 +85,10 @@ func main() {
 	if err != nil {
 		klog.Error("could not set up controller manager")
 		os.Exit(1)
+	}
+
+	if err := versions.UpdateOneInfraVersionConfigMap(context.TODO(), mgr.GetClient()); err != nil {
+		klog.Warning("could not update oneinfra version ConfigMap")
 	}
 
 	if err = (&controllers.ComponentScheduler{

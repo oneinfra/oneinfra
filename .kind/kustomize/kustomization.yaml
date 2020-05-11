@@ -8,3 +8,4 @@ patchesStrategicMerge:
 - runtime-patches/validating_webhook_configuration.yaml
 resources:
 - resources/system-namespace.yaml
+- resources/oneinfra-system-namespace.yaml

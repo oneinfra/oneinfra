@@ -704,6 +704,37 @@ rules:
   - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: oneinfra-version-reader
+  namespace: oneinfra-system
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - oneinfra-version
+  resources:
+  - configmaps
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: oneinfra-version-updater
+  namespace: oneinfra-system
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - oneinfra-version
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
@@ -807,6 +838,34 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: oneinfra-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: oneinfra-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: oneinfra-version-reader
+  namespace: oneinfra-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: oneinfra-version-reader
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: oneinfra-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: oneinfra-version-updater
+  namespace: oneinfra-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: oneinfra-version-updater
 subjects:
 - kind: ServiceAccount
   name: default

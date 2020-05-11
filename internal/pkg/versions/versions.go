@@ -41,10 +41,7 @@ func UpdateOneInfraVersionConfigMap(ctx context.Context, client client.Client) e
 		},
 	}
 	err := client.Create(ctx, versionConfigMap)
-	if err == nil {
-		return nil
-	}
-	if err != nil && !apierrors.IsAlreadyExists(err) {
+	if err == nil || !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	return client.Update(ctx, versionConfigMap)

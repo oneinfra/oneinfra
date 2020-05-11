@@ -81,13 +81,9 @@ func main() {
 						Required: true,
 						Usage:    "test cluster name",
 					},
-					&cli.StringFlag{
-						Name:  "network-name",
-						Usage: "network name to retrieve the endpoint from (if not provided will use a network named \"kind\" if exists)",
-					},
 				},
 				Action: func(c *cli.Context) error {
-					return localhypervisorset.Endpoint(c.String("cluster"), c.String("network-name"))
+					return localhypervisorset.Endpoint(c.String("cluster"))
 				},
 			},
 			{

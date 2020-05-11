@@ -19,50 +19,27 @@ package localhypervisorset
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
-	"net/url"
 	"os"
 
 	"github.com/pkg/errors"
 
-	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
-	localhypervisorsetpkg "github.com/oneinfra/oneinfra/internal/pkg/local-hypervisor-set"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Endpoint prints the provided cluster endpoint
-func Endpoint(clusterName, networkName string) error {
+func Endpoint(clusterName string) error {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
 	clusters := manifests.RetrieveClusters(string(stdin))
-	components := manifests.RetrieveComponents(string(stdin))
 
 	cluster, exists := clusters[clusterName]
 	if !exists {
 		return errors.Errorf("cluster %q not found", clusterName)
 	}
 
-	uri, err := url.Parse(cluster.APIServerEndpoint)
-	if err != nil {
-		return errors.Errorf("could not parse API server endpoint %q", cluster.APIServerEndpoint)
-	}
-	_, apiServerPort, err := net.SplitHostPort(uri.Host)
-	if err != nil {
-		return errors.Errorf("could not split host and port in %q", uri.Host)
-	}
-	for _, component := range components {
-		if component.ClusterName == clusterName && component.Role == componentapi.ControlPlaneIngressRole {
-			internalHypervisorIP, err := localhypervisorsetpkg.InternalIPAddress(component.HypervisorName, networkName)
-			if err != nil {
-				return errors.Errorf("could not retrieve the internal IP address for hypervisor %q", component.HypervisorName)
-			}
-			uri := url.URL{Scheme: uri.Scheme, Host: net.JoinHostPort(internalHypervisorIP, apiServerPort)}
-			fmt.Println(uri.String())
-			return nil
-		}
-	}
+	fmt.Println(cluster.APIServerEndpoint)
 
-	return errors.Errorf("could not find ingress component for cluster %q", clusterName)
+	return nil
 }

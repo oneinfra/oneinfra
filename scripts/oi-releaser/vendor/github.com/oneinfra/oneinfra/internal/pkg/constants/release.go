@@ -22,29 +22,29 @@ import (
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 
-	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
+	versions "github.com/oneinfra/oneinfra/pkg/versions"
 )
 
 var (
 	// ReleaseData includes all release information
-	ReleaseData *constantsapi.ReleaseInfo
+	ReleaseData *versions.ReleaseInfo
 	// ContainerdVersions has a map of the test containerd versions
-	ContainerdVersions map[string]constantsapi.ContainerdVersion
+	ContainerdVersions map[string]versions.ContainerdVersion
 	// KubernetesVersions has a map of the supported Kubernetes versions
-	KubernetesVersions map[string]constantsapi.KubernetesVersion
+	KubernetesVersions map[string]versions.KubernetesVersion
 )
 
 func init() {
-	var currReleaseData constantsapi.ReleaseInfo
+	var currReleaseData versions.ReleaseInfo
 	if err := yaml.Unmarshal([]byte(RawReleaseData), &currReleaseData); err != nil {
 		log.Fatalf("could not unmarshal RELEASE file contents: %v", err)
 	}
 	ReleaseData = &currReleaseData
-	ContainerdVersions = map[string]constantsapi.ContainerdVersion{}
+	ContainerdVersions = map[string]versions.ContainerdVersion{}
 	for _, containerdVersion := range ReleaseData.ContainerdVersions {
 		ContainerdVersions[containerdVersion.Version] = containerdVersion
 	}
-	KubernetesVersions = map[string]constantsapi.KubernetesVersion{}
+	KubernetesVersions = map[string]versions.KubernetesVersion{}
 	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
 		KubernetesVersions[kubernetesVersion.Version] = kubernetesVersion
 	}
@@ -52,7 +52,7 @@ func init() {
 
 // KubernetesVersionBundle returns the KubernetesVersion for the
 // provided version
-func KubernetesVersionBundle(version string) (*constantsapi.KubernetesVersion, error) {
+func KubernetesVersionBundle(version string) (*versions.KubernetesVersion, error) {
 	if kubernetesVersion, exists := KubernetesVersions[version]; exists {
 		return &kubernetesVersion, nil
 	}
@@ -61,23 +61,23 @@ func KubernetesVersionBundle(version string) (*constantsapi.KubernetesVersion, e
 
 // KubernetesComponentVersion returns the component version for the
 // given Kubernetes version and component
-func KubernetesComponentVersion(version string, component constantsapi.Component) (string, error) {
+func KubernetesComponentVersion(version string, component versions.Component) (string, error) {
 	kubernetesVersionBundle, err := KubernetesVersionBundle(version)
 	if err != nil {
 		return "", err
 	}
 	switch component {
-	case constantsapi.CRITools:
+	case versions.CRITools:
 		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
-	case constantsapi.Containerd:
+	case versions.Containerd:
 		return kubernetesVersionBundle.ContainerdVersion, nil
-	case constantsapi.CNIPlugins:
+	case versions.CNIPlugins:
 		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
-	case constantsapi.Etcd:
+	case versions.Etcd:
 		return kubernetesVersionBundle.EtcdVersion, nil
-	case constantsapi.Pause:
+	case versions.Pause:
 		return kubernetesVersionBundle.PauseVersion, nil
-	case constantsapi.CoreDNS:
+	case versions.CoreDNS:
 		return kubernetesVersionBundle.CoreDNSVersion, nil
 	}
 	return "", errors.Errorf("could not find component %q in version %q", component, version)

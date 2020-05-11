@@ -31,7 +31,7 @@ import (
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
-	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
+	versions "github.com/oneinfra/oneinfra/pkg/versions"
 )
 
 func main() {
@@ -145,7 +145,7 @@ func main() {
 									},
 								},
 								Action: func(c *cli.Context) error {
-									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), constantsapi.Component(c.String("component")))
+									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), versions.Component(c.String("component")))
 									if err != nil {
 										return err
 									}
@@ -317,7 +317,7 @@ func main() {
 							&cli.StringFlag{
 								Name:     "component",
 								Required: true,
-								Usage:    fmt.Sprintf("component to inspect %s", constantsapi.KubernetesComponents),
+								Usage:    fmt.Sprintf("component to inspect %s", versions.KubernetesComponents),
 							},
 						},
 						Usage: "specific component version for the given Kubernetes version",
@@ -326,7 +326,7 @@ func main() {
 							if kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
-							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, constantsapi.Component(c.String("component")))
+							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, versions.Component(c.String("component")))
 							if err != nil {
 								return err
 							}

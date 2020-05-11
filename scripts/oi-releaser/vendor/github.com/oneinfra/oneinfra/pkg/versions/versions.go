@@ -14,30 +14,7 @@
  * limitations under the License.
  **/
 
-package constants
-
-// Component represents a versioned component
-type Component string
-
-const (
-	// CRITools is the CRI tools component
-	CRITools Component = "cri-tools"
-	// Containerd is the containerd component
-	Containerd Component = "containerd"
-	// CNIPlugins is the CNI plugins component
-	CNIPlugins Component = "cni-plugins"
-	// Etcd is the etcd component
-	Etcd Component = "etcd"
-	// Pause is the pause component
-	Pause Component = "pause"
-	// CoreDNS is the CoreDNS component
-	CoreDNS Component = "coredns"
-)
-
-var (
-	// KubernetesComponents is the list of all versioned components
-	KubernetesComponents = []Component{CRITools, Containerd, CNIPlugins, Etcd, Pause}
-)
+package versions
 
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {

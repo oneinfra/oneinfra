@@ -23,7 +23,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi-local-hypervisor-set/localhypervisorset"
-	"github.com/oneinfra/oneinfra/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 func main() {

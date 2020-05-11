@@ -1,0 +1,86 @@
+/**
+ * Copyright 2020 Rafael Fernández López <ereslibre@ereslibre.es>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
+package constants
+
+import (
+	"log"
+
+	"github.com/pkg/errors"
+	"sigs.k8s.io/yaml"
+
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
+)
+
+var (
+	// ReleaseData includes all release information
+	ReleaseData *constantsapi.ReleaseInfo
+	// ContainerdVersions has a map of the test containerd versions
+	ContainerdVersions map[string]constantsapi.ContainerdVersion
+	// KubernetesVersions has a map of the supported Kubernetes versions
+	KubernetesVersions map[string]constantsapi.KubernetesVersion
+)
+
+func init() {
+	var currReleaseData constantsapi.ReleaseInfo
+	if err := yaml.Unmarshal([]byte(RawReleaseData), &currReleaseData); err != nil {
+		log.Fatalf("could not unmarshal RELEASE file contents: %v", err)
+	}
+	ReleaseData = &currReleaseData
+	ContainerdVersions = map[string]constantsapi.ContainerdVersion{}
+	for _, containerdVersion := range ReleaseData.ContainerdVersions {
+		ContainerdVersions[containerdVersion.Version] = containerdVersion
+	}
+	KubernetesVersions = map[string]constantsapi.KubernetesVersion{}
+	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
+		KubernetesVersions[kubernetesVersion.Version] = kubernetesVersion
+	}
+}
+
+// KubernetesVersionBundle returns the KubernetesVersion for the
+// provided version
+func KubernetesVersionBundle(version string) (*constantsapi.KubernetesVersion, error) {
+	if kubernetesVersion, exists := KubernetesVersions[version]; exists {
+		return &kubernetesVersion, nil
+	}
+	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
+}
+
+// KubernetesComponentVersion returns the component version for the
+// given Kubernetes version and component
+func KubernetesComponentVersion(version string, component constantsapi.Component) (string, error) {
+	kubernetesVersionBundle, err := KubernetesVersionBundle(version)
+	if err != nil {
+		return "", err
+	}
+	switch component {
+	case constantsapi.CRITools:
+		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
+	case constantsapi.Containerd:
+		return kubernetesVersionBundle.ContainerdVersion, nil
+	case constantsapi.CNIPlugins:
+		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
+	case constantsapi.Etcd:
+		return kubernetesVersionBundle.EtcdVersion, nil
+	case constantsapi.Pause:
+		return kubernetesVersionBundle.PauseVersion, nil
+	case constantsapi.CoreDNS:
+		return kubernetesVersionBundle.CoreDNSVersion, nil
+	}
+	return "", errors.Errorf("could not find component %q in version %q", component, version)
+}
+
+//go:generate ../../../scripts/release-gen.sh

@@ -27,10 +27,11 @@ import (
 	"k8s.io/klog"
 
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
-	"github.com/oneinfra/oneinfra/pkg/constants"
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 const (
@@ -277,7 +278,7 @@ func (controlPlane *ControlPlane) uploadFiles(inquirer inquirer.ReconcilerInquir
 		cluster.CertificateAuthorities.KubeletClient,
 		"kube-apiserver-kubelet-client",
 		"kube-apiserver-kubelet-client",
-		[]string{constants.OneInfraKubeletProxierExtraGroups},
+		[]string{constantsapi.OneInfraKubeletProxierExtraGroups},
 		[]string{},
 	)
 	if err != nil {

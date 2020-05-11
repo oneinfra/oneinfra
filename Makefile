@@ -98,8 +98,11 @@ vet:
 	./scripts/run.sh go vet ./...
 
 # Generate code
-generate: manifests
+generate: replace-text-placeholders manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+replace-text-placeholders:
+	@./scripts/replace-text-placeholders.sh
 
 deps: pull-builder oi pull-hypervisor kubectl crictl wg
 

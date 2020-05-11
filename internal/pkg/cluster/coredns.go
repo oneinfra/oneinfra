@@ -19,7 +19,8 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/oneinfra/oneinfra/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -161,7 +162,7 @@ func (cluster *Cluster) reconcileCoreDNSDeployment(client clientset.Interface) e
 	oneVar := intstr.FromInt(1)
 	trueVar := true
 	falseVar := false
-	coreDNSVersion, err := constants.KubernetesComponentVersion(cluster.KubernetesVersion, constants.CoreDNS)
+	coreDNSVersion, err := constants.KubernetesComponentVersion(cluster.KubernetesVersion, constantsapi.CoreDNS)
 	if err != nil {
 		return err
 	}

@@ -14,6 +14,26 @@
  * limitations under the License.
  **/
 
-package constants
+package text
 
-//go:generate ../../scripts/release-gen.sh
+import (
+	"fmt"
+	"strings"
+
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+)
+
+func ReplacePlaceholders(inputText string) string {
+	replacements := map[string]string{
+		"ONEINFRA_VERSION": constants.ReleaseData.Version,
+		"CONSOLE_VERSION":  constants.ReleaseData.ConsoleVersion,
+	}
+	for placeHolder, value := range replacements {
+		inputText = strings.ReplaceAll(
+			inputText,
+			fmt.Sprintf("{%s}", placeHolder),
+			value,
+		)
+	}
+	return inputText
+}

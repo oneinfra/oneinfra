@@ -22,8 +22,9 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
-	"github.com/oneinfra/oneinfra/pkg/constants"
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // KubernetesVersion returns the Kubernetes version for the given
@@ -45,7 +46,7 @@ func KubernetesVersion(clusterName string) (string, error) {
 
 // ComponentVersion returns the component version for the given
 // cluster and component
-func ComponentVersion(clusterName string, component constants.Component) (string, error) {
+func ComponentVersion(clusterName string, component constantsapi.Component) (string, error) {
 	stdin, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return "", err

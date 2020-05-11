@@ -17,6 +17,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -27,6 +29,7 @@ import (
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/binaries"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/images"
 	"github.com/oneinfra/oneinfra/scripts/oi-releaser/pipelines"
+	"github.com/oneinfra/oneinfra/scripts/oi-releaser/text"
 )
 
 func main() {
@@ -98,6 +101,24 @@ func main() {
 							images.PublishContainerImages(
 								chosenContainerImages(c.StringSlice("image")),
 							)
+							return nil
+						},
+					},
+				},
+			},
+			{
+				Name:  "text",
+				Usage: "text operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "replace-placeholders",
+						Usage: "replace placeholders on text provided through stdin and print result to stdout",
+						Action: func(c *cli.Context) error {
+							stdin, err := ioutil.ReadAll(os.Stdin)
+							if err != nil {
+								return err
+							}
+							fmt.Print(text.ReplacePlaceholders(string(stdin)))
 							return nil
 						},
 					},

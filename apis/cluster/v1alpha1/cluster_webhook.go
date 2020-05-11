@@ -22,6 +22,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	constantsapi "github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/utils"
 	"github.com/oneinfra/oneinfra/pkg/constants"
 )
@@ -64,7 +65,7 @@ func (cluster *Cluster) addFinalizer() {
 
 func (cluster *Cluster) defaultKubernetesVersion() {
 	if cluster.Spec.KubernetesVersion == "" || cluster.Spec.KubernetesVersion == "default" {
-		cluster.Spec.KubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
+		cluster.Spec.KubernetesVersion = constantsapi.ReleaseData.DefaultKubernetesVersion
 	}
 }
 

@@ -17,7 +17,7 @@
 package images
 
 import (
-	"github.com/oneinfra/oneinfra/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 func containerImagesFromChosen(chosenContainerImages ContainerImageMapWithTags) ContainerImageMapWithTags {

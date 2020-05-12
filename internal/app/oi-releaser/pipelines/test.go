@@ -22,8 +22,8 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
-	"github.com/oneinfra/oneinfra/internal/pkg/oi-releaser/pipelines/azure"
 )
 
 // AzureTest builds the Azure test pipeline

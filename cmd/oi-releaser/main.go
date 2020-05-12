@@ -26,10 +26,10 @@ import (
 	"github.com/urfave/cli/v2"
 	"k8s.io/klog"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/oi-releaser/binaries"
-	"github.com/oneinfra/oneinfra/internal/pkg/oi-releaser/images"
-	"github.com/oneinfra/oneinfra/internal/pkg/oi-releaser/pipelines"
-	"github.com/oneinfra/oneinfra/internal/pkg/oi-releaser/text"
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/binaries"
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/images"
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines"
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/text"
 )
 
 func main() {

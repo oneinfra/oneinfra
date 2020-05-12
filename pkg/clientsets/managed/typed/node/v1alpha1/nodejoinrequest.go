@@ -19,6 +19,7 @@
 package v1alpha1
 
 import (
+	"context"
 	"time"
 
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
@@ -36,12 +37,12 @@ type NodeJoinRequestsGetter interface {
 
 // NodeJoinRequestInterface has methods to work with NodeJoinRequest resources.
 type NodeJoinRequestInterface interface {
-	Create(*v1alpha1.NodeJoinRequest) (*v1alpha1.NodeJoinRequest, error)
-	Delete(name string, options *v1.DeleteOptions) error
-	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*v1alpha1.NodeJoinRequest, error)
-	List(opts v1.ListOptions) (*v1alpha1.NodeJoinRequestList, error)
-	Watch(opts v1.ListOptions) (watch.Interface, error)
+	Create(ctx context.Context, nodeJoinRequest *v1alpha1.NodeJoinRequest, opts v1.CreateOptions) (*v1alpha1.NodeJoinRequest, error)
+	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
+	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.NodeJoinRequest, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.NodeJoinRequestList, error)
+	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	NodeJoinRequestExpansion
 }
 
@@ -58,19 +59,19 @@ func newNodeJoinRequests(c *NodeV1alpha1Client) *nodeJoinRequests {
 }
 
 // Get takes name of the nodeJoinRequest, and returns the corresponding nodeJoinRequest object, and an error if there is any.
-func (c *nodeJoinRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
+func (c *nodeJoinRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Get().
 		Resource("nodejoinrequests").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // List takes label and field selectors, and returns the list of NodeJoinRequests that match those selectors.
-func (c *nodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJoinRequestList, err error) {
+func (c *nodeJoinRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeJoinRequestList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -80,13 +81,13 @@ func (c *nodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJoinR
 		Resource("nodejoinrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Watch returns a watch.Interface that watches the requested nodeJoinRequests.
-func (c *nodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *nodeJoinRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -96,41 +97,42 @@ func (c *nodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 		Resource("nodejoinrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch()
+		Watch(ctx)
 }
 
 // Create takes the representation of a nodeJoinRequest and creates it.  Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
-func (c *nodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
+func (c *nodeJoinRequests) Create(ctx context.Context, nodeJoinRequest *v1alpha1.NodeJoinRequest, opts v1.CreateOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	result = &v1alpha1.NodeJoinRequest{}
 	err = c.client.Post().
 		Resource("nodejoinrequests").
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(nodeJoinRequest).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
-func (c *nodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *nodeJoinRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Resource("nodejoinrequests").
 		Name(name).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *nodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *nodeJoinRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
-	if listOptions.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
+	if listOpts.TimeoutSeconds != nil {
+		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Resource("nodejoinrequests").
-		VersionedParams(&listOptions, scheme.ParameterCodec).
+		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }

@@ -17,6 +17,8 @@
 package cluster
 
 import (
+	"context"
+
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,15 +33,18 @@ func (cluster *Cluster) ReconcileJoinPublicKeyConfigMap() error {
 	if err != nil {
 		return err
 	}
-	_, err = client.CoreV1().ConfigMaps(constants.OneInfraNamespace).Create(&v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      constants.OneInfraJoinConfigMap,
-			Namespace: constants.OneInfraNamespace,
+	_, err = client.CoreV1().ConfigMaps(constants.OneInfraNamespace).Create(
+		context.TODO(),
+		&v1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      constants.OneInfraJoinConfigMap,
+				Namespace: constants.OneInfraNamespace,
+			},
+			Data: map[string]string{
+				constants.OneInfraJoinConfigMapJoinKey: cluster.JoinKey.PublicKey,
+			},
 		},
-		Data: map[string]string{
-			constants.OneInfraJoinConfigMapJoinKey: cluster.JoinKey.PublicKey,
-		},
-	})
+		metav1.CreateOptions{})
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}

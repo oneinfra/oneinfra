@@ -19,6 +19,8 @@
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -37,7 +39,7 @@ var nodejoinrequestsResource = schema.GroupVersionResource{Group: "node", Versio
 var nodejoinrequestsKind = schema.GroupVersionKind{Group: "node", Version: "v1alpha1", Kind: "NodeJoinRequest"}
 
 // Get takes name of the nodeJoinRequest, and returns the corresponding nodeJoinRequest object, and an error if there is any.
-func (c *FakeNodeJoinRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
+func (c *FakeNodeJoinRequests) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootGetAction(nodejoinrequestsResource, name), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
@@ -47,7 +49,7 @@ func (c *FakeNodeJoinRequests) Get(name string, options v1.GetOptions) (result *
 }
 
 // List takes label and field selectors, and returns the list of NodeJoinRequests that match those selectors.
-func (c *FakeNodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJoinRequestList, err error) {
+func (c *FakeNodeJoinRequests) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.NodeJoinRequestList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootListAction(nodejoinrequestsResource, nodejoinrequestsKind, opts), &v1alpha1.NodeJoinRequestList{})
 	if obj == nil {
@@ -68,13 +70,13 @@ func (c *FakeNodeJoinRequests) List(opts v1.ListOptions) (result *v1alpha1.NodeJ
 }
 
 // Watch returns a watch.Interface that watches the requested nodeJoinRequests.
-func (c *FakeNodeJoinRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeNodeJoinRequests) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewRootWatchAction(nodejoinrequestsResource, opts))
 }
 
 // Create takes the representation of a nodeJoinRequest and creates it.  Returns the server's representation of the nodeJoinRequest, and an error, if there is any.
-func (c *FakeNodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest) (result *v1alpha1.NodeJoinRequest, err error) {
+func (c *FakeNodeJoinRequests) Create(ctx context.Context, nodeJoinRequest *v1alpha1.NodeJoinRequest, opts v1.CreateOptions) (result *v1alpha1.NodeJoinRequest, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewRootCreateAction(nodejoinrequestsResource, nodeJoinRequest), &v1alpha1.NodeJoinRequest{})
 	if obj == nil {
@@ -84,15 +86,15 @@ func (c *FakeNodeJoinRequests) Create(nodeJoinRequest *v1alpha1.NodeJoinRequest)
 }
 
 // Delete takes name of the nodeJoinRequest and deletes it. Returns an error if one occurs.
-func (c *FakeNodeJoinRequests) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeNodeJoinRequests) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewRootDeleteAction(nodejoinrequestsResource, name), &v1alpha1.NodeJoinRequest{})
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeNodeJoinRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(nodejoinrequestsResource, listOptions)
+func (c *FakeNodeJoinRequests) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewRootDeleteCollectionAction(nodejoinrequestsResource, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.NodeJoinRequestList{})
 	return err

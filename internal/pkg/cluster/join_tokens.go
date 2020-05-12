@@ -17,6 +17,7 @@
 package cluster
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -41,6 +42,7 @@ func (cluster *Cluster) ReconcileJoinTokens() error {
 	}
 	cluster.CurrentJoinTokens = []string{}
 	secretList, err := client.CoreV1().Secrets(metav1.NamespaceSystem).List(
+		context.TODO(),
 		metav1.ListOptions{
 			FieldSelector: fmt.Sprintf("type=%s", tokenapi.SecretTypeBootstrapToken),
 		},
@@ -86,6 +88,7 @@ func (cluster *Cluster) createNewTokens(client clientset.Interface) error {
 		}
 		tokenSecretName := tokenutil.BootstrapTokenSecretName(tokenID)
 		_, err = client.CoreV1().Secrets(metav1.NamespaceSystem).Create(
+			context.TODO(),
 			&corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      tokenSecretName,
@@ -100,6 +103,7 @@ func (cluster *Cluster) createNewTokens(client clientset.Interface) error {
 				},
 				Type: corev1.SecretTypeBootstrapToken,
 			},
+			metav1.CreateOptions{},
 		)
 		if err != nil && !apierrors.IsAlreadyExists(err) {
 			allSucceeded = false
@@ -123,8 +127,9 @@ func (cluster *Cluster) removeExcessTokens(client clientset.Interface) error {
 		}
 		tokenSecretName := tokenutil.BootstrapTokenSecretName(tokenID)
 		err = client.CoreV1().Secrets(metav1.NamespaceSystem).Delete(
+			context.TODO(),
 			tokenSecretName,
-			&metav1.DeleteOptions{},
+			metav1.DeleteOptions{},
 		)
 		if err != nil {
 			allSucceeded = false

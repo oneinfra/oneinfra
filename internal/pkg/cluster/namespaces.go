@@ -17,6 +17,8 @@
 package cluster
 
 import (
+	"context"
+
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,11 +32,15 @@ func (cluster *Cluster) ReconcileNamespaces() error {
 	if err != nil {
 		return err
 	}
-	_, err = client.CoreV1().Namespaces().Create(&v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: constants.OneInfraNamespace,
+	_, err = client.CoreV1().Namespaces().Create(
+		context.TODO(),
+		&v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: constants.OneInfraNamespace,
+			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}

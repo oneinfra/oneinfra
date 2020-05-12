@@ -18,6 +18,7 @@ package node
 
 import (
 	"bytes"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -112,7 +113,9 @@ func createJoinRequest(client oneinframanagedclientset.Interface, apiServerEndpo
 		},
 	}
 	_, err := client.NodeV1alpha1().NodeJoinRequests().Create(
+		context.TODO(),
 		&nodeJoinRequest,
+		metav1.CreateOptions{},
 	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
@@ -131,6 +134,7 @@ func waitForJoinRequestIssuedCondition(client oneinframanagedclientset.Interface
 		case <-tickChan:
 			klog.Info("waiting for the node join request to be issued")
 			nodeJoinRequest, err := client.NodeV1alpha1().NodeJoinRequests().Get(
+				context.TODO(),
 				nodename,
 				metav1.GetOptions{},
 			)
@@ -296,7 +300,11 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 		return nil, err
 	}
 	klog.Info("downloading oneinfra public ConfigMap")
-	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(constants.OneInfraJoinConfigMap, metav1.GetOptions{})
+	oneinfraPublicConfigMap, err := kubernetesClient.CoreV1().ConfigMaps(constants.OneInfraNamespace).Get(
+		context.TODO(),
+		constants.OneInfraJoinConfigMap,
+		metav1.GetOptions{},
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -17,6 +17,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
@@ -56,112 +57,116 @@ func (cluster *Cluster) ReconcileKubeProxy() error {
 	trueVar := true
 	hostPathFileOrCreateVar := corev1.HostPathFileOrCreate
 	maxUnavailable := intstr.FromString("10%")
-	_, err = client.AppsV1().DaemonSets(metav1.NamespaceSystem).Create(&appsv1.DaemonSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kube-proxy",
-			Namespace: metav1.NamespaceSystem,
-			Labels: map[string]string{
-				"k8s-app": "kube-proxy",
-			},
-		},
-		Spec: appsv1.DaemonSetSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
+	_, err = client.AppsV1().DaemonSets(metav1.NamespaceSystem).Create(
+		context.TODO(),
+		&appsv1.DaemonSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kube-proxy",
+				Namespace: metav1.NamespaceSystem,
+				Labels: map[string]string{
 					"k8s-app": "kube-proxy",
 				},
 			},
-			UpdateStrategy: appsv1.DaemonSetUpdateStrategy{
-				Type: appsv1.RollingUpdateDaemonSetStrategyType,
-				RollingUpdate: &appsv1.RollingUpdateDaemonSet{
-					MaxUnavailable: &maxUnavailable,
-				},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
+			Spec: appsv1.DaemonSetSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
 						"k8s-app": "kube-proxy",
 					},
 				},
-				Spec: corev1.PodSpec{
-					ServiceAccountName: "kube-proxy",
-					PriorityClassName:  "system-node-critical",
-					HostNetwork:        true,
-					Containers: []corev1.Container{
-						{
-							Name:    "kube-proxy",
-							Image:   fmt.Sprintf(kubeProxyImage, cluster.KubernetesVersion),
-							Command: []string{"/bin/sh"},
-							Args:    []string{"-c", "kube-proxy"},
-							Env: []corev1.EnvVar{
-								{
-									Name:  "KUBERNETES_SERVICE_HOST",
-									Value: apiserverEndpointHost,
-								},
-								{
-									Name:  "KUBERNETES_SERVICE_PORT",
-									Value: apiserverEndpointPort,
-								},
-								{
-									Name:  "KUBERNETES_SERVICE_PORT_HTTPS",
-									Value: apiserverEndpointPort,
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "var-log",
-									MountPath: "/var/log",
-								},
-								{
-									Name:      "xtables-lock",
-									MountPath: "/run/xtables.lock",
-								},
-								{
-									Name:      "lib-modules",
-									MountPath: "/lib/modules",
-									ReadOnly:  true,
-								},
-							},
-							SecurityContext: &corev1.SecurityContext{
-								Privileged: &trueVar,
-							},
+				UpdateStrategy: appsv1.DaemonSetUpdateStrategy{
+					Type: appsv1.RollingUpdateDaemonSetStrategyType,
+					RollingUpdate: &appsv1.RollingUpdateDaemonSet{
+						MaxUnavailable: &maxUnavailable,
+					},
+				},
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{
+							"k8s-app": "kube-proxy",
 						},
 					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "var-log",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/var/log",
+					Spec: corev1.PodSpec{
+						ServiceAccountName: "kube-proxy",
+						PriorityClassName:  "system-node-critical",
+						HostNetwork:        true,
+						Containers: []corev1.Container{
+							{
+								Name:    "kube-proxy",
+								Image:   fmt.Sprintf(kubeProxyImage, cluster.KubernetesVersion),
+								Command: []string{"/bin/sh"},
+								Args:    []string{"-c", "kube-proxy"},
+								Env: []corev1.EnvVar{
+									{
+										Name:  "KUBERNETES_SERVICE_HOST",
+										Value: apiserverEndpointHost,
+									},
+									{
+										Name:  "KUBERNETES_SERVICE_PORT",
+										Value: apiserverEndpointPort,
+									},
+									{
+										Name:  "KUBERNETES_SERVICE_PORT_HTTPS",
+										Value: apiserverEndpointPort,
+									},
+								},
+								VolumeMounts: []corev1.VolumeMount{
+									{
+										Name:      "var-log",
+										MountPath: "/var/log",
+									},
+									{
+										Name:      "xtables-lock",
+										MountPath: "/run/xtables.lock",
+									},
+									{
+										Name:      "lib-modules",
+										MountPath: "/lib/modules",
+										ReadOnly:  true,
+									},
+								},
+								SecurityContext: &corev1.SecurityContext{
+									Privileged: &trueVar,
 								},
 							},
 						},
-						{
-							Name: "xtables-lock",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/run/xtables.lock",
-									Type: &hostPathFileOrCreateVar,
+						Volumes: []corev1.Volume{
+							{
+								Name: "var-log",
+								VolumeSource: corev1.VolumeSource{
+									HostPath: &corev1.HostPathVolumeSource{
+										Path: "/var/log",
+									},
+								},
+							},
+							{
+								Name: "xtables-lock",
+								VolumeSource: corev1.VolumeSource{
+									HostPath: &corev1.HostPathVolumeSource{
+										Path: "/run/xtables.lock",
+										Type: &hostPathFileOrCreateVar,
+									},
+								},
+							},
+							{
+								Name: "lib-modules",
+								VolumeSource: corev1.VolumeSource{
+									HostPath: &corev1.HostPathVolumeSource{
+										Path: "/lib/modules",
+									},
 								},
 							},
 						},
-						{
-							Name: "lib-modules",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/lib/modules",
-								},
+						Tolerations: []corev1.Toleration{
+							{
+								Operator: corev1.TolerationOpExists,
 							},
-						},
-					},
-					Tolerations: []corev1.Toleration{
-						{
-							Operator: corev1.TolerationOpExists,
 						},
 					},
 				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}
@@ -170,17 +175,20 @@ func (cluster *Cluster) ReconcileKubeProxy() error {
 
 func (cluster *Cluster) reconcileKubeProxyPermissions(client clientset.Interface) error {
 	_, err := client.CoreV1().ServiceAccounts(metav1.NamespaceSystem).Create(
+		context.TODO(),
 		&v1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "kube-proxy",
 				Namespace: metav1.NamespaceSystem,
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	_, err = client.RbacV1().ClusterRoleBindings().Create(
+		context.TODO(),
 		&rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "system:kube-proxy",
@@ -198,6 +206,7 @@ func (cluster *Cluster) reconcileKubeProxyPermissions(client clientset.Interface
 				Name:     "system:node-proxier",
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil

@@ -17,6 +17,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
@@ -74,17 +75,20 @@ func (cluster *Cluster) ReconcileCoreDNS() error {
 
 func (cluster *Cluster) reconcileCoreDNSPermissions(client clientset.Interface) error {
 	_, err := client.CoreV1().ServiceAccounts(metav1.NamespaceSystem).Create(
+		context.TODO(),
 		&v1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "coredns",
 				Namespace: metav1.NamespaceSystem,
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	_, err = client.RbacV1().ClusterRoles().Create(
+		context.TODO(),
 		&rbacv1.ClusterRole{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "system:coredns",
@@ -105,11 +109,13 @@ func (cluster *Cluster) reconcileCoreDNSPermissions(client clientset.Interface) 
 				},
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	_, err = client.RbacV1().ClusterRoleBindings().Create(
+		context.TODO(),
 		&rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "system:coredns",
@@ -133,6 +139,7 @@ func (cluster *Cluster) reconcileCoreDNSPermissions(client clientset.Interface) 
 				},
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
@@ -142,6 +149,7 @@ func (cluster *Cluster) reconcileCoreDNSPermissions(client clientset.Interface) 
 
 func (cluster *Cluster) reconcileCoreDNSConfigMap(client clientset.Interface) error {
 	_, err := client.CoreV1().ConfigMaps(metav1.NamespaceSystem).Create(
+		context.TODO(),
 		&corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "coredns",
@@ -151,6 +159,7 @@ func (cluster *Cluster) reconcileCoreDNSConfigMap(client clientset.Interface) er
 				"Corefile": corefileContents,
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
@@ -167,6 +176,7 @@ func (cluster *Cluster) reconcileCoreDNSDeployment(client clientset.Interface) e
 		return err
 	}
 	_, err = client.AppsV1().Deployments(metav1.NamespaceSystem).Create(
+		context.TODO(),
 		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "coredns",
@@ -308,6 +318,7 @@ func (cluster *Cluster) reconcileCoreDNSDeployment(client clientset.Interface) e
 				},
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
@@ -321,6 +332,7 @@ func (cluster *Cluster) reconcileCoreDNSService(client clientset.Interface) erro
 		return err
 	}
 	client.CoreV1().Services(metav1.NamespaceSystem).Create(
+		context.TODO(),
 		&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "kube-dns",
@@ -359,6 +371,7 @@ func (cluster *Cluster) reconcileCoreDNSService(client clientset.Interface) erro
 				},
 			},
 		},
+		metav1.CreateOptions{},
 	)
 	return nil
 }

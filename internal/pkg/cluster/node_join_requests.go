@@ -17,6 +17,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,7 +43,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 	err = client.
 		Get().
 		Resource("nodejoinrequests").
-		Do().
+		Do(context.TODO()).
 		Into(&nodeJoinRequestList)
 	if err != nil {
 		return err
@@ -91,7 +92,7 @@ func (cluster *Cluster) ReconcileNodeJoinRequests() error {
 			Name(nodeJoinRequest.Name).
 			SubResource("status").
 			Body(versionedNodeJoinRequest).
-			Do().
+			Do(context.TODO()).
 			Error()
 		if err != nil {
 			klog.Errorf("cannot update node join request status %q: %v", nodeJoinRequest.Name, err)

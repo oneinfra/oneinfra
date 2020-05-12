@@ -17,6 +17,8 @@
 package cluster
 
 import (
+	"context"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,38 +49,46 @@ func (cluster *Cluster) ReconcilePermissions() error {
 }
 
 func (cluster *Cluster) reconcileNodeJoinRequestsPermissions(client clientset.Interface) error {
-	_, err := client.RbacV1().ClusterRoles().Create(&rbacv1.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: oneInfraNodeJoinRequesterRoleName,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{nodev1alpha1.GroupVersion.Group},
-				Resources: []string{"nodejoinrequests"},
-				Verbs:     []string{"get", "create"},
+	_, err := client.RbacV1().ClusterRoles().Create(
+		context.TODO(),
+		&rbacv1.ClusterRole{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: oneInfraNodeJoinRequesterRoleName,
+			},
+			Rules: []rbacv1.PolicyRule{
+				{
+					APIGroups: []string{nodev1alpha1.GroupVersion.Group},
+					Resources: []string{"nodejoinrequests"},
+					Verbs:     []string{"get", "create"},
+				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
-	_, err = client.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: oneInfraNodeJoinRequesterRoleName,
-		},
-		Subjects: []rbacv1.Subject{
-			{
+	_, err = client.RbacV1().ClusterRoleBindings().Create(
+		context.TODO(),
+		&rbacv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: oneInfraNodeJoinRequesterRoleName,
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					APIGroup: rbacv1.GroupName,
+					Kind:     "Group",
+					Name:     constants.OneInfraNodeJoinTokenExtraGroups,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
 				APIGroup: rbacv1.GroupName,
-				Kind:     "Group",
-				Name:     constants.OneInfraNodeJoinTokenExtraGroups,
+				Kind:     "ClusterRole",
+				Name:     oneInfraNodeJoinRequesterRoleName,
 			},
 		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: rbacv1.GroupName,
-			Kind:     "ClusterRole",
-			Name:     oneInfraNodeJoinRequesterRoleName,
-		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}
@@ -86,41 +96,49 @@ func (cluster *Cluster) reconcileNodeJoinRequestsPermissions(client clientset.In
 }
 
 func (cluster *Cluster) reconcileNodeJoinConfigMapPermissions(client clientset.Interface) error {
-	_, err := client.RbacV1().Roles(constants.OneInfraNamespace).Create(&rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      oneInfraNodeJoinRequesterRoleName,
-			Namespace: constants.OneInfraNamespace,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups:     []string{""},
-				Resources:     []string{"configmaps"},
-				ResourceNames: []string{constants.OneInfraJoinConfigMap},
-				Verbs:         []string{"get"},
+	_, err := client.RbacV1().Roles(constants.OneInfraNamespace).Create(
+		context.TODO(),
+		&rbacv1.Role{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      oneInfraNodeJoinRequesterRoleName,
+				Namespace: constants.OneInfraNamespace,
+			},
+			Rules: []rbacv1.PolicyRule{
+				{
+					APIGroups:     []string{""},
+					Resources:     []string{"configmaps"},
+					ResourceNames: []string{constants.OneInfraJoinConfigMap},
+					Verbs:         []string{"get"},
+				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
 	}
-	_, err = client.RbacV1().RoleBindings(constants.OneInfraNamespace).Create(&rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      oneInfraNodeJoinRequesterRoleName,
-			Namespace: constants.OneInfraNamespace,
-		},
-		Subjects: []rbacv1.Subject{
-			{
+	_, err = client.RbacV1().RoleBindings(constants.OneInfraNamespace).Create(
+		context.TODO(),
+		&rbacv1.RoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      oneInfraNodeJoinRequesterRoleName,
+				Namespace: constants.OneInfraNamespace,
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					APIGroup: rbacv1.GroupName,
+					Kind:     "Group",
+					Name:     constants.OneInfraNodeJoinTokenExtraGroups,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
 				APIGroup: rbacv1.GroupName,
-				Kind:     "Group",
-				Name:     constants.OneInfraNodeJoinTokenExtraGroups,
+				Kind:     "Role",
+				Name:     oneInfraNodeJoinRequesterRoleName,
 			},
 		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: rbacv1.GroupName,
-			Kind:     "Role",
-			Name:     oneInfraNodeJoinRequesterRoleName,
-		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}
@@ -128,23 +146,27 @@ func (cluster *Cluster) reconcileNodeJoinConfigMapPermissions(client clientset.I
 }
 
 func (cluster *Cluster) reconcileKubeletProxierPermissions(client clientset.Interface) error {
-	_, err := client.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: kubeletProxierClusterRoleBindingName,
-		},
-		Subjects: []rbacv1.Subject{
-			{
+	_, err := client.RbacV1().ClusterRoleBindings().Create(
+		context.TODO(),
+		&rbacv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: kubeletProxierClusterRoleBindingName,
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					APIGroup: rbacv1.GroupName,
+					Kind:     "Group",
+					Name:     constants.OneInfraKubeletProxierExtraGroups,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
 				APIGroup: rbacv1.GroupName,
-				Kind:     "Group",
-				Name:     constants.OneInfraKubeletProxierExtraGroups,
+				Kind:     "ClusterRole",
+				Name:     "system:kubelet-api-admin",
 			},
 		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: rbacv1.GroupName,
-			Kind:     "ClusterRole",
-			Name:     "system:kubelet-api-admin",
-		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}

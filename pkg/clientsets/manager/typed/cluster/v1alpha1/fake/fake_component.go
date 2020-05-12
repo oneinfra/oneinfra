@@ -19,6 +19,8 @@
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -38,7 +40,7 @@ var componentsResource = schema.GroupVersionResource{Group: "cluster", Version: 
 var componentsKind = schema.GroupVersionKind{Group: "cluster", Version: "v1alpha1", Kind: "Component"}
 
 // Get takes name of the component, and returns the corresponding component object, and an error if there is any.
-func (c *FakeComponents) Get(name string, options v1.GetOptions) (result *v1alpha1.Component, err error) {
+func (c *FakeComponents) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Component, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(componentsResource, c.ns, name), &v1alpha1.Component{})
 
@@ -49,7 +51,7 @@ func (c *FakeComponents) Get(name string, options v1.GetOptions) (result *v1alph
 }
 
 // List takes label and field selectors, and returns the list of Components that match those selectors.
-func (c *FakeComponents) List(opts v1.ListOptions) (result *v1alpha1.ComponentList, err error) {
+func (c *FakeComponents) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.ComponentList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(componentsResource, componentsKind, c.ns, opts), &v1alpha1.ComponentList{})
 
@@ -71,14 +73,14 @@ func (c *FakeComponents) List(opts v1.ListOptions) (result *v1alpha1.ComponentLi
 }
 
 // Watch returns a watch.Interface that watches the requested components.
-func (c *FakeComponents) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeComponents) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(componentsResource, c.ns, opts))
 
 }
 
 // Delete takes name of the component and deletes it. Returns an error if one occurs.
-func (c *FakeComponents) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeComponents) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(componentsResource, c.ns, name), &v1alpha1.Component{})
 
@@ -86,8 +88,8 @@ func (c *FakeComponents) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeComponents) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(componentsResource, c.ns, listOptions)
+func (c *FakeComponents) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(componentsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.ComponentList{})
 	return err

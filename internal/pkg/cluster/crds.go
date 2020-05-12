@@ -17,6 +17,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -57,47 +58,51 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRD(client apiextensionsclients
 	if err := yaml.Unmarshal([]byte(nodev1alpha1.NodeJoinRequestOpenAPISchema), &openAPISchema); err != nil {
 		return err
 	}
-	_, err := client.ApiextensionsV1().CustomResourceDefinitions().Create(&extensionsv1.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("nodejoinrequests.%s", nodev1alpha1.GroupVersion.Group),
-		},
-		Spec: extensionsv1.CustomResourceDefinitionSpec{
-			Group: nodev1alpha1.GroupVersion.Group,
-			Names: extensionsv1.CustomResourceDefinitionNames{
-				Plural:     "nodejoinrequests",
-				Singular:   "nodejoinrequest",
-				ShortNames: []string{"njr", "njrs"},
-				Kind:       "NodeJoinRequest",
-				ListKind:   "NodeJoinRequestList",
+	_, err := client.ApiextensionsV1().CustomResourceDefinitions().Create(
+		context.TODO(),
+		&extensionsv1.CustomResourceDefinition{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: fmt.Sprintf("nodejoinrequests.%s", nodev1alpha1.GroupVersion.Group),
 			},
-			Scope: extensionsv1.ClusterScoped,
-			Versions: []extensionsv1.CustomResourceDefinitionVersion{
-				{
-					Name:    nodev1alpha1.GroupVersion.Version,
-					Served:  true,
-					Storage: true,
-					Schema: &extensionsv1.CustomResourceValidation{
-						OpenAPIV3Schema: &openAPISchema,
-					},
-					Subresources: &extensionsv1.CustomResourceSubresources{
-						Status: &extensionsv1.CustomResourceSubresourceStatus{},
-					},
-					AdditionalPrinterColumns: []extensionsv1.CustomResourceColumnDefinition{
-						{
-							Name:     "SANs",
-							Type:     "string",
-							JSONPath: ".spec.extraSANs",
+			Spec: extensionsv1.CustomResourceDefinitionSpec{
+				Group: nodev1alpha1.GroupVersion.Group,
+				Names: extensionsv1.CustomResourceDefinitionNames{
+					Plural:     "nodejoinrequests",
+					Singular:   "nodejoinrequest",
+					ShortNames: []string{"njr", "njrs"},
+					Kind:       "NodeJoinRequest",
+					ListKind:   "NodeJoinRequestList",
+				},
+				Scope: extensionsv1.ClusterScoped,
+				Versions: []extensionsv1.CustomResourceDefinitionVersion{
+					{
+						Name:    nodev1alpha1.GroupVersion.Version,
+						Served:  true,
+						Storage: true,
+						Schema: &extensionsv1.CustomResourceValidation{
+							OpenAPIV3Schema: &openAPISchema,
 						},
-						{
-							Name:     "Age",
-							Type:     "date",
-							JSONPath: ".metadata.creationTimestamp",
+						Subresources: &extensionsv1.CustomResourceSubresources{
+							Status: &extensionsv1.CustomResourceSubresourceStatus{},
+						},
+						AdditionalPrinterColumns: []extensionsv1.CustomResourceColumnDefinition{
+							{
+								Name:     "SANs",
+								Type:     "string",
+								JSONPath: ".spec.extraSANs",
+							},
+							{
+								Name:     "Age",
+								Type:     "date",
+								JSONPath: ".metadata.creationTimestamp",
+							},
 						},
 					},
 				},
 			},
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}
@@ -110,42 +115,46 @@ func (cluster *Cluster) reconcileNodeJoinRequestsCRDLegacy(client apiextensionsc
 		return err
 	}
 	falseVar := false
-	_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Create(&extensionsv1beta1.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("nodejoinrequests.%s", nodev1alpha1.GroupVersion.Group),
-		},
-		Spec: extensionsv1beta1.CustomResourceDefinitionSpec{
-			Group:   nodev1alpha1.GroupVersion.Group,
-			Version: nodev1alpha1.GroupVersion.Version,
-			Names: extensionsv1beta1.CustomResourceDefinitionNames{
-				Plural:     "nodejoinrequests",
-				Singular:   "nodejoinrequest",
-				ShortNames: []string{"njr", "njrs"},
-				Kind:       "NodeJoinRequest",
-				ListKind:   "NodeJoinRequestList",
+	_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Create(
+		context.TODO(),
+		&extensionsv1beta1.CustomResourceDefinition{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: fmt.Sprintf("nodejoinrequests.%s", nodev1alpha1.GroupVersion.Group),
 			},
-			Scope: extensionsv1beta1.ClusterScoped,
-			Validation: &extensionsv1beta1.CustomResourceValidation{
-				OpenAPIV3Schema: &openAPISchema,
-			},
-			Subresources: &extensionsv1beta1.CustomResourceSubresources{
-				Status: &extensionsv1beta1.CustomResourceSubresourceStatus{},
-			},
-			AdditionalPrinterColumns: []extensionsv1beta1.CustomResourceColumnDefinition{
-				{
-					Name:     "SANs",
-					Type:     "string",
-					JSONPath: ".spec.extraSANs",
+			Spec: extensionsv1beta1.CustomResourceDefinitionSpec{
+				Group:   nodev1alpha1.GroupVersion.Group,
+				Version: nodev1alpha1.GroupVersion.Version,
+				Names: extensionsv1beta1.CustomResourceDefinitionNames{
+					Plural:     "nodejoinrequests",
+					Singular:   "nodejoinrequest",
+					ShortNames: []string{"njr", "njrs"},
+					Kind:       "NodeJoinRequest",
+					ListKind:   "NodeJoinRequestList",
 				},
-				{
-					Name:     "Age",
-					Type:     "date",
-					JSONPath: ".metadata.creationTimestamp",
+				Scope: extensionsv1beta1.ClusterScoped,
+				Validation: &extensionsv1beta1.CustomResourceValidation{
+					OpenAPIV3Schema: &openAPISchema,
 				},
+				Subresources: &extensionsv1beta1.CustomResourceSubresources{
+					Status: &extensionsv1beta1.CustomResourceSubresourceStatus{},
+				},
+				AdditionalPrinterColumns: []extensionsv1beta1.CustomResourceColumnDefinition{
+					{
+						Name:     "SANs",
+						Type:     "string",
+						JSONPath: ".spec.extraSANs",
+					},
+					{
+						Name:     "Age",
+						Type:     "date",
+						JSONPath: ".metadata.creationTimestamp",
+					},
+				},
+				PreserveUnknownFields: &falseVar,
 			},
-			PreserveUnknownFields: &falseVar,
 		},
-	})
+		metav1.CreateOptions{},
+	)
 	if err != nil && apierrors.IsAlreadyExists(err) {
 		return nil
 	}

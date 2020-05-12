@@ -5,9 +5,9 @@
 # This information is not used for production environments.
 
 containerdVersions:
-- version: 1.3.3
-  criToolsVersion: 1.17.0
-  cniPluginsVersion: 0.8.5
+- version: "1.3.3"
+  criToolsVersion: "1.17.0"
+  cniPluginsVersion: "0.8.5"
 kubernetesVersions:
   "1.15.12":
     containerdVersion: "1.3.3"

@@ -36,8 +36,8 @@ import (
 	infrav1alpha1 "github.com/oneinfra/oneinfra/apis/infra/v1alpha1"
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/controllers"
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
-	"github.com/oneinfra/oneinfra/internal/pkg/versions"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -87,7 +87,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := versions.UpdateOneInfraVersionConfigMap(context.TODO(), mgr.GetClient()); err != nil {
+	if err := constants.UpdateOneInfraVersionConfigMap(context.TODO(), mgr.GetClient()); err != nil {
 		klog.Warning("could not update oneinfra version ConfigMap")
 	}
 

@@ -117,6 +117,7 @@ trigger:
   paths:
     include:
     - RELEASE
+    - RELEASE_TEST
     - .azure-pipelines/release.yml
 variables:
   CI: "1"

@@ -1,0 +1,26 @@
+# This file contains information on how to build container images with
+# the correct components and their versions for ease and faster
+# testing.
+#
+# This information is not used for production environments.
+
+containerdVersions:
+- version: 1.3.3
+  criToolsVersion: 1.17.0
+  cniPluginsVersion: 0.8.5
+kubernetesVersions:
+  "1.15.12":
+    containerdVersion: "1.3.3"
+    pauseVersion: "3.1"
+  "1.16.9":
+    containerdVersion: "1.3.3"
+    pauseVersion: "3.1"
+  "1.17.5":
+    containerdVersion: "1.3.3"
+    pauseVersion: "3.1"
+  "1.18.2":
+    containerdVersion: "1.3.3"
+    pauseVersion: "3.1"
+  "1.19.0-alpha.3":
+    containerdVersion: "1.3.3"
+    pauseVersion: "3.1"

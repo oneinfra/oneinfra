@@ -45,7 +45,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
-	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientset/managed"
+	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientsets/managed"
 	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 

@@ -31,7 +31,7 @@ import (
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
-	versions "github.com/oneinfra/oneinfra/pkg/versions"
+	releasecomponents "github.com/oneinfra/oneinfra/internal/pkg/release-components"
 )
 
 func main() {
@@ -145,7 +145,7 @@ func main() {
 									},
 								},
 								Action: func(c *cli.Context) error {
-									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), versions.Component(c.String("component")))
+									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), releasecomponents.KubernetesComponent(c.String("component")))
 									if err != nil {
 										return err
 									}
@@ -317,7 +317,7 @@ func main() {
 							&cli.StringFlag{
 								Name:     "component",
 								Required: true,
-								Usage:    fmt.Sprintf("component to inspect %s", versions.KubernetesComponents),
+								Usage:    fmt.Sprintf("component to inspect (components: %s) (test components: %s)", releasecomponents.KubernetesComponents, releasecomponents.KubernetesTestComponents),
 							},
 						},
 						Usage: "specific component version for the given Kubernetes version",
@@ -326,11 +326,16 @@ func main() {
 							if kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
-							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, versions.Component(c.String("component")))
+							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, releasecomponents.KubernetesComponent(c.String("component")))
+							if err == nil {
+								fmt.Println(componentVersion)
+								return nil
+							}
+							testComponentVersion, err := constants.KubernetesTestComponentVersion(kubernetesVersion, releasecomponents.KubernetesTestComponent(c.String("component")))
 							if err != nil {
 								return err
 							}
-							fmt.Println(componentVersion)
+							fmt.Println(testComponentVersion)
 							return nil
 						},
 					},

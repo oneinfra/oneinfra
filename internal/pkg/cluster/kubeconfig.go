@@ -30,7 +30,7 @@ import (
 	v1 "k8s.io/client-go/tools/clientcmd/api/v1"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/certificates"
-	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientset/managed"
+	oneinframanagedclientset "github.com/oneinfra/oneinfra/pkg/clientsets/managed"
 )
 
 // RESTClientFromKubeConfig creates a rest client from a kubeconfig file

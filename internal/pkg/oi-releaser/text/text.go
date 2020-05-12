@@ -14,19 +14,28 @@
  * limitations under the License.
  **/
 
-package versions
+package text
 
-// ReleaseInfo represents a list of supported component versions
-type ReleaseInfo struct {
-	Version                  string              `json:"version"`
-	ConsoleVersion           string              `json:"consoleVersion"`
-	DefaultKubernetesVersion string              `json:"defaultKubernetesVersion"`
-	KubernetesVersions       []KubernetesVersion `json:"kubernetesVersions"`
-}
+import (
+	"fmt"
+	"strings"
 
-// KubernetesVersion represents a supported Kubernetes version
-type KubernetesVersion struct {
-	Version        string `json:"version"`
-	EtcdVersion    string `json:"etcdVersion"`
-	CoreDNSVersion string `json:"coreDNSVersion"`
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+)
+
+// ReplacePlaceholders replaces common placeholders on the inputText
+// and returns the replaced content
+func ReplacePlaceholders(inputText string) string {
+	replacements := map[string]string{
+		"ONEINFRA_VERSION": constants.ReleaseData.Version,
+		"CONSOLE_VERSION":  constants.ReleaseData.ConsoleVersion,
+	}
+	for placeHolder, value := range replacements {
+		inputText = strings.ReplaceAll(
+			inputText,
+			fmt.Sprintf("{%s}", placeHolder),
+			value,
+		)
+	}
+	return inputText
 }

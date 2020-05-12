@@ -15,9 +15,9 @@ PROJECT_GO_FOLDERS = apis cmd controllers internal pkg
 # Project top level packages
 PROJECT_GO_PACKAGES = $(foreach folder,${PROJECT_GO_FOLDERS},${folder}/...)
 
-all: oi-binaries generate pipelines
-
 oi-binaries: manager oi oi-local-hypervisor-set
+
+all: oi-binaries generate pipelines
 
 # Run tests
 test: lint fmt vet
@@ -40,12 +40,12 @@ oi-local-hypervisor-set: go-generate
 
 # Build and install oi-releaser
 oi-releaser: oi
-	./scripts/run.sh sh -c "cd scripts/oi-releaser && go install -mod=vendor ."
+	./scripts/run.sh go install ./cmd/oi-releaser
 
-clientset-generate:
-	rm -rf pkg/clientset/*
-	client-gen --input-base github.com/oneinfra/oneinfra/apis --input cluster/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientset -n manager
-	client-gen --input-base github.com/oneinfra/oneinfra/apis --input node/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientset -n managed
+clientsets-generate:
+	rm -rf pkg/clientsets/*
+	client-gen --input-base github.com/oneinfra/oneinfra/apis --input cluster/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n manager
+	client-gen --input-base github.com/oneinfra/oneinfra/apis --input node/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n managed
 
 pipelines: oi-releaser
 	oi-releaser pipelines test dump > .azure-pipelines/test.yml
@@ -53,7 +53,6 @@ pipelines: oi-releaser
 
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
-	sh -c "SKIP_CI=1 ./scripts/run.sh sh -c 'cd scripts/oi-releaser && go mod vendor'"
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests

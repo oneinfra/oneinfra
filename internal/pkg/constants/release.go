@@ -19,68 +19,57 @@ package constants
 import (
 	"log"
 
-	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 
-	versions "github.com/oneinfra/oneinfra/pkg/versions"
+	versionsapi "github.com/oneinfra/oneinfra/pkg/versions"
 )
 
 var (
-	// ReleaseData includes all release information
-	ReleaseData *versions.ReleaseInfo
-	// ContainerdVersions has a map of the test containerd versions
-	ContainerdVersions map[string]versions.ContainerdVersion
+	// ReleaseData includes all release versioning information
+	ReleaseData *versionsapi.ReleaseInfo
+	// TestData includes all test versioning information
+	TestData *TestInfo
 	// KubernetesVersions has a map of the supported Kubernetes versions
-	KubernetesVersions map[string]versions.KubernetesVersion
+	KubernetesVersions map[string]versionsapi.KubernetesVersion
+	// ContainerdTestVersions has a map of the testing containerd versions
+	ContainerdTestVersions map[string]ContainerdVersionDependencies
+	// KubernetesTestVersions has a map of the testing kubernetes
+	// component versions
+	KubernetesTestVersions map[string]KubernetesVersionDependencies
 )
 
 func init() {
-	var currReleaseData versions.ReleaseInfo
+	initReleaseData()
+	initTestData()
+}
+
+func initReleaseData() {
+	var currReleaseData versionsapi.ReleaseInfo
 	if err := yaml.Unmarshal([]byte(RawReleaseData), &currReleaseData); err != nil {
 		log.Fatalf("could not unmarshal RELEASE file contents: %v", err)
 	}
 	ReleaseData = &currReleaseData
-	ContainerdVersions = map[string]versions.ContainerdVersion{}
-	for _, containerdVersion := range ReleaseData.ContainerdVersions {
-		ContainerdVersions[containerdVersion.Version] = containerdVersion
-	}
-	KubernetesVersions = map[string]versions.KubernetesVersion{}
+	KubernetesVersions = map[string]versionsapi.KubernetesVersion{}
 	for _, kubernetesVersion := range ReleaseData.KubernetesVersions {
 		KubernetesVersions[kubernetesVersion.Version] = kubernetesVersion
 	}
 }
 
-// KubernetesVersionBundle returns the KubernetesVersion for the
-// provided version
-func KubernetesVersionBundle(version string) (*versions.KubernetesVersion, error) {
-	if kubernetesVersion, exists := KubernetesVersions[version]; exists {
-		return &kubernetesVersion, nil
+func initTestData() {
+	var currTestData TestInfo
+	if err := yaml.Unmarshal([]byte(RawTestData), &currTestData); err != nil {
+		log.Fatalf("could not unmarshal RELEASE_TEST file contents: %v", err)
 	}
-	return nil, errors.Errorf("could not find Kubernetes version %q in the known versions", version)
+	TestData = &currTestData
+	ContainerdTestVersions = map[string]ContainerdVersionDependencies{}
+	for _, containerdVersion := range TestData.ContainerdVersions {
+		ContainerdTestVersions[containerdVersion.Version] = containerdVersion
+	}
+	KubernetesTestVersions = map[string]KubernetesVersionDependencies{}
+	for kubernetesVersion, kubernetesData := range TestData.KubernetesVersions {
+		KubernetesTestVersions[kubernetesVersion] = kubernetesData
+	}
 }
 
-// KubernetesComponentVersion returns the component version for the
-// given Kubernetes version and component
-func KubernetesComponentVersion(version string, component versions.Component) (string, error) {
-	kubernetesVersionBundle, err := KubernetesVersionBundle(version)
-	if err != nil {
-		return "", err
-	}
-	switch component {
-	case versions.CRITools:
-		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CRIToolsVersion, nil
-	case versions.Containerd:
-		return kubernetesVersionBundle.ContainerdVersion, nil
-	case versions.CNIPlugins:
-		return ContainerdVersions[kubernetesVersionBundle.ContainerdVersion].CNIPluginsVersion, nil
-	case versions.Etcd:
-		return kubernetesVersionBundle.EtcdVersion, nil
-	case versions.Pause:
-		return kubernetesVersionBundle.PauseVersion, nil
-	case versions.CoreDNS:
-		return kubernetesVersionBundle.CoreDNSVersion, nil
-	}
-	return "", errors.Errorf("could not find component %q in version %q", component, version)
-}
-
-//go:generate ../../../scripts/release-gen.sh
+//go:generate sh -c "CONST_NAME=RawReleaseData RELEASE_FILE=RELEASE RELEASE_DATA_FILE=internal/pkg/constants/zz_generated.release_data.constants.go ../../../scripts/release-gen.sh"
+//go:generate sh -c "CONST_NAME=RawTestData RELEASE_FILE=RELEASE_TEST RELEASE_DATA_FILE=internal/pkg/constants/zz_generated.test_data.go ../../../scripts/release-gen.sh"

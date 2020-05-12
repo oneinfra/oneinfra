@@ -706,13 +706,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: oneinfra-version-reader
+  name: oneinfra-versions-reader
   namespace: oneinfra-system
 rules:
 - apiGroups:
   - ""
   resourceNames:
-  - oneinfra-version
+  - oneinfra-versions
   resources:
   - configmaps
   verbs:
@@ -721,13 +721,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: oneinfra-version-updater
+  name: oneinfra-versions-updater
   namespace: oneinfra-system
 rules:
 - apiGroups:
   - ""
   resourceNames:
-  - oneinfra-version
+  - oneinfra-versions
   resources:
   - configmaps
   verbs:
@@ -846,12 +846,12 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: oneinfra-version-reader
+  name: oneinfra-versions-reader
   namespace: oneinfra-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: oneinfra-version-reader
+  name: oneinfra-versions-reader
 subjects:
 - kind: ServiceAccount
   name: default
@@ -860,12 +860,12 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: oneinfra-version-updater
+  name: oneinfra-versions-updater
   namespace: oneinfra-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: oneinfra-version-updater
+  name: oneinfra-versions-updater
 subjects:
 - kind: ServiceAccount
   name: default

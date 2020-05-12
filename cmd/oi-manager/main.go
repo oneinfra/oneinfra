@@ -87,8 +87,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := constants.UpdateOneInfraVersionConfigMap(context.TODO(), mgr.GetClient()); err != nil {
-		klog.Warning("could not update oneinfra version ConfigMap")
+	if err := constants.UpdateOneInfraVersionsConfigMap(context.TODO(), mgr.GetClient()); err != nil {
+		klog.Warning("could not update oneinfra versions ConfigMap")
 	}
 
 	if err = (&controllers.ComponentScheduler{

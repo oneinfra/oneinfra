@@ -31,8 +31,8 @@ const (
 	DefaultServiceCIDR = "10.96.0.0/12"
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
-	// OneInfraVersionConfigMap is the oneinfra version ConfigMap
-	OneInfraVersionConfigMap = "oneinfra-version"
+	// OneInfraVersionsConfigMap is the oneinfra versions ConfigMap
+	OneInfraVersionsConfigMap = "oneinfra-versions"
 	// OneInfraVersionsKeyName is the oneinfra version ConfigMap key name for the version structure
 	OneInfraVersionsKeyName = "versions"
 	// OneInfraJoinConfigMap is the name of the ConfigMap used to

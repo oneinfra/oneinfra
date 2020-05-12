@@ -2,18 +2,18 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: version-reader
+  name: versions-reader
   namespace: system
 rules:
 - apiGroups: [""]
   resources: ["configmaps"]
-  resourceNames: ["oneinfra-version"]
+  resourceNames: ["oneinfra-versions"]
   verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: version-reader
+  name: versions-reader
   namespace: system
 subjects:
 - kind: ServiceAccount
@@ -21,24 +21,24 @@ subjects:
   namespace: system
 roleRef:
   kind: Role
-  name: version-reader
+  name: versions-reader
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: version-updater
+  name: versions-updater
   namespace: system
 rules:
 - apiGroups: [""]
   resources: ["configmaps"]
-  resourceNames: ["oneinfra-version"]
+  resourceNames: ["oneinfra-versions"]
   verbs: ["create", "update"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: version-updater
+  name: versions-updater
   namespace: system
 subjects:
 - kind: ServiceAccount
@@ -46,5 +46,5 @@ subjects:
   namespace: system
 roleRef:
   kind: Role
-  name: version-updater
+  name: versions-updater
   apiGroup: rbac.authorization.k8s.io

@@ -55,12 +55,12 @@ func KubernetesComponentVersion(version string, component releasecomponents.Kube
 	return "", errors.Errorf("could not find component %q in version %q", component, version)
 }
 
-// UpdateOneInfraVersionConfigMap creates or updates the oneinfra
+// UpdateOneInfraVersionsConfigMap creates or updates the oneinfra
 // version ConfigMap
-func UpdateOneInfraVersionConfigMap(ctx context.Context, client client.Client) error {
+func UpdateOneInfraVersionsConfigMap(ctx context.Context, client client.Client) error {
 	versionConfigMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      constantsapi.OneInfraVersionConfigMap,
+			Name:      constantsapi.OneInfraVersionsConfigMap,
 			Namespace: constantsapi.OneInfraNamespace,
 		},
 		Data: map[string]string{

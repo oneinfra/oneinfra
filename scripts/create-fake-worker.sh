@@ -23,11 +23,6 @@ if [ -z "${CLUSTER_CONF}" ]; then
     exit 1
 fi
 
-if [ -z "${CLUSTER_NAME}" ]; then
-    echo 'Please, set $CLUSTER_NAME environment variable setting the name of the cluster you want to join this fake worker to'
-    exit 1
-fi
-
 NETWORK_ARG=""
 if [ -n "${NETWORK_NAME}" ]; then
     if ! docker network inspect "${NETWORK_NAME}" &> /dev/null; then
@@ -46,15 +41,15 @@ fi
 
 OI_BIN=$(which oi)
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
-APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cluster ${CLUSTER_NAME})
-KUBERNETES_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} kubernetes)
+APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cluster "${CLUSTER_NAME}")
+KUBERNETES_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster "${CLUSTER_NAME}" kubernetes)
 CONTAINERD_VERSION=$(oi version component --component containerd --kubernetes-version ${KUBERNETES_VERSION})
 CONTAINER_ID=$(docker run --privileged ${NETWORK_ARG} -v /dev/null:/proc/swaps:ro -v /etc/resolv.conf:/etc/resolv.conf:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
 
 docker exec ${CONTAINER_ID} sh -c "rm /etc/cni/net.d/*"
 
 echo "creating new join token"
-JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster ${CLUSTER_NAME} 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
+JOIN_TOKEN=$(cat ${CLUSTER_CONF} | oi join-token inject --cluster "${CLUSTER_NAME}" 3> "${CLUSTER_CONF}.new" 2>&1 >&3 | tr -d '\n')
 NODENAME=$(echo ${CONTAINER_ID} | head -c 10)
 
 echo "reconciling join tokens"
@@ -68,7 +63,7 @@ if [ -z "${FAKE_WORKER_IP_SAN}" ]; then
 fi
 
 echo "joining new node in background"
-docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster apiserver-ca --cluster ${CLUSTER_NAME} > /etc/oneinfra/apiserver-ca.crt"
+docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster apiserver-ca --cluster \"${CLUSTER_NAME}\" > /etc/oneinfra/apiserver-ca.crt"
 docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --extra-san ${FAKE_WORKER_IP_SAN} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
 
 echo -n "waiting for node join request to be created by the new node"

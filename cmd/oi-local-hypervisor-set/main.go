@@ -77,9 +77,8 @@ func main() {
 				Usage: "retrieves a test cluster endpoint",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:     "cluster",
-						Required: true,
-						Usage:    "test cluster name",
+						Name:  "cluster",
+						Usage: "test cluster name",
 					},
 				},
 				Action: func(c *cli.Context) error {

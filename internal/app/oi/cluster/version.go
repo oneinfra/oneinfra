@@ -17,65 +17,23 @@
 package cluster
 
 import (
-	"io/ioutil"
-	"os"
-
-	"github.com/pkg/errors"
-
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
-	releasecomponents "github.com/oneinfra/oneinfra/internal/pkg/release-components"
 )
 
 // KubernetesVersion returns the Kubernetes version for the given
 // cluster
 func KubernetesVersion(clusterName string) (string, error) {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return "", err
-	}
-	clusters := manifests.RetrieveClusters(string(stdin))
-
-	cluster, exists := clusters[clusterName]
-	if !exists {
-		return "", errors.Errorf("cluster %q not found", clusterName)
-	}
-
-	return cluster.KubernetesVersion, nil
-}
-
-// ComponentVersion returns the component version for the given
-// cluster and component
-func ComponentVersion(inputManifests, clusterName string, component releasecomponents.KubernetesComponent) (string, error) {
-	clusters := manifests.RetrieveClusters(string(inputManifests))
-
-	cluster, exists := clusters[clusterName]
-	if !exists {
-		return "", errors.Errorf("cluster %q not found", clusterName)
-	}
-
-	componentVersion, err := constants.KubernetesComponentVersion(cluster.KubernetesVersion, component)
-	if err != nil {
-		return "", err
-	}
-
-	return componentVersion, nil
-}
-
-// TestComponentVersion returns the test component version for the
-// given cluster and component
-func TestComponentVersion(inputManifests, clusterName string, testComponent releasecomponents.KubernetesTestComponent) (string, error) {
-	clusters := manifests.RetrieveClusters(string(inputManifests))
-
-	cluster, exists := clusters[clusterName]
-	if !exists {
-		return "", errors.Errorf("cluster %q not found", clusterName)
-	}
-
-	testComponentVersion, err := constants.KubernetesTestComponentVersion(cluster.KubernetesVersion, testComponent)
-	if err != nil {
-		return "", err
-	}
-
-	return testComponentVersion, nil
+	var kubernetesVersion string
+	err := manifests.WithStdinResourcesSilent(
+		func(_ infra.HypervisorMap, clusters cluster.Map, _ component.List) error {
+			return manifests.WithNamedCluster(clusterName, clusters, func(cluster *cluster.Cluster) error {
+				kubernetesVersion = cluster.KubernetesVersion
+				return nil
+			})
+		},
+	)
+	return kubernetesVersion, err
 }

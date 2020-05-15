@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -116,9 +115,8 @@ func main() {
 						Usage: "prints versioning information for the given cluster",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "cluster",
+								Usage: "cluster name",
 							},
 						},
 						Subcommands: []*cli.Command{
@@ -131,33 +129,6 @@ func main() {
 										return err
 									}
 									fmt.Println(kubernetesVersion)
-									return nil
-								},
-							},
-							{
-								Name:  "component",
-								Usage: "print the given component version for the given cluster",
-								Flags: []cli.Flag{
-									&cli.StringFlag{
-										Name:     "component",
-										Required: true,
-										Usage:    "component to inspect",
-									},
-								},
-								Action: func(c *cli.Context) error {
-									stdin, err := ioutil.ReadAll(os.Stdin)
-									if err != nil {
-										return err
-									}
-									if componentVersion, err := cluster.ComponentVersion(string(stdin), c.String("cluster"), releasecomponents.KubernetesComponent(c.String("component"))); err == nil {
-										fmt.Println(componentVersion)
-										return nil
-									}
-									testComponentVersion, err := cluster.TestComponentVersion(string(stdin), c.String("cluster"), releasecomponents.KubernetesTestComponent(c.String("component")))
-									if err != nil {
-										return err
-									}
-									fmt.Println(testComponentVersion)
 									return nil
 								},
 							},

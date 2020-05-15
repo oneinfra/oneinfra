@@ -47,7 +47,8 @@ fi
 OI_BIN=$(which oi)
 CONTAINERD_LOCAL_ENDPOINT="unix:///containerd-socket/containerd.sock"
 APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cluster ${CLUSTER_NAME})
-CONTAINERD_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} component --component containerd)
+KUBERNETES_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster ${CLUSTER_NAME} kubernetes)
+CONTAINERD_VERSION=$(cat ${CLUSTER_CONF} | oi version component --component containerd --kubernetes-version ${KUBERNETES_VERSION})
 CONTAINER_ID=$(docker run --privileged ${NETWORK_ARG} -v /dev/null:/proc/swaps:ro -v /etc/resolv.conf:/etc/resolv.conf:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
 
 docker exec ${CONTAINER_ID} sh -c "rm /etc/cni/net.d/*"

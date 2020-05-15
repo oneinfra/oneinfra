@@ -17,7 +17,8 @@
 package jointoken
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+	"os"
 
 	bootstraptokenutil "k8s.io/cluster-bootstrap/token/util"
 
@@ -31,16 +32,18 @@ import (
 func Inject(clusterName string) error {
 	return manifests.WithStdinResources(
 		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
-			cluster, exists := clusters[clusterName]
-			if !exists {
-				return component.List{}, errors.Errorf("could not find cluster %q", clusterName)
-			}
-
 			bootstrapToken, err := bootstraptokenutil.GenerateBootstrapToken()
 			if err != nil {
 				return component.List{}, err
 			}
-			cluster.DesiredJoinTokens = append(cluster.DesiredJoinTokens, bootstrapToken)
+			err = manifests.WithNamedCluster(clusterName, clusters, func(cluster *cluster.Cluster) error {
+				cluster.DesiredJoinTokens = append(cluster.DesiredJoinTokens, bootstrapToken)
+				return nil
+			})
+			if err != nil {
+				return component.List{}, err
+			}
+			fmt.Fprintln(os.Stderr, bootstrapToken)
 			return components, nil
 		},
 	)

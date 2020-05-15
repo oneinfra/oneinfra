@@ -37,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientset "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
+	criapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	"k8s.io/klog"
 
 	commonv1alpha1 "github.com/oneinfra/oneinfra/apis/common/v1alpha1"
@@ -52,6 +53,12 @@ import (
 
 // Join joins a node to an existing cluster
 func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string) error {
+	if err := checkContainerRuntimeEndpoint(containerRuntimeEndpoint); err != nil {
+		return err
+	}
+	if err := checkImageServiceEndpoint(imageServiceEndpoint); err != nil {
+		return err
+	}
 	klog.Info("loading or generating symmetric key")
 	symmetricKey, err := readOrGenerateSymmetricKey()
 	if err != nil {
@@ -65,6 +72,38 @@ func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEnd
 		// TODO: set up wireguard
 	}
 	return setupKubelet(nodeJoinRequest, symmetricKey)
+}
+
+func checkContainerRuntimeEndpoint(containerRuntimeEndpoint string) error {
+	klog.Info("checking whether the provided container runtime endpoint is responding")
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
+	hypervisor := infra.NewLocalHypervisor("test-container-runtime-endpoint", containerRuntimeEndpoint)
+	criRuntime, err := hypervisor.CRIRuntime()
+	if err != nil {
+		return errors.Errorf("could not connect to the container runtime endpoint at %q", containerRuntimeEndpoint)
+	}
+	runtimeVersion, err := criRuntime.Version(ctx, &criapi.VersionRequest{})
+	if err != nil {
+		return errors.Errorf("could not connect to the container runtime endpoint at %q", containerRuntimeEndpoint)
+	}
+	klog.Infof("container runtime endpoint: %s (%s)", runtimeVersion.RuntimeName, runtimeVersion.RuntimeVersion)
+	return nil
+}
+
+func checkImageServiceEndpoint(imageServiceEndpoint string) error {
+	klog.Info("checking whether the provided image service endpoint is responding")
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
+	hypervisor := infra.NewLocalHypervisor("test-image-service-endpoint", imageServiceEndpoint)
+	criImage, err := hypervisor.CRIImage()
+	if err != nil {
+		return errors.Errorf("could not connect to the image service endpoint at %q", imageServiceEndpoint)
+	}
+	if _, err := criImage.ImageFsInfo(ctx, &criapi.ImageFsInfoRequest{}); err != nil {
+		return errors.Errorf("could not connect to the image service endpoint at %q", imageServiceEndpoint)
+	}
+	return nil
 }
 
 func createClient(apiServerEndpoint, caCertificate, token string) (*restclient.RESTClient, error) {

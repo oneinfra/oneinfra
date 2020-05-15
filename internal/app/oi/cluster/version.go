@@ -46,12 +46,8 @@ func KubernetesVersion(clusterName string) (string, error) {
 
 // ComponentVersion returns the component version for the given
 // cluster and component
-func ComponentVersion(clusterName string, component releasecomponents.KubernetesComponent) (string, error) {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return "", err
-	}
-	clusters := manifests.RetrieveClusters(string(stdin))
+func ComponentVersion(inputManifests, clusterName string, component releasecomponents.KubernetesComponent) (string, error) {
+	clusters := manifests.RetrieveClusters(string(inputManifests))
 
 	cluster, exists := clusters[clusterName]
 	if !exists {
@@ -64,4 +60,22 @@ func ComponentVersion(clusterName string, component releasecomponents.Kubernetes
 	}
 
 	return componentVersion, nil
+}
+
+// TestComponentVersion returns the test component version for the
+// given cluster and component
+func TestComponentVersion(inputManifests, clusterName string, testComponent releasecomponents.KubernetesTestComponent) (string, error) {
+	clusters := manifests.RetrieveClusters(string(inputManifests))
+
+	cluster, exists := clusters[clusterName]
+	if !exists {
+		return "", errors.Errorf("cluster %q not found", clusterName)
+	}
+
+	testComponentVersion, err := constants.KubernetesTestComponentVersion(cluster.KubernetesVersion, testComponent)
+	if err != nil {
+		return "", err
+	}
+
+	return testComponentVersion, nil
 }

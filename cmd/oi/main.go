@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -145,11 +146,19 @@ func main() {
 									},
 								},
 								Action: func(c *cli.Context) error {
-									componentVersion, err := cluster.ComponentVersion(c.String("cluster"), releasecomponents.KubernetesComponent(c.String("component")))
+									stdin, err := ioutil.ReadAll(os.Stdin)
 									if err != nil {
 										return err
 									}
-									fmt.Println(componentVersion)
+									if componentVersion, err := cluster.ComponentVersion(string(stdin), c.String("cluster"), releasecomponents.KubernetesComponent(c.String("component"))); err == nil {
+										fmt.Println(componentVersion)
+										return nil
+									}
+									testComponentVersion, err := cluster.TestComponentVersion(string(stdin), c.String("cluster"), releasecomponents.KubernetesTestComponent(c.String("component")))
+									if err != nil {
+										return err
+									}
+									fmt.Println(testComponentVersion)
 									return nil
 								},
 							},
@@ -326,8 +335,7 @@ func main() {
 							if kubernetesVersion == "default" {
 								kubernetesVersion = constants.ReleaseData.DefaultKubernetesVersion
 							}
-							componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, releasecomponents.KubernetesComponent(c.String("component")))
-							if err == nil {
+							if componentVersion, err := constants.KubernetesComponentVersion(kubernetesVersion, releasecomponents.KubernetesComponent(c.String("component"))); err == nil {
 								fmt.Println(componentVersion)
 								return nil
 							}

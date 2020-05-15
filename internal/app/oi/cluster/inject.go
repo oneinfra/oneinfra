@@ -17,80 +17,46 @@
 package cluster
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 	"k8s.io/klog"
 )
 
 // Inject injects a cluster with name componentName
 func Inject(clusterName, kubernetesVersion string, controlPlaneReplicas int, vpnEnabled bool, vpnCIDR string, apiServerExtraSANs []string) error {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
-	}
-
-	res := ""
-
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	if len(hypervisors) == 0 {
-		return errors.New("empty list of hypervisors")
-	}
-
-	if hypervisorsSpecs, err := hypervisors.Specs(); err == nil {
-		res += hypervisorsSpecs
-	}
-
-	clusters := manifests.RetrieveClusters(string(stdin))
-	if clustersSpecs, err := clusters.Specs(); err == nil {
-		res += clustersSpecs
-	}
-
-	newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, controlPlaneReplicas, vpnEnabled, vpnCIDR, apiServerExtraSANs)
-	if err != nil {
-		return err
-	}
-	injectedCluster := cluster.Map{clusterName: newCluster}
-	if injectedClusterSpecs, err := injectedCluster.Specs(); err == nil {
-		res += injectedClusterSpecs
-	}
-
-	components := manifests.RetrieveComponents(string(stdin))
-
-	privateHypervisorList := hypervisors.PrivateList()
-	for i := 1; i <= newCluster.ControlPlaneReplicas; i++ {
-		component, err := component.NewComponentWithRandomHypervisor(
-			clusterName,
-			fmt.Sprintf("%s-control-plane-%d", clusterName, i),
-			component.ControlPlaneRole,
-			privateHypervisorList,
-		)
-		if err != nil {
-			klog.Fatalf("could not create new component: %v", err)
-		}
-		components = append(components, component)
-	}
-	publicHypervisorList := hypervisors.PublicList()
-	component, err := component.NewComponentWithRandomHypervisor(
-		clusterName,
-		fmt.Sprintf("%s-control-plane-ingress", clusterName),
-		component.ControlPlaneIngressRole,
-		publicHypervisorList,
+	return manifests.WithStdinResources(
+		func(hypervisors infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
+			newCluster, err := cluster.NewCluster(clusterName, kubernetesVersion, controlPlaneReplicas, vpnEnabled, vpnCIDR, apiServerExtraSANs)
+			if err != nil {
+				return component.List{}, err
+			}
+			clusters[clusterName] = newCluster
+			privateHypervisorList := hypervisors.PrivateList()
+			for i := 1; i <= newCluster.ControlPlaneReplicas; i++ {
+				component, err := component.NewComponentWithRandomHypervisor(
+					clusterName,
+					fmt.Sprintf("%s-control-plane-%d", clusterName, i),
+					component.ControlPlaneRole,
+					privateHypervisorList,
+				)
+				if err != nil {
+					klog.Fatalf("could not create new component: %v", err)
+				}
+				components = append(components, component)
+			}
+			publicHypervisorList := hypervisors.PublicList()
+			component, err := component.NewComponentWithRandomHypervisor(
+				clusterName,
+				fmt.Sprintf("%s-control-plane-ingress", clusterName),
+				component.ControlPlaneIngressRole,
+				publicHypervisorList,
+			)
+			components = append(components, component)
+			return components, nil
+		},
 	)
-	if err != nil {
-		klog.Fatalf("could not create new component: %v", err)
-	}
-	components = append(components, component)
-
-	if componentsSpecs, err := components.Specs(); err == nil {
-		res += componentsSpecs
-	}
-
-	fmt.Print(res)
-	return nil
 }

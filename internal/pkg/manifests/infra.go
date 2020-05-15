@@ -17,6 +17,10 @@
 package manifests
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/klog"
@@ -28,6 +32,60 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	yamlutils "github.com/oneinfra/oneinfra/internal/pkg/yaml"
 )
+
+// ResourceActuator represents a function that takes an hypervisor
+// map, a cluster map and a component list and performs some kind of
+// logic with them
+type ResourceActuator func(infra.HypervisorMap, cluster.Map, component.List) (component.List, error)
+
+// WithStdinResources is a function that will take hypervisors,
+// clusters and components from stdin and call to a resource actuator
+// with them, printing all resulting resources at the end on stdout
+func WithStdinResources(resourceActuator ResourceActuator) error {
+	hypervisors, clusters, components, err := retrieveResourcesFromStdin()
+	if err != nil {
+		return err
+	}
+	components, err = resourceActuator(hypervisors, clusters, components)
+	if err != nil {
+		return err
+	}
+	res := ""
+	if hypervisorsSpecs, err := hypervisors.Specs(); err == nil {
+		res += hypervisorsSpecs
+	}
+	if clustersSpecs, err := clusters.Specs(); err == nil {
+		res += clustersSpecs
+	}
+	if componentsSpecs, err := components.Specs(); err == nil {
+		res += componentsSpecs
+	}
+	fmt.Print(res)
+	return nil
+}
+
+// WithStdinResourcesSilent is similar to WithStdinResources, only
+// that it won't print the resulting resources after calling to the
+// actuator
+func WithStdinResourcesSilent(resourceActuator ResourceActuator) error {
+	hypervisors, clusters, components, err := retrieveResourcesFromStdin()
+	if err != nil {
+		return err
+	}
+	_, err = resourceActuator(hypervisors, clusters, components)
+	return err
+}
+
+func retrieveResourcesFromStdin() (infra.HypervisorMap, cluster.Map, component.List, error) {
+	stdin, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return infra.HypervisorMap{}, cluster.Map{}, component.List{}, err
+	}
+	hypervisors := RetrieveHypervisors(string(stdin))
+	clusters := RetrieveClusters(string(stdin))
+	components := RetrieveComponents(string(stdin))
+	return hypervisors, clusters, components, nil
+}
 
 // RetrieveHypervisors returns an hypervisor map from the given manifests
 func RetrieveHypervisors(manifests string) infra.HypervisorMap {

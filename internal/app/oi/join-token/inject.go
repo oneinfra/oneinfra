@@ -17,57 +17,31 @@
 package jointoken
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/pkg/errors"
 
 	bootstraptokenutil "k8s.io/cluster-bootstrap/token/util"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // Inject injects a join token into the provided cluster spec
 func Inject(clusterName string) error {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
-	}
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	if len(hypervisors) == 0 {
-		return errors.New("empty list of hypervisors")
-	}
-	clusters := manifests.RetrieveClusters(string(stdin))
-	components := manifests.RetrieveComponents(string(stdin))
+	return manifests.WithStdinResources(
+		func(hypervisors infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
+			cluster, exists := clusters[clusterName]
+			if !exists {
+				return component.List{}, errors.Errorf("could not find cluster %q", clusterName)
+			}
 
-	cluster, exists := clusters[clusterName]
-	if !exists {
-		return errors.Errorf("could not find cluster %q", clusterName)
-	}
-
-	bootstrapToken, err := bootstraptokenutil.GenerateBootstrapToken()
-	if err != nil {
-		return err
-	}
-	cluster.DesiredJoinTokens = append(cluster.DesiredJoinTokens, bootstrapToken)
-
-	res := ""
-
-	if hypervisorsSpecs, err := hypervisors.Specs(); err == nil {
-		res += hypervisorsSpecs
-	}
-
-	if clustersSpecs, err := clusters.Specs(); err == nil {
-		res += clustersSpecs
-	}
-
-	if componentsSpecs, err := components.Specs(); err == nil {
-		res += componentsSpecs
-	}
-
-	fmt.Print(res)
-	fmt.Fprintln(os.Stderr, bootstrapToken)
-
-	return nil
+			bootstrapToken, err := bootstraptokenutil.GenerateBootstrapToken()
+			if err != nil {
+				return component.List{}, err
+			}
+			cluster.DesiredJoinTokens = append(cluster.DesiredJoinTokens, bootstrapToken)
+			return components, nil
+		},
+	)
 }

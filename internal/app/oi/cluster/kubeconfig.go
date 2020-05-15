@@ -18,39 +18,34 @@ package cluster
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/pkg/errors"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 )
 
 // AdminKubeConfig generates an administrative kubeconfig file for cluster clusterName
 func AdminKubeConfig(clusterName string) error {
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
-	}
-	clusters := manifests.RetrieveClusters(string(stdin))
-
-	if clusterName == "" && len(clusters) == 1 {
-		for clusterNameFromManifest := range clusters {
-			clusterName = clusterNameFromManifest
-		}
-	}
-
-	cluster, exists := clusters[clusterName]
-	if !exists {
-		return errors.Errorf("cluster %q not found", clusterName)
-	}
-
-	kubeConfig, err := cluster.AdminKubeConfig()
-	if err != nil {
-		return err
-	}
-
-	fmt.Print(kubeConfig)
-
-	return nil
+	return manifests.WithStdinResourcesSilent(
+		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
+			if clusterName == "" && len(clusters) == 1 {
+				for clusterNameFromManifest := range clusters {
+					clusterName = clusterNameFromManifest
+				}
+			}
+			cluster, exists := clusters[clusterName]
+			if !exists {
+				return component.List{}, errors.Errorf("cluster %q not found", clusterName)
+			}
+			kubeConfig, err := cluster.AdminKubeConfig()
+			if err != nil {
+				return component.List{}, err
+			}
+			fmt.Print(kubeConfig)
+			return components, nil
+		},
+	)
 }

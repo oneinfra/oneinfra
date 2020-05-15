@@ -17,15 +17,15 @@
 package cluster
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
 	"time"
 
 	"k8s.io/klog"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	clusterreconciler "github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"
+	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	componentreconciler "github.com/oneinfra/oneinfra/internal/pkg/component/reconciler"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
 	"github.com/oneinfra/oneinfra/internal/pkg/reconciler"
 	"github.com/pkg/errors"
@@ -33,48 +33,32 @@ import (
 
 // Reconcile reconciles all clusters
 func Reconcile(maxRetries int, retryWaitTime time.Duration) error {
-	klog.V(1).Info("reading input manifests")
-	stdin, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
-	}
-	hypervisors := manifests.RetrieveHypervisors(string(stdin))
-	clusters := manifests.RetrieveClusters(string(stdin))
-	components := manifests.RetrieveComponents(string(stdin))
-
-	componentReconciler := componentreconciler.NewComponentReconciler(hypervisors, clusters, components)
-	clusterReconciler := clusterreconciler.NewClusterReconciler(hypervisors, clusters, components)
-	var componentReconcileErrs, clusterReconcileErrs reconciler.ReconcileErrors
-	for i := 0; i < maxRetries; i++ {
-		componentReconcileErrs = componentReconciler.Reconcile()
-		clusterReconcileErrs = clusterReconciler.Reconcile(clusterreconciler.OptionalReconcile{
-			ReconcileNodeJoinRequests: true,
-		})
-		if componentReconcileErrs == nil && clusterReconcileErrs == nil {
-			break
-		}
-		time.Sleep(retryWaitTime)
-	}
-
-	if componentReconcileErrs != nil {
-		klog.V(2).Infof("failed to reconcile some components: %v", componentReconcileErrs)
-	}
-
-	if clusterReconcileErrs != nil {
-		klog.V(2).Infof("failed to reconcile some clusters: %v", clusterReconcileErrs)
-	}
-
-	clusterSpecs, err := clusterReconciler.Specs()
-	if err != nil {
-		return err
-	}
-	fmt.Print(clusterSpecs)
-
-	if componentReconcileErrs != nil || clusterReconcileErrs != nil {
-		return errors.New("failed to reconcile some resources")
-	}
-
-	klog.Info("reconciliation finished successfully")
-
-	return nil
+	return manifests.WithStdinResources(
+		func(hypervisors infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
+			componentReconciler := componentreconciler.NewComponentReconciler(hypervisors, clusters, components)
+			clusterReconciler := clusterreconciler.NewClusterReconciler(hypervisors, clusters, components)
+			var componentReconcileErrs, clusterReconcileErrs reconciler.ReconcileErrors
+			for i := 0; i < maxRetries; i++ {
+				componentReconcileErrs = componentReconciler.Reconcile()
+				clusterReconcileErrs = clusterReconciler.Reconcile(clusterreconciler.OptionalReconcile{
+					ReconcileNodeJoinRequests: true,
+				})
+				if componentReconcileErrs == nil && clusterReconcileErrs == nil {
+					break
+				}
+				time.Sleep(retryWaitTime)
+			}
+			if componentReconcileErrs != nil {
+				klog.V(2).Infof("failed to reconcile some components: %v", componentReconcileErrs)
+			}
+			if clusterReconcileErrs != nil {
+				klog.V(2).Infof("failed to reconcile some clusters: %v", clusterReconcileErrs)
+			}
+			if componentReconcileErrs != nil || clusterReconcileErrs != nil {
+				return component.List{}, errors.New("failed to reconcile some resources")
+			}
+			klog.Info("reconciliation finished successfully")
+			return components, nil
+		},
+	)
 }

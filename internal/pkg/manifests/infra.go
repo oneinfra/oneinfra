@@ -31,12 +31,18 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	yamlutils "github.com/oneinfra/oneinfra/internal/pkg/yaml"
+	"github.com/pkg/errors"
 )
 
 // ResourceActuator represents a function that takes an hypervisor
 // map, a cluster map and a component list and performs some kind of
-// logic with them
+// logic with them, potentially modifying any of the resources
 type ResourceActuator func(infra.HypervisorMap, cluster.Map, component.List) (component.List, error)
+
+// SilentResourceActuator represents a function that takes an
+// hypervisor map, a cluster map and a component list and performs
+// some kind of logic with them
+type SilentResourceActuator func(infra.HypervisorMap, cluster.Map, component.List) error
 
 // WithStdinResources is a function that will take hypervisors,
 // clusters and components from stdin and call to a resource actuator
@@ -67,13 +73,28 @@ func WithStdinResources(resourceActuator ResourceActuator) error {
 // WithStdinResourcesSilent is similar to WithStdinResources, only
 // that it won't print the resulting resources after calling to the
 // actuator
-func WithStdinResourcesSilent(resourceActuator ResourceActuator) error {
+func WithStdinResourcesSilent(silentResourceActuator SilentResourceActuator) error {
 	hypervisors, clusters, components, err := retrieveResourcesFromStdin()
 	if err != nil {
 		return err
 	}
-	_, err = resourceActuator(hypervisors, clusters, components)
-	return err
+	return silentResourceActuator(hypervisors, clusters, components)
+}
+
+// WithNamedCluster will retrieve the cluster with clusterName, or
+// retrieve the only cluster available if clusterName is empty and
+// clusters has only one registered cluster
+func WithNamedCluster(clusterName string, clusters cluster.Map, withCluster func(*cluster.Cluster) error) error {
+	if clusterName == "" && len(clusters) == 1 {
+		for clusterNameFromManifest := range clusters {
+			clusterName = clusterNameFromManifest
+		}
+	}
+	cluster, exists := clusters[clusterName]
+	if !exists {
+		return errors.Errorf("cluster %q not found", clusterName)
+	}
+	return withCluster(cluster)
 }
 
 func retrieveResourcesFromStdin() (infra.HypervisorMap, cluster.Map, component.List, error) {

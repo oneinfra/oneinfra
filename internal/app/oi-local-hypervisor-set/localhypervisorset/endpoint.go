@@ -19,8 +19,6 @@ package localhypervisorset
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -30,13 +28,11 @@ import (
 // Endpoint prints the provided cluster endpoint
 func Endpoint(clusterName string) error {
 	return manifests.WithStdinResourcesSilent(
-		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
-			cluster, exists := clusters[clusterName]
-			if !exists {
-				return component.List{}, errors.Errorf("cluster %q not found", clusterName)
-			}
-			fmt.Println(cluster.APIServerEndpoint)
-			return components, nil
+		func(_ infra.HypervisorMap, clusters cluster.Map, _ component.List) error {
+			return manifests.WithNamedCluster(clusterName, clusters, func(cluster *cluster.Cluster) error {
+				fmt.Println(cluster.APIServerEndpoint)
+				return nil
+			})
 		},
 	)
 }

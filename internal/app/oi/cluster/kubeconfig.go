@@ -19,8 +19,6 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -30,22 +28,15 @@ import (
 // AdminKubeConfig generates an administrative kubeconfig file for cluster clusterName
 func AdminKubeConfig(clusterName string) error {
 	return manifests.WithStdinResourcesSilent(
-		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
-			if clusterName == "" && len(clusters) == 1 {
-				for clusterNameFromManifest := range clusters {
-					clusterName = clusterNameFromManifest
+		func(_ infra.HypervisorMap, clusters cluster.Map, _ component.List) error {
+			return manifests.WithNamedCluster(clusterName, clusters, func(cluster *cluster.Cluster) error {
+				kubeConfig, err := cluster.AdminKubeConfig()
+				if err != nil {
+					return err
 				}
-			}
-			cluster, exists := clusters[clusterName]
-			if !exists {
-				return component.List{}, errors.Errorf("cluster %q not found", clusterName)
-			}
-			kubeConfig, err := cluster.AdminKubeConfig()
-			if err != nil {
-				return component.List{}, err
-			}
-			fmt.Print(kubeConfig)
-			return components, nil
+				fmt.Print(kubeConfig)
+				return nil
+			})
 		},
 	)
 }

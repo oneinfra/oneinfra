@@ -30,7 +30,7 @@ import (
 // Inject injects a join token into the provided cluster spec
 func Inject(clusterName string) error {
 	return manifests.WithStdinResources(
-		func(hypervisors infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
+		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
 			cluster, exists := clusters[clusterName]
 			if !exists {
 				return component.List{}, errors.Errorf("could not find cluster %q", clusterName)

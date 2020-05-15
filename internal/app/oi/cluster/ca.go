@@ -19,8 +19,6 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
@@ -30,18 +28,11 @@ import (
 // APIServerCA prints the apiserver CA certificate
 func APIServerCA(clusterName string) error {
 	return manifests.WithStdinResourcesSilent(
-		func(_ infra.HypervisorMap, clusters cluster.Map, components component.List) (component.List, error) {
-			if clusterName == "" && len(clusters) == 1 {
-				for clusterNameFromManifest := range clusters {
-					clusterName = clusterNameFromManifest
-				}
-			}
-			cluster, exists := clusters[clusterName]
-			if !exists {
-				return component.List{}, errors.Errorf("cluster %q not found", clusterName)
-			}
-			fmt.Print(cluster.APIServer.CA.Certificate)
-			return components, nil
+		func(_ infra.HypervisorMap, clusters cluster.Map, _ component.List) error {
+			return manifests.WithNamedCluster(clusterName, clusters, func(cluster *cluster.Cluster) error {
+				fmt.Print(cluster.APIServer.CA.Certificate)
+				return nil
+			})
 		},
 	)
 }

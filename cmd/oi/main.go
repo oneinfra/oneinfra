@@ -103,9 +103,8 @@ func main() {
 						Usage: "prints the apiserver CA certificate",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "cluster",
+								Usage: "cluster name",
 							},
 						},
 						Action: func(c *cli.Context) error {
@@ -203,9 +202,8 @@ func main() {
 						Usage: "inject a join token; prints resulting manifests in stdout, and the created join token in stderr",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
-								Name:     "cluster",
-								Required: true,
-								Usage:    "cluster name",
+								Name:  "cluster",
+								Usage: "cluster name",
 							},
 						},
 						Action: func(c *cli.Context) error {

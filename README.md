@@ -141,6 +141,7 @@ namespace `oneinfra-users` resemble users.
 
 ```console
 $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha3/config/generated/all-kubernetes-secrets.yaml
+$ kubectl wait --for=condition=Available deployment --timeout=2m -n oneinfra-system --all
 ```
 
 A user named `sample-user` with password `sample-user` has been

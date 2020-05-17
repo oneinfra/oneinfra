@@ -79,11 +79,12 @@ func main() {
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
+		LeaderElectionID:   "oneinfra-manager-leader-election",
 		Port:               9443,
 		NewClient:          rawClient,
 	})
 	if err != nil {
-		klog.Error("could not set up controller manager")
+		klog.Error("could not set up controller manager: %v", err)
 		os.Exit(1)
 	}
 

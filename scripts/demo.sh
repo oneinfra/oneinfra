@@ -33,11 +33,11 @@ wait_for_ns() {
 execute_command "Creating kind cluster..." "kind create cluster"
 execute_command "Deploying cert-manager..." "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml"
 wait_for_ns cert-manager
-execute_command "Deploying oneinfra 20.05.0-alpha13..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha13/config/generated/all.yaml"
+execute_command "Deploying oneinfra 20.05.0-alpha14..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha14/config/generated/all.yaml"
 wait_for_ns oneinfra-system
 execute_command "Creating fake local hypervisors..." "oi-local-hypervisor-set create --tcp | kubectl apply -f -"
 execute_command "Generating oneinfra console JWT key..." "kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"
-execute_command "Deploying oneinfra console 20.05.0-alpha3..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha3/config/generated/all-kubernetes-secrets.yaml"
+execute_command "Deploying oneinfra console 20.05.0-alpha4..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/console/20.05.0-alpha4/config/generated/all-kubernetes-secrets.yaml"
 wait_for_ns oneinfra-system
 echo "======================================="
 echo "==    Visit http://localhost:8000    =="

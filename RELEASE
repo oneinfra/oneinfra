@@ -1,5 +1,5 @@
-version: "20.05.0-alpha13"
-consoleVersion: "20.05.0-alpha3"
+version: "20.05.0-alpha14"
+consoleVersion: "20.05.0-alpha4"
 defaultKubernetesVersion: "1.18.2"
 kubernetesVersions:
 - version: "1.15.12"

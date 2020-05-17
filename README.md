@@ -67,9 +67,9 @@ prefer](docs/install-from-source.md).
 
 * Requirements
   * Docker
-  * Kind
-  * kubectl
-  * oi-local-hypervisor-set
+  * `kind`
+  * `kubectl`
+  * `oi-local-hypervisor-set`
 
 On a Linux environment, execute:
 

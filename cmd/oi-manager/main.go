@@ -84,7 +84,7 @@ func main() {
 		NewClient:          rawClient,
 	})
 	if err != nil {
-		klog.Error("could not set up controller manager: %v", err)
+		klog.Errorf("could not set up controller manager: %v", err)
 		os.Exit(1)
 	}
 

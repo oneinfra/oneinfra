@@ -29,7 +29,7 @@ const (
 containerdVersions:
 - version: "1.3.3"
   criToolsVersion: "1.17.0"
-  cniPluginsVersion: "0.8.5"
+  cniPluginsVersion: "0.8.6"
 kubernetesVersions:
   "1.15.12":
     containerdVersion: "1.3.3"

@@ -74,7 +74,7 @@ prefer](docs/install-from-source.md).
 On a Linux environment, execute:
 
 ```console
-$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/master/scripts/demo.sh | sh
+$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/{ONEINFRA_VERSION}/scripts/demo.sh | sh
 ```
 
 After the script is done, you will be able to access your `oneinfra`

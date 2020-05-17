@@ -19,11 +19,11 @@ service provider. You decide.
 
 | Kubernetes version | Deployable with      | Default in           |                                                                                                                                                                            |                                                                                                                                                                             |
 |--------------------|----------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `1.15.12`          | `20.05.0-alpha12` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12)%20with%20local%20CRI%20endpoints)        | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12)%20with%20remote%20CRI%20endpoints)        |
-| `1.16.9`           | `20.05.0-alpha12` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20remote%20CRI%20endpoints)         |
-| `1.17.5`           | `20.05.0-alpha12` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20remote%20CRI%20endpoints)         |
-| `1.18.2`           | `20.05.0-alpha12` | `20.05.0-alpha12` | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20remote%20CRI%20endpoints)         |
-| `1.19.0-alpha.3`   | `20.05.0-alpha12` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.3)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.3)%20with%20remote%20CRI%20endpoints) |
+| `1.15.12`          | `20.05.0-alpha13` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12)%20with%20local%20CRI%20endpoints)        | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12)%20with%20remote%20CRI%20endpoints)        |
+| `1.16.9`           | `20.05.0-alpha13` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9)%20with%20remote%20CRI%20endpoints)         |
+| `1.17.5`           | `20.05.0-alpha13` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.5)%20with%20remote%20CRI%20endpoints)         |
+| `1.18.2`           | `20.05.0-alpha13` | `20.05.0-alpha13` | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20local%20CRI%20endpoints)         | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.2)%20with%20remote%20CRI%20endpoints)         |
+| `1.19.0-alpha.3`   | `20.05.0-alpha13` |                      | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.3)%20with%20local%20CRI%20endpoints) | ![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-alpha.3)%20with%20remote%20CRI%20endpoints) |
 
 
 ## Install
@@ -50,9 +50,9 @@ The `oneinfra` installation has several components:
 ### From released binaries
 
 ```console
-$ wget -O oi https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha12/oi-linux-amd64-20.05.0-alpha12
+$ wget -O oi https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha13/oi-linux-amd64-20.05.0-alpha13
 $ chmod +x oi
-$ wget -O oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha12/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha12
+$ wget -O oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha13/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha13
 $ chmod +x oi-local-hypervisor-set
 ```
 
@@ -74,7 +74,7 @@ prefer](docs/install-from-source.md).
 On a Linux environment, execute:
 
 ```console
-$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/master/scripts/demo.sh | sh
+$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha13/scripts/demo.sh | sh
 ```
 
 After the script is done, you will be able to access your `oneinfra`

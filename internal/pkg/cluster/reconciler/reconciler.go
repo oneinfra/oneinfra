@@ -140,7 +140,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileAPIServerEndpoint(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
-	controlPlaneIngressList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneIngressRole)
+	controlPlaneIngressList := clusterReconciler.componentList.WithCluster(cluster.Namespace, cluster.Name).WithRole(componentapi.ControlPlaneIngressRole)
 	if len(controlPlaneIngressList) == 0 {
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("could not find any control plane ingress component"))
 		return
@@ -165,7 +165,7 @@ func (clusterReconciler *ClusterReconciler) reconcileAPIServerEndpoint(cluster *
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileVPNServerEndpoint(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
-	controlPlaneIngressList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneIngressRole)
+	controlPlaneIngressList := clusterReconciler.componentList.WithCluster(cluster.Namespace, cluster.Name).WithRole(componentapi.ControlPlaneIngressRole)
 	if len(controlPlaneIngressList) == 0 {
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("could not find any control plane ingress component"))
 		return
@@ -224,7 +224,7 @@ func (clusterReconciler *ClusterReconciler) reconcileJoinTokens(cluster *cluster
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileStorageEndpoints(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
-	controlPlaneList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneRole)
+	controlPlaneList := clusterReconciler.componentList.WithCluster(cluster.Namespace, cluster.Name).WithRole(componentapi.ControlPlaneRole)
 	if cluster.ControlPlaneReplicas != len(controlPlaneList) {
 		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("the number of control plane components does not match the number of desired replicas"))
 		return

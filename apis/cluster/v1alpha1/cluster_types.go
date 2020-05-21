@@ -62,7 +62,7 @@ type VPN struct {
 	// +optional
 	Enabled bool `json:"enabled"`
 
-	// The VPN CIDR for this cluster. 10.0.0.0/8 by default.
+	// The VPN CIDR for this cluster. 10.0.0.0/16 by default.
 	//
 	// +optional
 	CIDR *string `json:"CIDR,omitempty"`
@@ -75,6 +75,7 @@ type ClusterStatus struct {
 	StoragePeerEndpoints   map[string]string                     `json:"storagePeerEndpoints,omitempty"`
 	VPNPeers               []VPNPeer                             `json:"vpnPeers,omitempty"`
 	APIServerEndpoint      string                                `json:"apiServerEndpoint,omitempty"`
+	VPNServerEndpoint      string                                `json:"vpnServerEndpoint,omitempty"`
 	JoinTokens             []string                              `json:"joinTokens,omitempty"`
 	Conditions             commonv1alpha1.ConditionList          `json:"conditions,omitempty"`
 }

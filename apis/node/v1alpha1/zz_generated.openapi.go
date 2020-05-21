@@ -122,24 +122,35 @@ properties:
           this node is joining to. Filled by "oneinfra", and ciphered using the provided
           SymmetricKey in the request spec. Base64 encoded.
         type: string
-      vpnAddress:
-        description: VPNAddress contains the VPN address of this node. Filled by "oneinfra",
-          and ciphered using the provided SymmetricKey in the request spec. Base64
-          encoded.
-        type: string
-      vpnEnabled:
-        description: VPNEnabled contains whether this cluster has VPN enabled. Filled
-          by "oneinfra", not ciphered.
-        type: boolean
-      vpnPeers:
-        description: VPNPeers contains the VPN peers of this node. Filled by "oneinfra",
-          and ciphered using the provided SymmetricKey in the request spec. Base64
-          encoded.
-        items:
-          type: string
-        type: array
-    required:
-    - vpnEnabled
+      vpn:
+        description: VPN contains the VPN information for this node join request.
+          Nil if VPN is disabled. Filled by "oneinfra".
+        properties:
+          CIDR:
+            description: CIDR for this cluster. Filled by "oneinfra", and ciphered
+              using the provided SymmetricKey in the request spec. Base64 encoded.
+            type: string
+          address:
+            description: Address contains the VPN address of this node. Filled by
+              "oneinfra", and ciphered using the provided SymmetricKey in the request
+              spec. Base64 encoded.
+            type: string
+          endpoint:
+            description: Endpoint contains the VPN endpoint this peer should connect
+              to. Filled by "oneinfra", and ciphered using the provided SymmetricKey
+              in the request spec. Base64 encoded.
+            type: string
+          endpointPublicKey:
+            description: EndpointPublicKey contains the VPN endpoint public key. Filled
+              by "oneinfra", and ciphered using the provided SymmetricKey in the request
+              spec. Base64 encoded.
+            type: string
+          peerPrivateKey:
+            description: PeerPrivateKey contains the VPN peer private key. Filled
+              by "oneinfra", and ciphered using the provided SymmetricKey in the request
+              spec. Base64 encoded.
+            type: string
+        type: object
     type: object
 type: object`
 )

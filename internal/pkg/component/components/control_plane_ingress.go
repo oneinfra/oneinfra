@@ -76,7 +76,7 @@ func (ingress *ControlPlaneIngress) PreReconcile(inquirer inquirer.ReconcilerInq
 	}
 	cluster := inquirer.Cluster()
 	if cluster.VPN.Enabled {
-		if _, err := component.RequestPort(hypervisor, wireguardHostPortName); err != nil {
+		if _, err := component.RequestPort(hypervisor, WireguardHostPortName); err != nil {
 			return err
 		}
 	}
@@ -230,8 +230,8 @@ func (ingress *ControlPlaneIngress) stopIngress(inquirer inquirer.ReconcilerInqu
 			return errors.Wrapf(err, "could not free port %q for hypervisor %q", APIServerHostPortName, hypervisor.Name)
 		}
 		if cluster.VPN.Enabled {
-			if err := component.FreePort(hypervisor, wireguardHostPortName); err != nil {
-				return errors.Wrapf(err, "could not free port %q for hypervisor %q", wireguardHostPortName, hypervisor.Name)
+			if err := component.FreePort(hypervisor, WireguardHostPortName); err != nil {
+				return errors.Wrapf(err, "could not free port %q for hypervisor %q", WireguardHostPortName, hypervisor.Name)
 			}
 		}
 	}

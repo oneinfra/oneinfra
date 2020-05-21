@@ -68,8 +68,10 @@ func Join(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEnd
 	if err != nil {
 		return err
 	}
-	if nodeJoinRequest.VPNEnabled {
-		// TODO: set up wireguard
+	if nodeJoinRequest.VPN != nil {
+		if err := setupWireguard(nodeJoinRequest, symmetricKey); err != nil {
+			return err
+		}
 	}
 	return setupKubelet(nodeJoinRequest, symmetricKey)
 }

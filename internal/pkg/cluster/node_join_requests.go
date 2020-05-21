@@ -111,11 +111,15 @@ func (cluster *Cluster) fillNodeJoinRequestKubernetesVersion(nodeJoinRequest *no
 }
 
 func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	if !cluster.VPN.Enabled {
-		nodeJoinRequest.VPNEnabled = false
+	if cluster.VPN == nil {
 		return nil
 	}
-	nodeJoinRequest.VPNEnabled = true
+	nodeJoinRequest.VPN = &nodejoinrequests.VPN{}
+	vpnCIDR, err := nodeJoinRequest.Encrypt(cluster.VPN.CIDR.String())
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPN.CIDR = vpnCIDR
 	vpnPeer, err := cluster.GenerateVPNPeer(fmt.Sprintf("worker-%s", nodeJoinRequest.Name))
 	if err != nil {
 		return err
@@ -124,16 +128,26 @@ func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *n
 	if err != nil {
 		return err
 	}
-	nodeJoinRequest.VPNAddress = vpnAddress
-	ingressVPNPeerRaw, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
-	if !exists {
-		return err
-	}
-	ingressVPNPeer, err := nodeJoinRequest.Encrypt(ingressVPNPeerRaw.Address)
+	nodeJoinRequest.VPN.Address = vpnAddress
+	vpnPeerPrivateKey, err := nodeJoinRequest.Encrypt(vpnPeer.PrivateKey)
 	if err != nil {
 		return err
 	}
-	nodeJoinRequest.VPNPeers = []string{ingressVPNPeer}
+	nodeJoinRequest.VPN.PeerPrivateKey = vpnPeerPrivateKey
+	ingressVPNEndpoint, err := nodeJoinRequest.Encrypt(cluster.VPNServerEndpoint)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPN.Endpoint = ingressVPNEndpoint
+	ingressVPNEndpointRaw, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
+	if !exists {
+		return err
+	}
+	endpointPublicKey, err := nodeJoinRequest.Encrypt(ingressVPNEndpointRaw.PublicKey)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPN.EndpointPublicKey = endpointPublicKey
 	return nil
 }
 

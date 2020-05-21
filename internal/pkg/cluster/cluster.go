@@ -69,6 +69,7 @@ type Cluster struct {
 	VPN                    *VPN
 	VPNPeers               VPNPeerMap
 	APIServerEndpoint      string
+	VPNServerEndpoint      string
 	JoinKey                *crypto.KeyPair
 	DesiredJoinTokens      []string
 	CurrentJoinTokens      []string
@@ -158,6 +159,7 @@ func NewClusterFromv1alpha1(cluster *clusterv1alpha1.Cluster) (*Cluster, error) 
 		VPN:                    newVPNFromv1alpha1(cluster.Spec.VPN),
 		VPNPeers:               newVPNPeersFromv1alpha1(cluster.Status.VPNPeers),
 		APIServerEndpoint:      cluster.Status.APIServerEndpoint,
+		VPNServerEndpoint:      cluster.Status.VPNServerEndpoint,
 		JoinKey:                joinKey,
 		DesiredJoinTokens:      cluster.Spec.JoinTokens,
 		CurrentJoinTokens:      cluster.Status.JoinTokens,
@@ -230,6 +232,7 @@ func (cluster *Cluster) Export() *clusterv1alpha1.Cluster {
 			StoragePeerEndpoints:   cluster.StoragePeerEndpoints,
 			VPNPeers:               cluster.VPNPeers.Export(),
 			APIServerEndpoint:      cluster.APIServerEndpoint,
+			VPNServerEndpoint:      cluster.VPNServerEndpoint,
 			JoinTokens:             cluster.CurrentJoinTokens,
 			Conditions:             cluster.Conditions.Export(),
 		},
@@ -300,13 +303,8 @@ func (cluster *Cluster) GenerateVPNPeer(peerName string) (*VPNPeer, error) {
 	if err != nil {
 		return nil, err
 	}
-	var ipAddressNet net.IPNet
 	ipAddress := net.ParseIP(controlPlaneIngressVPNIP)
-	if len(ipAddress) == net.IPv6len {
-		ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(128, 128)}
-	} else {
-		ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(32, 32)}
-	}
+	ipAddressNet := net.IPNet{IP: ipAddress, Mask: cluster.VPN.CIDR.Mask}
 	vpnPeer := &VPNPeer{
 		Name:       peerName,
 		Address:    ipAddressNet.String(),

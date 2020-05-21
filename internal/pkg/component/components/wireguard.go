@@ -18,133 +18,224 @@ package components
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"fmt"
+	"net"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
-	"github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
+	"github.com/oneinfra/oneinfra/internal/pkg/infra"
+	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 	"k8s.io/klog"
 )
 
 const (
-	wireguardImage        = "oneinfra/wireguard:latest"
-	wireguardHostPortName = "wireguard"
+	// WireguardHostPortName represents the wireguard host port
+	// allocation name
+	WireguardHostPortName = "wireguard"
 )
 
 const (
-	wireguardTemplate = `[Interface]
-Address = {{ .Address }}
-ListenPort = {{ .ListenPort }}
-PrivateKey = {{ .PrivateKey }}
+	wireguardSystemdServiceTemplate = `[Unit]
+Description=oneinfra {{ .ClusterNamespace }}-{{ .ClusterName }} wireguard configuration
+After=network.target
 
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash {{ .WireguardScriptPath }}
+
+[Install]
+WantedBy=multi-user.target
+`
+
+	wireguardScriptTemplate = `if ! which ip &> /dev/null; then
+  echo "ip executable not found, please install iproute2 in this hypervisor"
+  exit 1
+fi
+if ! which wg &> /dev/null; then
+  echo "wg executable not found, please install wireguard-tools in this hypervisor"
+  exit 1
+fi
+if ! ip netns pids {{ .NetworkNamespace }} &> /dev/null; then
+  ip netns add {{ .NetworkNamespace }}
+fi
+if ! ip netns exec {{ .NetworkNamespace }} ip a show dev {{ .WireguardInterfaceName }} &> /dev/null; then
+  ip link del {{ .WireguardInterfaceName }}
+  ip link add dev {{ .WireguardInterfaceName }} type wireguard
+  ip addr add {{ .VPNCIDR }} dev {{ .WireguardInterfaceName }}
+  wg set {{ .WireguardInterfaceName }} listen-port {{ .ListenPort }} private-key {{ .PrivateKeyPath }}
+  ip link set {{ .WireguardInterfaceName }} netns {{ .NetworkNamespace }}
+  ip netns exec {{ .NetworkNamespace }} ip link set {{ .WireguardInterfaceName }} up
+  ip netns exec {{ .NetworkNamespace }} ip route add default dev {{ .WireguardInterfaceName }}
+fi
+{{ $data := . }}
 {{- range $peer := .Peers }}
-[Peer]
-PublicKey = {{ $peer.PublicKey }}
-AllowedIPs = {{ $peer.AllowedIPs }}
+ip netns exec {{ $data.NetworkNamespace }} wg set {{ $data.WireguardInterfaceName }} peer {{ $peer.PublicKey }} allowed-ips {{ $peer.AllowedIPs }}
 {{- end }}
 `
 )
 
-func (ingress *ControlPlaneIngress) wireguardConfiguration(inquirer inquirer.ReconcilerInquirer) (string, error) {
+func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.ReconcilerInquirer) error {
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	wireguardHostPort, err := component.RequestPort(hypervisor, wireguardHostPortName)
+	ingressPeer, err := cluster.GenerateVPNPeer(constantsapi.OneInfraControlPlaneIngressVPNPeerName)
+	if err != nil {
+		return err
+	}
+	wireguardSystemdServiceContents, err := ingress.wireguardSystemdServiceContents(inquirer)
+	if err != nil {
+		return err
+	}
+	wireguardScriptContents, err := ingress.wireguardScriptContents(inquirer)
+	if err != nil {
+		klog.Fatal(err)
+		return err
+	}
+	privateKeyPath := componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "wg.key")
+	err = hypervisor.UploadFiles(
+		cluster.Namespace,
+		cluster.Name,
+		component.Name,
+		map[string]string{
+			ingress.wireguardSystemdServicePath(inquirer): wireguardSystemdServiceContents,
+			ingress.wireguardScriptPath(inquirer):         wireguardScriptContents,
+			privateKeyPath:                                ingressPeer.PrivateKey,
+		},
+	)
+	if err != nil {
+		return err
+	}
+	if err := hypervisor.EnsureImage(infra.ToolingImage); err != nil {
+		return err
+	}
+	enableAndStartArgs := []string{
+		fmt.Sprintf("dbus-send --system --print-reply --dest=org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager.EnableUnitFiles array:string:'%s' boolean:false boolean:true", ingress.wireguardSystemdServiceName(inquirer)),
+		fmt.Sprintf("dbus-send --system --print-reply --dest=org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager.StartUnit string:'%s' string:'replace'", ingress.wireguardSystemdServiceName(inquirer)),
+	}
+	return hypervisor.RunAndWaitForPod(cluster.Namespace, cluster.Name, component.Name, podapi.Pod{
+		Name: fmt.Sprintf("enable-and-start-wireguard-%s-%s", cluster.Namespace, cluster.Name),
+		Containers: []podapi.Container{
+			{
+				Name:    fmt.Sprintf("enable-and-start-wireguard-%s-%s", cluster.Namespace, cluster.Name),
+				Image:   infra.ToolingImage,
+				Command: []string{"/bin/sh", "-c"},
+				Args: []string{
+					strings.Join(enableAndStartArgs, "&&"),
+				},
+				Mounts: map[string]string{
+					"/var/run/dbus": "/var/run/dbus",
+				},
+				Privileges: podapi.PrivilegesPrivileged,
+			},
+		},
+		Privileges: podapi.PrivilegesPrivileged,
+	})
+}
+
+func (ingress *ControlPlaneIngress) netNSName(inquirer inquirer.ReconcilerInquirer) string {
+	cluster := inquirer.Cluster()
+	return fmt.Sprintf("oneinfra-wireguard-%s-%s", cluster.Namespace, cluster.Name)
+}
+
+func (ingress *ControlPlaneIngress) wireguardInterfaceName(inquirer inquirer.ReconcilerInquirer) string {
+	cluster := inquirer.Cluster()
+	return fmt.Sprintf("wg-%x", sha1.Sum([]byte(fmt.Sprintf("%s-%s", cluster.Namespace, cluster.Name))))[0:15]
+}
+
+func (ingress *ControlPlaneIngress) wireguardSystemdServiceName(inquirer inquirer.ReconcilerInquirer) string {
+	cluster := inquirer.Cluster()
+	return fmt.Sprintf("oneinfra-wireguard-%s-%s.service", cluster.Namespace, cluster.Name)
+}
+
+func (ingress *ControlPlaneIngress) wireguardSystemdServicePath(inquirer inquirer.ReconcilerInquirer) string {
+	return filepath.Join("/etc/systemd/system", ingress.wireguardSystemdServiceName(inquirer))
+}
+
+func (ingress *ControlPlaneIngress) wireguardScriptPath(inquirer inquirer.ReconcilerInquirer) string {
+	cluster := inquirer.Cluster()
+	component := inquirer.Component()
+	return componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "wg.sh")
+}
+
+func (ingress *ControlPlaneIngress) wireguardSystemdServiceContents(inquirer inquirer.ReconcilerInquirer) (string, error) {
+	cluster := inquirer.Cluster()
+	wireguardServiceData := struct {
+		ClusterNamespace    string
+		ClusterName         string
+		WireguardScriptPath string
+	}{
+		ClusterNamespace:    cluster.Namespace,
+		ClusterName:         cluster.Name,
+		WireguardScriptPath: ingress.wireguardScriptPath(inquirer),
+	}
+	var rendered bytes.Buffer
+	template, err := template.New("").Parse(wireguardSystemdServiceTemplate)
+	err = template.Execute(&rendered, wireguardServiceData)
+	return rendered.String(), err
+}
+
+func (ingress *ControlPlaneIngress) wireguardScriptContents(inquirer inquirer.ReconcilerInquirer) (string, error) {
+	component := inquirer.Component()
+	hypervisor := inquirer.Hypervisor()
+	cluster := inquirer.Cluster()
+	wireguardHostPort, err := component.RequestPort(hypervisor, WireguardHostPortName)
 	if err != nil {
 		return "", err
 	}
-	vpnPeer, err := cluster.VPNPeer("control-plane-ingress")
-	if err != nil {
-		return "", err
-	}
-	template, err := template.New("").Parse(wireguardTemplate)
-	if err != nil {
-		return "", err
-	}
-	wireguardConfigData := struct {
-		Address    string
-		ListenPort string
-		PrivateKey string
-		Peers      []struct {
+	privateKeyPath := componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "wg.key")
+	wireguardScriptData := struct {
+		WireguardInterfaceName string
+		VPNCIDR                string
+		ListenPort             string
+		PrivateKeyPath         string
+		NetworkNamespace       string
+		Peers                  []struct {
 			PublicKey  string
 			AllowedIPs string
 		}
 	}{
-		Address:    vpnPeer.Address,
-		ListenPort: strconv.Itoa(wireguardHostPort),
-		PrivateKey: vpnPeer.PrivateKey,
+		WireguardInterfaceName: ingress.wireguardInterfaceName(inquirer),
+		VPNCIDR:                cluster.VPN.CIDR.String(),
+		ListenPort:             strconv.Itoa(wireguardHostPort),
+		PrivateKeyPath:         privateKeyPath,
+		NetworkNamespace:       ingress.netNSName(inquirer),
 		Peers: []struct {
 			PublicKey  string
 			AllowedIPs string
 		}{},
 	}
 	for _, vpnPeer := range cluster.VPNPeers {
-		if vpnPeer.Name == "control-plane-ingress" {
+		if vpnPeer.Name == constantsapi.OneInfraControlPlaneIngressVPNPeerName {
 			continue
 		}
-		wireguardConfigData.Peers = append(wireguardConfigData.Peers, struct {
-			PublicKey  string
-			AllowedIPs string
-		}{
-			PublicKey:  vpnPeer.PublicKey,
-			AllowedIPs: vpnPeer.Address,
-		})
+		ipAddress, _, err := net.ParseCIDR(vpnPeer.Address)
+		if err != nil {
+			continue
+		}
+		var ipAddressNet net.IPNet
+		if len(ipAddress) == net.IPv6len {
+			ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(128, 128)}
+		} else {
+			ipAddressNet = net.IPNet{IP: ipAddress, Mask: net.CIDRMask(32, 32)}
+		}
+		wireguardScriptData.Peers = append(
+			wireguardScriptData.Peers,
+			struct {
+				PublicKey  string
+				AllowedIPs string
+			}{
+				PublicKey:  vpnPeer.PublicKey,
+				AllowedIPs: ipAddressNet.String(),
+			},
+		)
 	}
 	var rendered bytes.Buffer
-	err = template.Execute(&rendered, wireguardConfigData)
+	template, err := template.New("").Parse(wireguardScriptTemplate)
+	err = template.Execute(&rendered, wireguardScriptData)
 	return rendered.String(), err
-}
-
-func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.ReconcilerInquirer) error {
-	component := inquirer.Component()
-	hypervisor := inquirer.Hypervisor()
-	cluster := inquirer.Cluster()
-	if err := hypervisor.EnsureImage(wireguardImage); err != nil {
-		return err
-	}
-	wireguardConfig, err := ingress.wireguardConfiguration(inquirer)
-	if err != nil {
-		return err
-	}
-	wireguardConfigPath := componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name))
-	if hypervisor.FileUpToDate(cluster.Namespace, cluster.Name, component.Name, wireguardConfigPath, wireguardConfig) {
-		klog.V(2).Info("skipping wireguard reconfiguration, since configuration is up to date")
-		return nil
-	}
-	err = hypervisor.UploadFile(
-		cluster.Namespace,
-		cluster.Name,
-		component.Name,
-		wireguardConfigPath,
-		wireguardConfig,
-	)
-	if err != nil {
-		return err
-	}
-	return hypervisor.RunAndWaitForPod(
-		cluster.Namespace,
-		cluster.Name,
-		component.Name,
-		pod.NewPod(
-			fmt.Sprintf("wireguard-%s", cluster.Name),
-			[]pod.Container{
-				{
-					Name:    "wireguard",
-					Image:   wireguardImage,
-					Command: []string{"wg-quick"},
-					Args: []string{
-						"up",
-						componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, fmt.Sprintf("wg-%s.conf", cluster.Name)),
-					},
-					Mounts: map[string]string{
-						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
-					},
-					Privileges: pod.PrivilegesNetworkPrivileged,
-				},
-			},
-			map[int]int{},
-			pod.PrivilegesNetworkPrivileged,
-		),
-	)
 }

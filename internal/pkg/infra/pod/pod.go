@@ -31,10 +31,14 @@ type Privileges int
 const (
 	// PrivilegesUnprivileged represents a pod sandbox or a container
 	// with no special privileges
-	PrivilegesUnprivileged Privileges = iota
+	PrivilegesUnprivileged Privileges = 0
+	// PrivilegesPrivileged represents a pod sandbox or a container with
+	// privileged access
+	PrivilegesPrivileged Privileges = 1
 	// PrivilegesNetworkPrivileged represents a pod sandbox or a
-	// container with network privileges
-	PrivilegesNetworkPrivileged Privileges = iota
+	// privileged container with node network. Implies
+	// PrivilegesPrivileged.
+	PrivilegesNetworkPrivileged Privileges = 3
 )
 
 // Pod represents a pod

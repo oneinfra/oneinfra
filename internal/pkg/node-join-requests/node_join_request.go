@@ -38,9 +38,7 @@ type NodeJoinRequest struct {
 	ContainerRuntimeEndpoint   string
 	ImageServiceEndpoint       string
 	KubernetesVersion          string
-	VPNEnabled                 bool
-	VPNAddress                 string
-	VPNPeers                   []string
+	VPN                        *VPN
 	KubeConfig                 string
 	KubeletConfig              string
 	KubeletServerCertificate   string
@@ -62,16 +60,13 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		}
 		symmetricKey = key
 	}
-	return &NodeJoinRequest{
+	res := NodeJoinRequest{
 		Name:                       nodeJoinRequest.Name,
 		SymmetricKey:               crypto.SymmetricKey(symmetricKey),
 		APIServerEndpoint:          nodeJoinRequest.Spec.APIServerEndpoint,
 		ContainerRuntimeEndpoint:   nodeJoinRequest.Spec.ContainerRuntimeEndpoint,
 		ImageServiceEndpoint:       nodeJoinRequest.Spec.ImageServiceEndpoint,
 		KubernetesVersion:          nodeJoinRequest.Status.KubernetesVersion,
-		VPNEnabled:                 nodeJoinRequest.Status.VPNEnabled,
-		VPNAddress:                 nodeJoinRequest.Status.VPNAddress,
-		VPNPeers:                   nodeJoinRequest.Status.VPNPeers,
 		KubeConfig:                 nodeJoinRequest.Status.KubeConfig,
 		KubeletConfig:              nodeJoinRequest.Status.KubeletConfig,
 		KubeletServerCertificate:   nodeJoinRequest.Status.KubeletServerCertificate,
@@ -81,7 +76,17 @@ func NewNodeJoinRequestFromv1alpha1(nodeJoinRequest *nodev1alpha1.NodeJoinReques
 		Conditions:                 conditions.NewConditionListFromv1alpha1(nodeJoinRequest.Status.Conditions),
 		ResourceVersion:            nodeJoinRequest.ResourceVersion,
 		joinKey:                    joinKey,
-	}, nil
+	}
+	if nodeJoinRequest.Status.VPN != nil {
+		res.VPN = &VPN{
+			CIDR:              nodeJoinRequest.Status.VPN.CIDR,
+			Address:           nodeJoinRequest.Status.VPN.Address,
+			PeerPrivateKey:    nodeJoinRequest.Status.VPN.PeerPrivateKey,
+			Endpoint:          nodeJoinRequest.Status.VPN.Endpoint,
+			EndpointPublicKey: nodeJoinRequest.Status.VPN.EndpointPublicKey,
+		}
+	}
+	return &res, nil
 }
 
 // Export exports this node join request to a versioned node join request
@@ -94,7 +99,7 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 		}
 		symmetricKey = crypto.SymmetricKey(encryptedSymmetricKey)
 	}
-	return &nodev1alpha1.NodeJoinRequest{
+	res := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            nodeJoinRequest.Name,
 			ResourceVersion: nodeJoinRequest.ResourceVersion,
@@ -108,9 +113,6 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 		},
 		Status: nodev1alpha1.NodeJoinRequestStatus{
 			KubernetesVersion:          nodeJoinRequest.KubernetesVersion,
-			VPNEnabled:                 nodeJoinRequest.VPNEnabled,
-			VPNAddress:                 nodeJoinRequest.VPNAddress,
-			VPNPeers:                   nodeJoinRequest.VPNPeers,
 			KubeConfig:                 nodeJoinRequest.KubeConfig,
 			KubeletConfig:              nodeJoinRequest.KubeletConfig,
 			KubeletServerCertificate:   nodeJoinRequest.KubeletServerCertificate,
@@ -118,7 +120,17 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 			KubeletClientCACertificate: nodeJoinRequest.KubeletClientCACertificate,
 			Conditions:                 nodeJoinRequest.Conditions.Export(),
 		},
-	}, nil
+	}
+	if nodeJoinRequest.VPN != nil {
+		res.Status.VPN = &nodev1alpha1.VPN{
+			CIDR:              nodeJoinRequest.VPN.CIDR,
+			Address:           nodeJoinRequest.VPN.Address,
+			PeerPrivateKey:    nodeJoinRequest.VPN.PeerPrivateKey,
+			Endpoint:          nodeJoinRequest.VPN.Endpoint,
+			EndpointPublicKey: nodeJoinRequest.VPN.EndpointPublicKey,
+		}
+	}
+	return &res, nil
 }
 
 // Encrypt encrypts the given content using this node join request symmetric key

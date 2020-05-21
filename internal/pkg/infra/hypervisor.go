@@ -219,14 +219,16 @@ func (hypervisor *Hypervisor) PodSandboxConfig(clusterNamespace, clusterName, co
 		PortMappings: portMappings,
 		LogDirectory: "/var/log/pods/",
 	}
-	if pod.Privileges == podapi.PrivilegesNetworkPrivileged {
+	if pod.Privileges&podapi.PrivilegesPrivileged != 0 {
 		podSandboxConfig.Linux = &criapi.LinuxPodSandboxConfig{
 			SecurityContext: &criapi.LinuxSandboxSecurityContext{
 				Privileged: true,
-				NamespaceOptions: &criapi.NamespaceOption{
-					Network: criapi.NamespaceMode_NODE,
-				},
 			},
+		}
+	}
+	if pod.Privileges == podapi.PrivilegesNetworkPrivileged {
+		podSandboxConfig.Linux.SecurityContext.NamespaceOptions = &criapi.NamespaceOption{
+			Network: criapi.NamespaceMode_NODE,
 		}
 	}
 	return podSandboxConfig, nil
@@ -406,14 +408,16 @@ func (hypervisor *Hypervisor) ensurePod(clusterNamespace, clusterName, component
 				)
 			}
 		}
-		if container.Privileges == podapi.PrivilegesNetworkPrivileged {
+		if container.Privileges&podapi.PrivilegesPrivileged != 0 {
 			createContainerRequest.Config.Linux = &criapi.LinuxContainerConfig{
 				SecurityContext: &criapi.LinuxContainerSecurityContext{
 					Privileged: true,
-					NamespaceOptions: &criapi.NamespaceOption{
-						Network: criapi.NamespaceMode_NODE,
-					},
 				},
+			}
+		}
+		if container.Privileges == podapi.PrivilegesNetworkPrivileged {
+			createContainerRequest.Config.Linux.SecurityContext.NamespaceOptions = &criapi.NamespaceOption{
+				Network: criapi.NamespaceMode_NODE,
 			}
 		}
 		containerResponse, err := criRuntime.CreateContainer(

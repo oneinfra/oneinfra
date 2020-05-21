@@ -212,7 +212,7 @@ spec:
               description: VPN defines the VPN configuration for this cluster
               properties:
                 CIDR:
-                  description: The VPN CIDR for this cluster. 10.0.0.0/8 by default.
+                  description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
                   type: string
                 enabled:
                   description: Whether a VPN should be set for this cluster. Disabled
@@ -286,6 +286,8 @@ spec:
                     type: string
                 type: object
               type: array
+            vpnServerEndpoint:
+              type: string
           type: object
       type: object
   version: v1alpha1

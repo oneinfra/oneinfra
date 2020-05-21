@@ -68,19 +68,9 @@ type NodeJoinRequestStatus struct {
 	// the provided SymmetricKey in the request spec. Base64 encoded.
 	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 
-	// VPNEnabled contains whether this cluster has VPN enabled. Filled
-	// by `oneinfra`, not ciphered.
-	VPNEnabled bool `json:"vpnEnabled"`
-
-	// VPNAddress contains the VPN address of this node. Filled by
-	// `oneinfra`, and ciphered using the provided SymmetricKey in the
-	// request spec. Base64 encoded.
-	VPNAddress string `json:"vpnAddress,omitempty"`
-
-	// VPNPeers contains the VPN peers of this node. Filled by
-	// `oneinfra`, and ciphered using the provided SymmetricKey in the
-	// request spec. Base64 encoded.
-	VPNPeers []string `json:"vpnPeers,omitempty"`
+	// VPN contains the VPN information for this node join request. Nil
+	// if VPN is disabled. Filled by `oneinfra`.
+	VPN *VPN `json:"vpn,omitempty"`
 
 	// KubeConfig has the kubeconfig contents that the kubelet should
 	// use. Filled by `oneinfra`, and ciphered using the provided
@@ -115,6 +105,33 @@ type NodeJoinRequestStatus struct {
 	// when this request has all the information set, and available in
 	// this `Status` object.
 	Conditions commonv1alpha1.ConditionList `json:"conditions,omitempty"`
+}
+
+// VPN defines the VPN related information to a node join request.
+type VPN struct {
+	// CIDR for this cluster. Filled by `oneinfra`, and ciphered using
+	// the provided SymmetricKey in the request spec. Base64 encoded.
+	CIDR string `json:"CIDR,omitempty"`
+
+	// Address contains the VPN address of this node. Filled by
+	// `oneinfra`, and ciphered using the provided SymmetricKey in the
+	// request spec. Base64 encoded.
+	Address string `json:"address,omitempty"`
+
+	// PeerPrivateKey contains the VPN peer private key. Filled by
+	// `oneinfra`, and ciphered using the provided SymmetricKey in the
+	// request spec. Base64 encoded.
+	PeerPrivateKey string `json:"peerPrivateKey,omitempty"`
+
+	// Endpoint contains the VPN endpoint this peer should connect
+	// to. Filled by `oneinfra`, and ciphered using the provided
+	// SymmetricKey in the request spec. Base64 encoded.
+	Endpoint string `json:"endpoint,omitempty"`
+
+	// EndpointPublicKey contains the VPN endpoint public key. Filled by
+	// `oneinfra`, and ciphered using the provided SymmetricKey in the
+	// request spec. Base64 encoded.
+	EndpointPublicKey string `json:"endpointPublicKey,omitempty"`
 }
 
 // +genclient

@@ -69,7 +69,7 @@ func main() {
 							&cli.StringFlag{
 								Name:  "vpn-cidr",
 								Usage: "CIDR used for the internal VPN",
-								Value: "10.0.0.0/8",
+								Value: "10.0.0.0/16",
 							},
 							&cli.StringSliceFlag{
 								Name:  "apiserver-extra-sans",

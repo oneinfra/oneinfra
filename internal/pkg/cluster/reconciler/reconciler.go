@@ -108,6 +108,7 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 		)
 		if cluster.VPN.Enabled {
 			clusterReconciler.reconcileMinimalVPNPeers(cluster, &reconcileErrors)
+			clusterReconciler.reconcileVPNServerEndpoint(cluster, &reconcileErrors)
 		}
 		clusterReconciler.reconcileCustomResourceDefinitions(cluster, &reconcileErrors)
 		clusterReconciler.reconcileNamespaces(cluster, &reconcileErrors)
@@ -161,6 +162,30 @@ func (clusterReconciler *ClusterReconciler) reconcileAPIServerEndpoint(cluster *
 	}
 	url := url.URL{Scheme: "https", Host: net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(apiserverHostPort))}
 	cluster.APIServerEndpoint = url.String()
+}
+
+func (clusterReconciler *ClusterReconciler) reconcileVPNServerEndpoint(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
+	controlPlaneIngressList := clusterReconciler.componentList.WithRole(componentapi.ControlPlaneIngressRole)
+	if len(controlPlaneIngressList) == 0 {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("could not find any control plane ingress component"))
+		return
+	}
+	if len(controlPlaneIngressList) > 1 {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("more than one control plane ingress component was found"))
+		return
+	}
+	controlPlaneIngress := controlPlaneIngressList[0]
+	hypervisor, exists := clusterReconciler.hypervisorMap[controlPlaneIngress.HypervisorName]
+	if !exists {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.New("found one control plane ingress component, but it is assigned to an unknown hypervisor"))
+		return
+	}
+	wireguardHostPort, exists := controlPlaneIngress.AllocatedHostPorts[components.WireguardHostPortName]
+	if !exists {
+		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Errorf("found one control plane ingress component, but it does not have a named host port %q yet", components.WireguardHostPortName))
+		return
+	}
+	cluster.VPNServerEndpoint = net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(wireguardHostPort))
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileMinimalVPNPeers(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {

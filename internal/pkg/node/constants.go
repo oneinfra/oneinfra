@@ -16,6 +16,12 @@
 
 package node
 
+import (
+	"path/filepath"
+
+	"github.com/oneinfra/oneinfra/pkg/constants"
+)
+
 const (
 	systemdDir = "/etc/systemd/system"
 
@@ -38,4 +44,10 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 `
+)
+
+var (
+	wireguardScriptPath         = filepath.Join(constants.OneInfraConfigDir, "oi-wg.sh")
+	wireguardSystemdServicePath = filepath.Join(systemdDir, "oi-wg.service")
+	peerPrivateKeyPath          = filepath.Join(constants.OneInfraConfigDir, "wg.key")
 )

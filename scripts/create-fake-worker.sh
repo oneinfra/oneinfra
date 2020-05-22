@@ -18,6 +18,8 @@ set -e
 
 export PATH=${GOPATH}/bin:./bin:${PATH}
 
+CLUSTER_NAME=${CLUSTER_NAME:-cluster}
+
 if [ -z "${CLUSTER_CONF}" ]; then
     echo 'Please, set $CLUSTER_CONF environment variable pointing to your cluster manifests'
     exit 1
@@ -45,6 +47,8 @@ APISERVER_ENDPOINT=$(cat ${CLUSTER_CONF} | oi-local-hypervisor-set endpoint --cl
 KUBERNETES_VERSION=$(cat ${CLUSTER_CONF} | oi cluster version --cluster "${CLUSTER_NAME}" kubernetes)
 CONTAINERD_VERSION=$(oi version component --component containerd --kubernetes-version ${KUBERNETES_VERSION})
 CONTAINER_ID=$(docker run --privileged ${NETWORK_ARG} -v /dev/null:/proc/swaps:ro -v /etc/resolv.conf:/etc/resolv.conf:ro -v ${OI_BIN}:/usr/local/bin/oi:ro -v $(realpath "${CLUSTER_CONF}"):/etc/oneinfra/cluster.conf:ro -d oneinfra/containerd:${CONTAINERD_VERSION})
+KUBECONFIG=/tmp/kubeconfig-${CLUSTER_NAME}.conf
+cat ${CLUSTER_CONF} | oi cluster admin-kubeconfig --cluster "${CLUSTER_NAME}" > ${KUBECONFIG}
 
 docker exec ${CONTAINER_ID} sh -c "rm /etc/cni/net.d/*"
 
@@ -67,7 +71,7 @@ docker exec ${CONTAINER_ID} sh -c "cat /etc/oneinfra/cluster.conf | oi cluster a
 docker exec ${CONTAINER_ID} sh -c "oi node join --nodename ${NODENAME} --extra-san ${FAKE_WORKER_IP_SAN} --apiserver-endpoint ${APISERVER_ENDPOINT} --apiserver-ca-cert-file /etc/oneinfra/apiserver-ca.crt --container-runtime-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --image-service-endpoint ${CONTAINERD_LOCAL_ENDPOINT} --join-token ${JOIN_TOKEN}" &
 
 echo -n "waiting for node join request to be created by the new node"
-until kubectl get njr ${NODENAME} -n oneinfra-system &> /dev/null
+until kubectl --kubeconfig=${KUBECONFIG} get njr ${NODENAME} -n oneinfra-system &> /dev/null
 do
     echo -n "."
     sleep 1

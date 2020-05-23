@@ -96,29 +96,8 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 	)
 	return []azure.Job{
 		{
-			Job:         fmt.Sprintf("e2e_%s_with_local_cri_endpoints", underscoredVersion),
-			DisplayName: fmt.Sprintf("e2e tests (%s) with local CRI endpoints", kubernetesVersion),
-			Pool:        azure.DefaultPool,
-			Steps: []azure.Step{
-				{
-					Bash:        "make deps",
-					DisplayName: "Install host dependencies",
-					Env: map[string]string{
-						"KUBERNETES_VERSION": kubernetesVersion,
-					},
-				},
-				{
-					Bash:        "make e2e",
-					DisplayName: "Run end to end tests",
-					Env: map[string]string{
-						"KUBERNETES_VERSION": kubernetesVersion,
-					},
-				},
-			},
-		},
-		{
-			Job:         fmt.Sprintf("e2e_%s_with_remote_cri_endpoints", underscoredVersion),
-			DisplayName: fmt.Sprintf("e2e tests (%s) with remote CRI endpoints", kubernetesVersion),
+			Job:         fmt.Sprintf("e2e_%s", underscoredVersion),
+			DisplayName: fmt.Sprintf("e2e tests (%s)", kubernetesVersion),
 			Pool:        azure.DefaultPool,
 			Steps: []azure.Step{
 				{

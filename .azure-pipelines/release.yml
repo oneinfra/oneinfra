@@ -3,7 +3,7 @@ jobs:
 - job: publish_containerd_1_3_4_container_image
   displayName: Publish containerd:1.3.4 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -13,7 +13,7 @@ jobs:
 - job: publish_hypervisor_1_15_12_container_image
   displayName: Publish hypervisor:1.15.12 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -23,7 +23,7 @@ jobs:
 - job: publish_kubelet_installer_1_15_12_container_image
   displayName: Publish kubelet-installer:1.15.12 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -33,7 +33,7 @@ jobs:
 - job: publish_hypervisor_1_16_9_container_image
   displayName: Publish hypervisor:1.16.9 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -43,7 +43,7 @@ jobs:
 - job: publish_kubelet_installer_1_16_9_container_image
   displayName: Publish kubelet-installer:1.16.9 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -53,7 +53,7 @@ jobs:
 - job: publish_hypervisor_1_17_5_container_image
   displayName: Publish hypervisor:1.17.5 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -63,7 +63,7 @@ jobs:
 - job: publish_kubelet_installer_1_17_5_container_image
   displayName: Publish kubelet-installer:1.17.5 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -73,7 +73,7 @@ jobs:
 - job: publish_hypervisor_1_18_2_container_image
   displayName: Publish hypervisor:1.18.2 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -83,7 +83,7 @@ jobs:
 - job: publish_kubelet_installer_1_18_2_container_image
   displayName: Publish kubelet-installer:1.18.2 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -93,7 +93,7 @@ jobs:
 - job: publish_hypervisor_1_19_0_alpha_3_container_image
   displayName: Publish hypervisor:1.19.0-alpha.3 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
@@ -103,7 +103,7 @@ jobs:
 - job: publish_kubelet_installer_1_19_0_alpha_3_container_image
   displayName: Publish kubelet-installer:1.19.0-alpha.3 container image
   pool:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image

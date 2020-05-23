@@ -18,5 +18,5 @@ package azure
 
 var (
 	// DefaultPool is the default pool to be used in Azure pipelines
-	DefaultPool = Pool{VMImage: "ubuntu-20.04"}
+	DefaultPool = Pool{VMImage: "ubuntu-18.04"}
 )

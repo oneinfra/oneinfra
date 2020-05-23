@@ -103,7 +103,11 @@ generate: replace-text-placeholders manifests
 replace-text-placeholders: oi-releaser
 	@./scripts/replace-text-placeholders.sh
 
-deps: pull-builder oi pull-hypervisor kubectl crictl
+os-information:
+	cat /etc/os-release
+	uname -a
+
+deps: os-information pull-builder oi pull-hypervisor kubectl crictl
 
 pull-hypervisor:
 	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-hypervisor

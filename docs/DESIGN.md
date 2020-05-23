@@ -18,11 +18,11 @@ public cloud.
     information from resources sitting on your management Kubernetes
     cluster.
 * Operating System agnostic
-* Edge ready (TODO)
+* Edge ready
   * Allow to safely join worker nodes, regardless of where they are
     located networking-wise with respect to control plane components
     (e.g. workers behind several NAT levels), or among them
-  * CNI overlay will be set on top of the VPN tunnel
+  * CNI overlay can be set on top of the VPN tunnel
 
 
 # Non-goals

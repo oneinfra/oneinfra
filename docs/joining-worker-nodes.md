@@ -71,12 +71,12 @@ actions that will take place:
 * `oi` on the worker node detects the `Issued` condition became
   `True`, and so it performs the following actions:
 
-  * Decipher the kubeconfig file, and write it to disk.
-  * Decipher the kubelet config file, and write it to disk.
+  * Decipher the kubeconfig file, and write it to disk
+  * Decipher the kubelet config file, and write it to disk
   * Install the `kubelet` binary that matches the Kubernetes version
-    in the `NodeJoinRequest` `status` object.
-  * Set up a `systemd` service to enable and start the `kubelet`.
-  * (TODO) Set up wireguard, if needed.
+    in the `NodeJoinRequest` `status` object
+  * Set up a `systemd` service to enable and start the `kubelet`
+  * Set up wireguard if needed
   * Exit successfully
 
 From this point on, the `kubelet` in the worker node will

@@ -8,7 +8,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: containerd:1.3.4
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_15_12_container_image
@@ -19,7 +18,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: hypervisor:1.15.12
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_kubelet_installer_1_15_12_container_image
@@ -30,7 +28,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: kubelet-installer:1.15.12
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_16_9_container_image
@@ -41,7 +38,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: hypervisor:1.16.9
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_kubelet_installer_1_16_9_container_image
@@ -52,7 +48,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: kubelet-installer:1.16.9
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_17_5_container_image
@@ -63,7 +58,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: hypervisor:1.17.5
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_kubelet_installer_1_17_5_container_image
@@ -74,7 +68,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: kubelet-installer:1.17.5
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_18_2_container_image
@@ -85,7 +78,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: hypervisor:1.18.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_kubelet_installer_1_18_2_container_image
@@ -96,7 +88,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: kubelet-installer:1.18.2
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_19_0_alpha_3_container_image
@@ -107,7 +98,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: hypervisor:1.19.0-alpha.3
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_kubelet_installer_1_19_0_alpha_3_container_image
@@ -118,7 +108,6 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: $(CONTAINER_BUILD_OPTIONS)
       CONTAINER_IMAGE: kubelet-installer:1.19.0-alpha.3
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 trigger:

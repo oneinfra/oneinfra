@@ -103,7 +103,7 @@ generate: replace-text-placeholders manifests
 replace-text-placeholders: oi-releaser
 	@./scripts/replace-text-placeholders.sh
 
-deps: pull-builder oi pull-hypervisor kubectl crictl wg
+deps: pull-builder oi pull-hypervisor kubectl crictl
 
 pull-hypervisor:
 	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-hypervisor
@@ -121,10 +121,6 @@ kubectl:
 # Install crictl
 crictl:
 	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh crictl
-
-# Installs wireguard
-wg:
-	./scripts/install-wireguard.sh
 
 # Run e2e with local CRI endpoints (to be moved to a proper e2e framework)
 e2e: oi oi-local-hypervisor-set

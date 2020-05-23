@@ -29,6 +29,8 @@ const (
 	DefaultClusterCIDR = "10.244.0.0/16"
 	// DefaultServiceCIDR is the default service CIDR
 	DefaultServiceCIDR = "10.96.0.0/12"
+	// DefaultVPNCIDR is the default VPN CIDR
+	DefaultVPNCIDR = "10.0.0.0/16"
 	// OneInfraNamespace is the namespace for storing OneInfra resources
 	OneInfraNamespace = "oneinfra-system"
 	// OneInfraVersionsConfigMap is the oneinfra versions ConfigMap

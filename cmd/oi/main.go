@@ -32,6 +32,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/app/oi/node"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	releasecomponents "github.com/oneinfra/oneinfra/internal/pkg/release-components"
+	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 func main() {
@@ -69,7 +70,7 @@ func main() {
 							&cli.StringFlag{
 								Name:  "vpn-cidr",
 								Usage: "CIDR used for the internal VPN",
-								Value: "10.0.0.0/16",
+								Value: constantsapi.DefaultVPNCIDR,
 							},
 							&cli.StringSliceFlag{
 								Name:  "apiserver-extra-sans",

@@ -81,6 +81,10 @@ func (cluster *Cluster) defaultVPN() {
 			Enabled: false,
 		}
 	}
+	if cluster.Spec.VPN.Enabled && cluster.Spec.VPN.CIDR == nil {
+		defaultVPNCIDR := constants.DefaultVPNCIDR
+		cluster.Spec.VPN.CIDR = &defaultVPNCIDR
+	}
 }
 
 func (cluster *Cluster) defaultUninitializedCertificatesLabel() {

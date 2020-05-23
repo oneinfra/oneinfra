@@ -111,7 +111,7 @@ func (cluster *Cluster) fillNodeJoinRequestKubernetesVersion(nodeJoinRequest *no
 }
 
 func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	if cluster.VPN == nil {
+	if cluster.VPN == nil || !cluster.VPN.Enabled {
 		return nil
 	}
 	nodeJoinRequest.VPN = &nodejoinrequests.VPN{}

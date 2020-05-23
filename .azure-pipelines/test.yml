@@ -3,7 +3,7 @@ jobs:
 - job: build
   displayName: Build
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make pull-builder
     displayName: Pull builder image
@@ -12,7 +12,7 @@ jobs:
 - job: unit_and_integration_tests
   displayName: Unit and Integration tests
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make pull-builder
     displayName: Pull builder image
@@ -21,7 +21,7 @@ jobs:
 - job: e2e_default
   displayName: e2e tests (default)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
@@ -34,7 +34,7 @@ jobs:
 - job: e2e_1_15_12
   displayName: e2e tests (1.15.12)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
@@ -47,7 +47,7 @@ jobs:
 - job: e2e_1_16_9
   displayName: e2e tests (1.16.9)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
@@ -60,7 +60,7 @@ jobs:
 - job: e2e_1_17_5
   displayName: e2e tests (1.17.5)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
@@ -73,7 +73,7 @@ jobs:
 - job: e2e_1_18_2
   displayName: e2e tests (1.18.2)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies
@@ -86,7 +86,7 @@ jobs:
 - job: e2e_1_19_0_alpha_3
   displayName: e2e tests (1.19.0-alpha.3)
   pool:
-    vmImage: ubuntu-18.04
+    vmImage: ubuntu-20.04
   steps:
   - bash: make deps
     displayName: Install host dependencies

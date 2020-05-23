@@ -80,10 +80,16 @@ func main() {
 								Name:  "image",
 								Usage: "images to build; can be provided several times in the form of image:version, all if not provided",
 							},
+							&cli.BoolFlag{
+								Name:  "force",
+								Value: false,
+								Usage: "force building images, even if they exist",
+							},
 						},
 						Action: func(c *cli.Context) error {
 							images.BuildContainerImages(
 								chosenContainerImages(c.StringSlice("image")),
+								c.Bool("force"),
 							)
 							return nil
 						},
@@ -96,10 +102,16 @@ func main() {
 								Name:  "image",
 								Usage: "images to publish; can be provided several times in the form of image:version, all if not provided",
 							},
+							&cli.BoolFlag{
+								Name:  "force",
+								Value: false,
+								Usage: "force building images, even if they exist",
+							},
 						},
 						Action: func(c *cli.Context) error {
 							images.PublishContainerImages(
 								chosenContainerImages(c.StringSlice("image")),
+								c.Bool("force"),
 							)
 							return nil
 						},

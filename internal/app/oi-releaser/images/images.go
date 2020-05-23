@@ -49,12 +49,19 @@ const (
 )
 
 // BuildContainerImages builds the container images to be published
-func BuildContainerImages(chosenContainerImages ContainerImageMapWithTags) {
-	executeForEachContainerImage(chosenContainerImages, shouldBuildImage, buildImage)
+func BuildContainerImages(chosenContainerImages ContainerImageMapWithTags, forceBuild bool) {
+	executeForEachContainerImage(chosenContainerImages, shouldBuildImage(forceBuild), buildImage)
 }
 
-func shouldBuildImage(containerImage ContainerImage, containerVersion string) bool {
-	return exec.Command("docker", "inspect", fmt.Sprintf("%s/%s:%s", namespace, containerImage, containerVersion)).Run() != nil
+func shouldBuildImage(forceBuild bool) func(containerImage ContainerImage, containerVersion string) bool {
+	if forceBuild {
+		return func(_ ContainerImage, _ string) bool {
+			return true
+		}
+	}
+	return func(containerImage ContainerImage, containerVersion string) bool {
+		return exec.Command("docker", "inspect", fmt.Sprintf("%s/%s:%s", namespace, containerImage, containerVersion)).Run() != nil
+	}
 }
 
 func buildImage(containerImage ContainerImage, containerVersion string) *exec.Cmd {
@@ -62,10 +69,14 @@ func buildImage(containerImage ContainerImage, containerVersion string) *exec.Cm
 }
 
 // PublishContainerImages publishes the container images
-func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags) {
+func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags, forcePublish bool) {
 	executeForEachContainerImage(
 		chosenContainerImages,
 		func(containerImage ContainerImage, containerVersion string) bool {
+			if forcePublish {
+				klog.Info("force publish was set, building image")
+				return true
+			}
 			resp, err := http.Get(fmt.Sprintf("https://index.docker.io/v1/repositories/%s/tags/%s", fmt.Sprintf("%s/%s", namespace, containerImage), containerVersion))
 			if err != nil {
 				klog.Warningf("could not check if image %s/%s:%s exists in registry: %v", namespace, containerImage, containerVersion, err)
@@ -79,7 +90,7 @@ func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags) {
 			return true
 		},
 		func(containerImage ContainerImage, containerVersion string) *exec.Cmd {
-			if shouldBuildImage(containerImage, containerVersion) {
+			if shouldBuildImage(forcePublish)(containerImage, containerVersion) {
 				if err := rawExecuteForContainerImage(containerImage, containerVersion, buildImage); err != nil {
 					klog.Warningf("could not build image %s", fmt.Sprintf("%s/%s:%s", namespace, containerImage, containerVersion))
 				}

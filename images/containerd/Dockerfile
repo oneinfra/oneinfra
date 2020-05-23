@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG CRI_TOOLS_VERSION
 ARG CNI_PLUGINS_VERSION
@@ -6,6 +6,7 @@ ARG CONTAINERD_VERSION
 
 COPY /fs /
 
+ENV DEBIAN_FRONTEND noninteractive
 ENV IMAGE_SERVICE_ENDPOINT unix:///containerd-socket/containerd.sock
 ENV CONTAINER_RUNTIME_ENDPOINT unix:///containerd-socket/containerd.sock
 
@@ -17,6 +18,8 @@ RUN echo "Installing dependencies" \
        ca-certificates \
        curl \
        iptables \
+       iproute2 \
+       wireguard-tools \
        wget \
 && echo "Installing CRI tools" \
   && wget https://github.com/kubernetes-sigs/cri-tools/releases/download/v${CRI_TOOLS_VERSION}/crictl-v${CRI_TOOLS_VERSION}-linux-amd64.tar.gz -O cri-tools.tar.gz \

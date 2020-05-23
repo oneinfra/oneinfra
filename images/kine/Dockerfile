@@ -1,5 +1,6 @@
-FROM ubuntu:18.04 AS builder
+FROM ubuntu:20.04 AS builder
 
+ENV DEBIAN_FRONTEND noninteractive
 ENV GOPATH /root/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 
@@ -27,7 +28,7 @@ RUN echo "Installing dependencies" \
             /usr/share/local/*
 
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 COPY --from=builder /root/go/bin/kine /usr/local/bin/
 RUN echo "Installing dependencies" \
   && apt-get update -qq \

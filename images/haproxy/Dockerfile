@@ -1,4 +1,4 @@
-FROM ubuntu:19.10
+FROM ubuntu:20.04
 
 RUN echo "Installing dependencies" \
   && apt-get update -qq \

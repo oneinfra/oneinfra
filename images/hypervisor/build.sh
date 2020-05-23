@@ -36,11 +36,9 @@ if [ -z "${KUBERNETES_VERSION}" ]; then
     exit 1
 fi
 
-docker pull oneinfra/containerd:${CONTAINERD_VERSION}
 CONTAINER_ID=$(docker run --privileged -d -it oneinfra/containerd:${CONTAINERD_VERSION})
 IMAGES=(oneinfra/haproxy:latest
         oneinfra/tooling:latest
-        oneinfra/wireguard:latest
         oneinfra/etcd:${ETCD_VERSION}
         k8s.gcr.io/pause:${PAUSE_VERSION}
         k8s.gcr.io/kube-apiserver:v${KUBERNETES_VERSION}

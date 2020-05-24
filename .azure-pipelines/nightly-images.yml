@@ -26,3 +26,4 @@ trigger:
     - master
 variables:
   CI: "1"
+  CONTAINER_BUILD_OPTIONS: --force

@@ -138,7 +138,11 @@ func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *n
 		return err
 	}
 	nodeJoinRequest.VPN.Endpoint = ingressVPNEndpoint
-	nodeJoinRequest.VPN.EndpointPublicKey = cluster.VPN.PublicKey
+	endpointPublicKey, err := nodeJoinRequest.Encrypt(cluster.VPN.PublicKey)
+	if err != nil {
+		return err
+	}
+	nodeJoinRequest.VPN.EndpointPublicKey = endpointPublicKey
 	return nil
 }
 

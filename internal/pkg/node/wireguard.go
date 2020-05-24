@@ -68,6 +68,10 @@ func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, 
 	if err != nil {
 		return "", err
 	}
+	endpointPublicKey, err := decrypt(symmetricKey, nodeJoinRequest.VPN.EndpointPublicKey)
+	if err != nil {
+		return "", err
+	}
 	template, err := template.New("").Parse(wireguardScriptTemplate)
 	if err != nil {
 		return "", err
@@ -84,7 +88,7 @@ func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, 
 		Address:            peerAddress,
 		PeerPrivateKeyPath: peerPrivateKeyPath,
 		Endpoint:           endpointAddress,
-		EndpointPublicKey:  nodeJoinRequest.VPN.EndpointPublicKey,
+		EndpointPublicKey:  endpointPublicKey,
 	})
 	return rendered.String(), err
 }

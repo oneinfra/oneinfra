@@ -170,6 +170,9 @@ func (ingress *ControlPlaneIngress) wireguardSystemdServiceContents(inquirer inq
 	}
 	var rendered bytes.Buffer
 	template, err := template.New("").Parse(wireguardSystemdServiceTemplate)
+	if err != nil {
+		return "", err
+	}
 	err = template.Execute(&rendered, wireguardServiceData)
 	return rendered.String(), err
 }
@@ -228,6 +231,9 @@ func (ingress *ControlPlaneIngress) wireguardScriptContents(inquirer inquirer.Re
 	}
 	var rendered bytes.Buffer
 	template, err := template.New("").Parse(wireguardScriptTemplate)
+	if err != nil {
+		return "", err
+	}
 	err = template.Execute(&rendered, wireguardScriptData)
 	return rendered.String(), err
 }

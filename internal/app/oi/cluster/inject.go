@@ -55,6 +55,9 @@ func Inject(clusterName, kubernetesVersion string, controlPlaneReplicas int, vpn
 				component.ControlPlaneIngressRole,
 				publicHypervisorList,
 			)
+			if err != nil {
+				klog.Fatalf("could not create new ingress component: %v", err)
+			}
 			components = append(components, component)
 			return components, nil
 		},

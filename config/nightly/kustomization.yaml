@@ -1,0 +1,7 @@
+namespace: oneinfra-system
+
+bases:
+- ../default
+
+patchesStrategicMerge:
+- manager.yaml

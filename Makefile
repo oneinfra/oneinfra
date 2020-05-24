@@ -50,6 +50,7 @@ clientsets-generate:
 pipelines: oi-releaser
 	oi-releaser pipelines test dump > .azure-pipelines/test.yml
 	oi-releaser pipelines release dump > .azure-pipelines/release.yml
+	oi-releaser pipelines nightly-images dump > .azure-pipelines/nightly-images.yml
 
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."

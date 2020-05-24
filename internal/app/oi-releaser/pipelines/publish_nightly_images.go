@@ -20,12 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
 	"sigs.k8s.io/yaml"
+
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
 )
 
-// AzureNightlyImages builds the Azure nightly images pipeline
-func AzureNightlyImages() error {
+// AzurePublishNightlyImages builds the Azure publish nightly images pipeline
+func AzurePublishNightlyImages() error {
 	pipeline := azure.Pipeline{
 		Variables: map[string]string{
 			"CI":                      "1",

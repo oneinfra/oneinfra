@@ -167,14 +167,14 @@ func main() {
 						},
 					},
 					{
-						Name:  "nightly-images",
-						Usage: "nightly images operations",
+						Name:  "publish-nightly-images",
+						Usage: "publish nightly images pipeline operations",
 						Subcommands: []*cli.Command{
 							{
 								Name:  "dump",
-								Usage: "dump the nightly images pipeline to stdout",
+								Usage: "dump the publish nightly images pipeline to stdout",
 								Action: func(c *cli.Context) error {
-									return pipelines.AzureNightlyImages()
+									return pipelines.AzurePublishNightlyImages()
 								},
 							},
 						},

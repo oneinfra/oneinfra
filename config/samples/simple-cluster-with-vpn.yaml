@@ -1,0 +1,7 @@
+apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
+kind: Cluster
+metadata:
+  name: simple-cluster-with-vpn
+spec:
+  vpn:
+    enabled: true

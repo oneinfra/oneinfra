@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"text/template"
 
+	"github.com/oneinfra/oneinfra/internal/pkg/crypto"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
 )
 
@@ -54,7 +55,7 @@ ip link set oi-wg up
 `
 )
 
-func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) (string, error) {
+func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) (string, error) {
 	cidr, err := decrypt(symmetricKey, nodeJoinRequest.VPN.CIDR)
 	if err != nil {
 		return "", err
@@ -64,10 +65,6 @@ func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, 
 		return "", err
 	}
 	endpointAddress, err := decrypt(symmetricKey, nodeJoinRequest.VPN.Endpoint)
-	if err != nil {
-		return "", err
-	}
-	endpointPublicKey, err := decrypt(symmetricKey, nodeJoinRequest.VPN.EndpointPublicKey)
 	if err != nil {
 		return "", err
 	}
@@ -87,7 +84,7 @@ func wireguardScriptContents(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, 
 		Address:            peerAddress,
 		PeerPrivateKeyPath: peerPrivateKeyPath,
 		Endpoint:           endpointAddress,
-		EndpointPublicKey:  endpointPublicKey,
+		EndpointPublicKey:  nodeJoinRequest.VPN.EndpointPublicKey,
 	})
 	return rendered.String(), err
 }
@@ -106,7 +103,7 @@ func wireguardSystemdServiceContents() (string, error) {
 	return rendered.String(), err
 }
 
-func setupWireguard(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func setupWireguard(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	wireguardSystemdServiceContents, err := wireguardSystemdServiceContents()
 	if err != nil {
 		return err

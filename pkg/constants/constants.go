@@ -57,9 +57,6 @@ const (
 	// OneInfraClusterUninitializedCertificates is the name of the label
 	// when a cluster needs certificates or keys to be initialized
 	OneInfraClusterUninitializedCertificates = "oneinfra/uninitialized-certificates"
-	// OneInfraControlPlaneIngressVPNPeerName represents the control
-	// plane ingress peer VPN name
-	OneInfraControlPlaneIngressVPNPeerName = "control-plane-ingress"
 	// OneInfraCleanupFinalizer is a finalizer for cleaning up resources
 	OneInfraCleanupFinalizer = "oneinfra/cleanup"
 	// KubeletDir is the kubelet configuration dir

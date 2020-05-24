@@ -26,7 +26,6 @@ import (
 	nodev1alpha1 "github.com/oneinfra/oneinfra/apis/node/v1alpha1"
 	"github.com/oneinfra/oneinfra/internal/pkg/conditions"
 	nodejoinrequests "github.com/oneinfra/oneinfra/internal/pkg/node-join-requests"
-	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // ReconcileNodeJoinRequests reconciles this cluster node join requests
@@ -139,15 +138,7 @@ func (cluster *Cluster) fillNodeJoinRequestVPNAddressAndPeers(nodeJoinRequest *n
 		return err
 	}
 	nodeJoinRequest.VPN.Endpoint = ingressVPNEndpoint
-	ingressVPNEndpointRaw, exists := cluster.VPNPeers[constants.OneInfraControlPlaneIngressVPNPeerName]
-	if !exists {
-		return err
-	}
-	endpointPublicKey, err := nodeJoinRequest.Encrypt(ingressVPNEndpointRaw.PublicKey)
-	if err != nil {
-		return err
-	}
-	nodeJoinRequest.VPN.EndpointPublicKey = endpointPublicKey
+	nodeJoinRequest.VPN.EndpointPublicKey = cluster.VPN.PublicKey
 	return nil
 }
 
@@ -155,6 +146,12 @@ func (cluster *Cluster) fillNodeJoinRequestKubeConfig(nodeJoinRequest *nodejoinr
 	apiServerEndpoint := nodeJoinRequest.APIServerEndpoint
 	if apiServerEndpoint == "" {
 		apiServerEndpoint = cluster.APIServerEndpoint
+	} else {
+		var err error
+		apiServerEndpoint, err = nodeJoinRequest.Decrypt(nodeJoinRequest.APIServerEndpoint)
+		if err != nil {
+			return err
+		}
 	}
 	kubeConfig, err := cluster.KubeConfigWithEndpoint(
 		apiServerEndpoint,
@@ -186,7 +183,17 @@ func (cluster *Cluster) fillNodeJoinRequestKubeletConfig(nodeJoinRequest *nodejo
 }
 
 func (cluster *Cluster) fillNodeJoinRequestKubeletServerCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
-	extraSANs := nodeJoinRequest.ExtraSANs
+	extraSANs := []string{}
+	for _, extraSAN := range nodeJoinRequest.ExtraSANs {
+		extraSAN, err := nodeJoinRequest.Decrypt(extraSAN)
+		if err != nil {
+			return err
+		}
+		extraSANs = append(
+			extraSANs,
+			extraSAN,
+		)
+	}
 	extraSANs = append(
 		extraSANs,
 		nodeJoinRequest.Name,

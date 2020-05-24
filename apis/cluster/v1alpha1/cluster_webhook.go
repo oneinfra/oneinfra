@@ -17,6 +17,7 @@
 package v1alpha1
 
 import (
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -80,10 +81,19 @@ func (cluster *Cluster) defaultVPN() {
 		cluster.Spec.VPN = &VPN{
 			Enabled: false,
 		}
+		return
 	}
 	if cluster.Spec.VPN.Enabled && cluster.Spec.VPN.CIDR == nil {
 		defaultVPNCIDR := constants.DefaultVPNCIDR
 		cluster.Spec.VPN.CIDR = &defaultVPNCIDR
+	}
+	if cluster.Spec.VPN.Enabled && (cluster.Spec.VPN.PrivateKey == "" || cluster.Spec.VPN.PublicKey == "") {
+		privateKey, err := wgtypes.GeneratePrivateKey()
+		if err != nil {
+			return
+		}
+		cluster.Spec.VPN.PrivateKey = privateKey.String()
+		cluster.Spec.VPN.PublicKey = privateKey.PublicKey().String()
 	}
 }
 

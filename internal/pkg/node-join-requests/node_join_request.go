@@ -133,6 +133,11 @@ func (nodeJoinRequest *NodeJoinRequest) Export() (*nodev1alpha1.NodeJoinRequest,
 	return &res, nil
 }
 
+// Decrypt decrypts the given content using this node join request symmetric key
+func (nodeJoinRequest *NodeJoinRequest) Decrypt(content string) (string, error) {
+	return nodeJoinRequest.SymmetricKey.Decrypt(content)
+}
+
 // Encrypt encrypts the given content using this node join request symmetric key
 func (nodeJoinRequest *NodeJoinRequest) Encrypt(content string) (string, error) {
 	return nodeJoinRequest.SymmetricKey.Encrypt(content)

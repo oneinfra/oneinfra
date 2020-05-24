@@ -107,7 +107,6 @@ func (clusterReconciler *ClusterReconciler) Reconcile(optionalReconcile Optional
 			conditions.ConditionTrue,
 		)
 		if cluster.VPN.Enabled {
-			clusterReconciler.reconcileMinimalVPNPeers(cluster, &reconcileErrors)
 			clusterReconciler.reconcileVPNServerEndpoint(cluster, &reconcileErrors)
 		}
 		clusterReconciler.reconcileCustomResourceDefinitions(cluster, &reconcileErrors)
@@ -186,13 +185,6 @@ func (clusterReconciler *ClusterReconciler) reconcileVPNServerEndpoint(cluster *
 		return
 	}
 	cluster.VPNServerEndpoint = net.JoinHostPort(hypervisor.IPAddress, strconv.Itoa(wireguardHostPort))
-}
-
-func (clusterReconciler *ClusterReconciler) reconcileMinimalVPNPeers(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {
-	if err := cluster.ReconcileMinimalVPNPeers(); err != nil {
-		klog.Errorf("failed to reconcile minimal VPN peers for cluster %q: %v", cluster.Name, err)
-		reconcileErrors.AddClusterError(cluster.Namespace, cluster.Name, errors.Wrap(err, "failed to reconcile minimal VPN peers"))
-	}
 }
 
 func (clusterReconciler *ClusterReconciler) reconcileCustomResourceDefinitions(cluster *clusterapi.Cluster, reconcileErrors *reconciler.ReconcileErrors) {

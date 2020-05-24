@@ -62,6 +62,16 @@ type VPN struct {
 	// +optional
 	Enabled bool `json:"enabled"`
 
+	// The VPN ingress private key. Auto-generated if not provided.
+	//
+	// +optional
+	PrivateKey string `json:"privateKey,omitempty"`
+
+	// The VPN ingress public key. Auto-generated if not provided.
+	//
+	// +optional
+	PublicKey string `json:"publicKey,omitempty"`
+
 	// The VPN CIDR for this cluster. 10.0.0.0/16 by default.
 	//
 	// +optional

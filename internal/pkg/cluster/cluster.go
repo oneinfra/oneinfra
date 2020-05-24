@@ -107,6 +107,12 @@ func NewCluster(clusterName, kubernetesVersion string, controlPlaneReplicas int,
 			return nil, err
 		}
 		res.VPN.CIDR = vpnCIDRNet
+		privateKey, err := wgtypes.GeneratePrivateKey()
+		if err != nil {
+			return nil, err
+		}
+		res.VPN.PrivateKey = privateKey.String()
+		res.VPN.PublicKey = privateKey.PublicKey().String()
 	}
 	if err := res.InitializeCertificatesAndKeys(); err != nil {
 		return nil, err

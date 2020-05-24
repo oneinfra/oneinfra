@@ -20,13 +20,14 @@ import (
 	"net"
 
 	clusterv1alpha1 "github.com/oneinfra/oneinfra/apis/cluster/v1alpha1"
-	"github.com/oneinfra/oneinfra/pkg/constants"
 )
 
 // VPN represents the VPN configuration
 type VPN struct {
-	Enabled bool
-	CIDR    *net.IPNet
+	Enabled    bool
+	PrivateKey string
+	PublicKey  string
+	CIDR       *net.IPNet
 }
 
 // VPNPeer represents a VPN peer
@@ -47,22 +48,26 @@ func newVPNFromv1alpha1(vpn *clusterv1alpha1.VPN) *VPN {
 		}
 	}
 	return &VPN{
-		Enabled: vpn.Enabled,
-		CIDR:    newVPNCIDRFromv1alpha1(*vpn.CIDR),
+		Enabled:    vpn.Enabled,
+		PrivateKey: vpn.PrivateKey,
+		PublicKey:  vpn.PublicKey,
+		CIDR:       newVPNCIDRFromv1alpha1(*vpn.CIDR),
 	}
 }
 
 // Export exports this VPN to a versioned VPN
 func (vpn *VPN) Export() *clusterv1alpha1.VPN {
-	if vpn.CIDR == nil {
+	if vpn == nil || !vpn.Enabled || vpn.CIDR == nil {
 		return &clusterv1alpha1.VPN{
 			Enabled: false,
 		}
 	}
 	vpnCIDR := vpn.CIDR.String()
 	return &clusterv1alpha1.VPN{
-		Enabled: vpn.Enabled,
-		CIDR:    &vpnCIDR,
+		Enabled:    vpn.Enabled,
+		PrivateKey: vpn.PrivateKey,
+		PublicKey:  vpn.PublicKey,
+		CIDR:       &vpnCIDR,
 	}
 }
 
@@ -108,10 +113,4 @@ func (vpnPeerMap VPNPeerMap) Export() []clusterv1alpha1.VPNPeer {
 		})
 	}
 	return res
-}
-
-// ReconcileMinimalVPNPeers reconciles a minimal list of VPN peers
-func (cluster *Cluster) ReconcileMinimalVPNPeers() error {
-	_, err := cluster.GenerateVPNPeer(constants.OneInfraControlPlaneIngressVPNPeerName)
-	return err
 }

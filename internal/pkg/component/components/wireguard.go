@@ -29,7 +29,6 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
-	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 	"k8s.io/klog"
 )
 
@@ -83,10 +82,6 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 	component := inquirer.Component()
 	hypervisor := inquirer.Hypervisor()
 	cluster := inquirer.Cluster()
-	ingressPeer, err := cluster.GenerateVPNPeer(constantsapi.OneInfraControlPlaneIngressVPNPeerName)
-	if err != nil {
-		return err
-	}
 	wireguardSystemdServiceContents, err := ingress.wireguardSystemdServiceContents(inquirer)
 	if err != nil {
 		return err
@@ -104,7 +99,7 @@ func (ingress *ControlPlaneIngress) reconcileWireguard(inquirer inquirer.Reconci
 		map[string]string{
 			ingress.wireguardSystemdServicePath(inquirer): wireguardSystemdServiceContents,
 			ingress.wireguardScriptPath(inquirer):         wireguardScriptContents,
-			privateKeyPath:                                ingressPeer.PrivateKey,
+			privateKeyPath:                                cluster.VPN.PrivateKey,
 		},
 	)
 	if err != nil {
@@ -210,9 +205,6 @@ func (ingress *ControlPlaneIngress) wireguardScriptContents(inquirer inquirer.Re
 		}{},
 	}
 	for _, vpnPeer := range cluster.VPNPeers {
-		if vpnPeer.Name == constantsapi.OneInfraControlPlaneIngressVPNPeerName {
-			continue
-		}
 		ipAddress, _, err := net.ParseCIDR(vpnPeer.Address)
 		if err != nil {
 			continue

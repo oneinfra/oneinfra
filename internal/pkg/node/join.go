@@ -140,20 +140,40 @@ func createOneInfraManagedClient(apiServerEndpoint, caCertificate, token string)
 	return cluster.OneInfraManagedClientFromKubeConfig(kubeConfig)
 }
 
-func createJoinRequest(client oneinframanagedclientset.Interface, apiServerEndpoint, nodename, symmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string) error {
+func createJoinRequest(client oneinframanagedclientset.Interface, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint string, extraSANs []string, symmetricKey crypto.SymmetricKey) error {
+	cryptedAPIServerEndpoint, err := symmetricKey.Encrypt(apiServerEndpoint)
+	if err != nil {
+		return err
+	}
+	cryptedContainerRuntimeEndpoint, err := symmetricKey.Encrypt(containerRuntimeEndpoint)
+	if err != nil {
+		return err
+	}
+	cryptedImageServiceEndpoint, err := symmetricKey.Encrypt(imageServiceEndpoint)
+	if err != nil {
+		return err
+	}
+	cryptedExtraSANs := []string{}
+	for _, extraSAN := range extraSANs {
+		cryptedExtraSAN, err := symmetricKey.Encrypt(extraSAN)
+		if err != nil {
+			return err
+		}
+		cryptedExtraSANs = append(cryptedExtraSANs, cryptedExtraSAN)
+	}
 	nodeJoinRequest := nodev1alpha1.NodeJoinRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nodename,
 		},
 		Spec: nodev1alpha1.NodeJoinRequestSpec{
-			SymmetricKey:             symmetricKey,
-			APIServerEndpoint:        apiServerEndpoint,
-			ContainerRuntimeEndpoint: containerRuntimeEndpoint,
-			ImageServiceEndpoint:     imageServiceEndpoint,
-			ExtraSANs:                extraSANs,
+			SymmetricKey:             cryptedSymmetricKey,
+			APIServerEndpoint:        cryptedAPIServerEndpoint,
+			ContainerRuntimeEndpoint: cryptedContainerRuntimeEndpoint,
+			ImageServiceEndpoint:     cryptedImageServiceEndpoint,
+			ExtraSANs:                cryptedExtraSANs,
 		},
 	}
-	_, err := client.NodeV1alpha1().NodeJoinRequests().Create(
+	_, err = client.NodeV1alpha1().NodeJoinRequests().Create(
 		context.TODO(),
 		&nodeJoinRequest,
 		metav1.CreateOptions{},
@@ -193,7 +213,7 @@ func waitForJoinRequestIssuedCondition(client oneinframanagedclientset.Interface
 	}
 }
 
-func readOrGenerateSymmetricKey() (string, error) {
+func readOrGenerateSymmetricKey() (crypto.SymmetricKey, error) {
 	var symmetricKey string
 	if _, err := os.Stat(filepath.Join(constants.OneInfraConfigDir, "join.key")); os.IsNotExist(err) {
 		symmetricKeyRaw := make([]byte, 16)
@@ -215,10 +235,10 @@ func readOrGenerateSymmetricKey() (string, error) {
 		}
 		symmetricKey = string(symmetricKeyBytes)
 	}
-	return symmetricKey, nil
+	return crypto.SymmetricKey(symmetricKey), nil
 }
 
-func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	kubeConfig, err := decrypt(symmetricKey, nodeJoinRequest.KubeConfig)
 	if err != nil {
 		return err
@@ -229,7 +249,7 @@ func writeKubeConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetri
 	return ioutil.WriteFile(constants.KubeletKubeConfigPath, []byte(kubeConfig), 0600)
 }
 
-func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	kubeletConfig, err := decrypt(symmetricKey, nodeJoinRequest.KubeletConfig)
 	if err != nil {
 		return err
@@ -240,7 +260,7 @@ func writeKubeletConfig(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symme
 	return ioutil.WriteFile(constants.KubeletConfigPath, []byte(kubeletConfig), 0600)
 }
 
-func writeKubeletServerCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func writeKubeletServerCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	certificate, err := decrypt(symmetricKey, nodeJoinRequest.KubeletServerCertificate)
 	if err != nil {
 		return err
@@ -258,7 +278,7 @@ func writeKubeletServerCertificate(nodeJoinRequest *nodejoinrequests.NodeJoinReq
 	return ioutil.WriteFile(constants.KubeletServerPrivateKeyPath, []byte(privateKey), 0600)
 }
 
-func writeKubeletClientCACertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func writeKubeletClientCACertificate(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	clientCACertificate, err := decrypt(symmetricKey, nodeJoinRequest.KubeletClientCACertificate)
 	if err != nil {
 		return err
@@ -269,15 +289,23 @@ func writeKubeletClientCACertificate(nodeJoinRequest *nodejoinrequests.NodeJoinR
 	return ioutil.WriteFile(constants.KubeletClientCACertificatePath, []byte(clientCACertificate), 0600)
 }
 
-func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	kubernetesVersion, err := decrypt(symmetricKey, nodeJoinRequest.KubernetesVersion)
+	if err != nil {
+		return err
+	}
+	containerRuntimeEndpoint, err := decrypt(symmetricKey, nodeJoinRequest.ContainerRuntimeEndpoint)
+	if err != nil {
+		return err
+	}
+	imageServiceEndpoint, err := decrypt(symmetricKey, nodeJoinRequest.ImageServiceEndpoint)
 	if err != nil {
 		return err
 	}
 	kubeletImage := fmt.Sprintf(kubeletInstallerImage, kubernetesVersion)
 	klog.Infof("installing the kubelet from %q", kubeletImage)
-	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ImageServiceEndpoint)
-	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, nodeJoinRequest.ContainerRuntimeEndpoint)
+	hypervisorRuntimeEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, containerRuntimeEndpoint)
+	hypervisorImageEndpoint := infra.NewLocalHypervisor(nodeJoinRequest.Name, imageServiceEndpoint)
 	if err := hypervisorImageEndpoint.EnsureImage(kubeletImage); err != nil {
 		return err
 	}
@@ -302,8 +330,16 @@ func installKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetric
 		})
 }
 
-func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
+func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	kubeletSystemdServiceTpl, err := template.New("").Parse(kubeletSystemdServiceTemplate)
+	if err != nil {
+		return err
+	}
+	containerRuntimeEndpoint, err := decrypt(symmetricKey, nodeJoinRequest.ContainerRuntimeEndpoint)
+	if err != nil {
+		return err
+	}
+	imageServiceEndpoint, err := decrypt(symmetricKey, nodeJoinRequest.ImageServiceEndpoint)
 	if err != nil {
 		return err
 	}
@@ -318,8 +354,8 @@ func setupSystemd(nodeJoinRequest *nodejoinrequests.NodeJoinRequest) error {
 		Nodename:                 nodeJoinRequest.Name,
 		KubeletKubeConfigPath:    constants.KubeletKubeConfigPath,
 		KubeletConfigPath:        constants.KubeletConfigPath,
-		ImageServiceEndpoint:     nodeJoinRequest.ImageServiceEndpoint,
-		ContainerRuntimeEndpoint: nodeJoinRequest.ContainerRuntimeEndpoint,
+		ContainerRuntimeEndpoint: containerRuntimeEndpoint,
+		ImageServiceEndpoint:     imageServiceEndpoint,
 	})
 	if err != nil {
 		return err
@@ -331,7 +367,7 @@ func startKubelet() error {
 	return exec.Command("systemctl", "enable", "--now", "kubelet").Run()
 }
 
-func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint, symmetricKey string, extraSANs []string) (*nodejoinrequests.NodeJoinRequest, error) {
+func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, token, containerRuntimeEndpoint, imageServiceEndpoint string, symmetricKey crypto.SymmetricKey, extraSANs []string) (*nodejoinrequests.NodeJoinRequest, error) {
 	oneinfraManagedClient, err := createOneInfraManagedClient(apiServerEndpoint, caCertificate, token)
 	if err != nil {
 		return nil, err
@@ -357,18 +393,18 @@ func createAndWaitForJoinRequest(nodename, apiServerEndpoint, caCertificate, tok
 	if err != nil {
 		return nil, errors.New("could not read a public key")
 	}
-	cryptedSymmetricKey, err := joinPublicKey.Encrypt(symmetricKey)
+	cryptedSymmetricKey, err := joinPublicKey.Encrypt(string(symmetricKey))
 	if err != nil {
 		return nil, err
 	}
 	klog.Infof("creating node join request for nodename %q", nodename)
-	if err := createJoinRequest(oneinfraManagedClient, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint, extraSANs); err != nil {
+	if err := createJoinRequest(oneinfraManagedClient, apiServerEndpoint, nodename, cryptedSymmetricKey, containerRuntimeEndpoint, imageServiceEndpoint, extraSANs, symmetricKey); err != nil {
 		return nil, err
 	}
 	return waitForJoinRequestIssuedCondition(oneinfraManagedClient, nodename, 5*time.Minute)
 }
 
-func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey string) error {
+func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKey crypto.SymmetricKey) error {
 	klog.Info("writing kubelet configuration and secrets")
 	if err := writeKubeConfig(nodeJoinRequest, symmetricKey); err != nil {
 		return err
@@ -385,13 +421,13 @@ func setupKubelet(nodeJoinRequest *nodejoinrequests.NodeJoinRequest, symmetricKe
 	if err := installKubelet(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
-	if err := setupSystemd(nodeJoinRequest); err != nil {
+	if err := setupSystemd(nodeJoinRequest, symmetricKey); err != nil {
 		return err
 	}
 	return startKubelet()
 }
 
-func decrypt(symmetricKey string, base64Data string) (string, error) {
+func decrypt(symmetricKey crypto.SymmetricKey, base64Data string) (string, error) {
 	block, err := aes.NewCipher([]byte(symmetricKey))
 	if err != nil {
 		return "", err

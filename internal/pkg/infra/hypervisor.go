@@ -358,6 +358,18 @@ func (hypervisor *Hypervisor) ensurePod(clusterNamespace, clusterName, component
 		}
 		podSandboxID = podSandboxResponse.PodSandboxId
 	}
+	err = hypervisor.ensureContainers(
+		criRuntime,
+		podSandboxID,
+		podSandboxConfig,
+		podRunningContainers,
+		podNotRunningContainers,
+		pod,
+	)
+	return podSandboxID, err
+}
+
+func (hypervisor *Hypervisor) ensureContainers(criRuntime criapi.RuntimeServiceClient, podSandboxID string, podSandboxConfig criapi.PodSandboxConfig, podRunningContainers, podNotRunningContainers map[string]*criapi.Container, pod podapi.Pod) error {
 	containerIds := []string{}
 	for _, container := range pod.Containers {
 		if _, exists := podRunningContainers[container.Name]; exists {
@@ -425,22 +437,22 @@ func (hypervisor *Hypervisor) ensurePod(clusterNamespace, clusterName, component
 			&createContainerRequest,
 		)
 		if err != nil {
-			return "", err
+			return err
 		}
 		containerIds = append(containerIds, containerResponse.ContainerId)
 	}
 	for _, containerID := range containerIds {
-		_, err = criRuntime.StartContainer(
+		_, err := criRuntime.StartContainer(
 			context.TODO(),
 			&criapi.StartContainerRequest{
 				ContainerId: containerID,
 			},
 		)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
-	return podSandboxID, nil
+	return nil
 }
 
 // WaitForPod waits for all containers in a pod to have exited

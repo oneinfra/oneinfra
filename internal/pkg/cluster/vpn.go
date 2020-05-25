@@ -49,8 +49,8 @@ func newVPNFromv1alpha1(vpn *clusterv1alpha1.VPN) *VPN {
 	}
 	return &VPN{
 		Enabled:    vpn.Enabled,
-		PrivateKey: vpn.PrivateKey,
-		PublicKey:  vpn.PublicKey,
+		PrivateKey: *vpn.PrivateKey,
+		PublicKey:  *vpn.PublicKey,
 		CIDR:       newVPNCIDRFromv1alpha1(*vpn.CIDR),
 	}
 }
@@ -65,8 +65,8 @@ func (vpn *VPN) Export() *clusterv1alpha1.VPN {
 	vpnCIDR := vpn.CIDR.String()
 	return &clusterv1alpha1.VPN{
 		Enabled:    vpn.Enabled,
-		PrivateKey: vpn.PrivateKey,
-		PublicKey:  vpn.PublicKey,
+		PrivateKey: &vpn.PrivateKey,
+		PublicKey:  &vpn.PublicKey,
 		CIDR:       &vpnCIDR,
 	}
 }

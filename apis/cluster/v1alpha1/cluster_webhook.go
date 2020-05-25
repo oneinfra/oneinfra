@@ -87,13 +87,14 @@ func (cluster *Cluster) defaultVPN() {
 		defaultVPNCIDR := constants.DefaultVPNCIDR
 		cluster.Spec.VPN.CIDR = &defaultVPNCIDR
 	}
-	if cluster.Spec.VPN.Enabled && (cluster.Spec.VPN.PrivateKey == "" || cluster.Spec.VPN.PublicKey == "") {
+	if cluster.Spec.VPN.Enabled && (cluster.Spec.VPN.PrivateKey == nil || cluster.Spec.VPN.PublicKey == nil) {
 		privateKey, err := wgtypes.GeneratePrivateKey()
 		if err != nil {
 			return
 		}
-		cluster.Spec.VPN.PrivateKey = privateKey.String()
-		cluster.Spec.VPN.PublicKey = privateKey.PublicKey().String()
+		privateKeyRaw, publicKeyRaw := privateKey.String(), privateKey.PublicKey().String()
+		cluster.Spec.VPN.PrivateKey = &privateKeyRaw
+		cluster.Spec.VPN.PublicKey = &publicKeyRaw
 	}
 }
 

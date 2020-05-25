@@ -64,7 +64,7 @@ func main() {
 							},
 							&cli.BoolFlag{
 								Name:  "vpn-enabled",
-								Usage: "CIDR used for the internal VPN",
+								Usage: "Whether the VPN is enabled for this cluster",
 								Value: false,
 							},
 							&cli.StringFlag{

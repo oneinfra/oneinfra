@@ -65,14 +65,35 @@ func AzureTest() error {
 			},
 		},
 	}
+	publishJobs := []string{}
+	for _, containerdVersion := range constants.TestData.ContainerdVersions {
+		pipeline.Jobs = append(
+			pipeline.Jobs,
+			publishContainerJob(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
+		)
+		publishJobs = append(
+			publishJobs,
+			jobName(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
+		)
+	}
+	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+		pipeline.Jobs = append(
+			pipeline.Jobs,
+			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
+		)
+		publishJobs = append(
+			publishJobs,
+			jobName(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
+		)
+	}
 	pipeline.Jobs = append(
 		pipeline.Jobs,
-		e2eTestsWithKubernetesVersion("default")...,
+		e2eTestsWithKubernetesVersion("default", publishJobs)...,
 	)
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion.Version)...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, publishJobs)...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)
@@ -89,7 +110,7 @@ func AzureTest() error {
 	return nil
 }
 
-func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
+func e2eTestsWithKubernetesVersion(kubernetesVersion string, dependsOn []string) []azure.Job {
 	underscoredVersion := strings.ReplaceAll(
 		strings.ReplaceAll(kubernetesVersion, ".", "_"),
 		"-", "_",
@@ -115,6 +136,7 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 					},
 				},
 			},
+			DependsOn: dependsOn,
 		},
 	}
 }

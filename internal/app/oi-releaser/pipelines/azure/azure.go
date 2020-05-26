@@ -36,11 +36,17 @@ type Pipeline struct {
 // Trigger represents a pipeline trigger
 type Trigger struct {
 	Branches *BranchesTrigger `json:"branches,omitempty"`
+	Tags     *TagsTrigger     `json:"tags,omitempty"`
 	Paths    *PathsTrigger    `json:"paths,omitempty"`
 }
 
 // BranchesTrigger represents a branch trigger
 type BranchesTrigger struct {
+	Include []string `json:"include,omitempty"`
+}
+
+// TagsTrigger represents a tag trigger
+type TagsTrigger struct {
 	Include []string `json:"include,omitempty"`
 }
 
@@ -51,10 +57,11 @@ type PathsTrigger struct {
 
 // Job represents an Azure job
 type Job struct {
-	Job         string `json:"_job,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	Pool        Pool   `json:"pool,omitempty"`
-	Steps       []Step `json:"steps,omitempty"`
+	Job         string   `json:"_job,omitempty"`
+	DisplayName string   `json:"displayName,omitempty"`
+	Pool        Pool     `json:"pool,omitempty"`
+	Steps       []Step   `json:"steps,omitempty"`
+	DependsOn   []string `json:"dependsOn,omitempty"`
 }
 
 // Pool represents an Azure pool

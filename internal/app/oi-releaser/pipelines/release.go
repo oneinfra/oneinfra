@@ -23,7 +23,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
-	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
 // AzureRelease builds the Azure release pipeline
@@ -32,31 +31,28 @@ func AzureRelease() error {
 		Variables: map[string]string{
 			"CI": "1",
 		},
-		Trigger: &azure.Trigger{
-			Branches: &azure.BranchesTrigger{
-				Include: []string{"master"},
-			},
-			Paths: &azure.PathsTrigger{
-				Include: []string{
-					"RELEASE",
-					"RELEASE_TEST",
-					".azure-pipelines/release.yml",
+		Jobs: []azure.Job{
+			{
+				Job:         "release",
+				DisplayName: "release",
+				Pool:        azure.DefaultPool,
+				Steps: []azure.Step{
+					{
+						Bash:        "make release",
+						DisplayName: "Release",
+						Env: map[string]string{
+							"DOCKER_HUB_TOKEN": "$(DOCKER_HUB_TOKEN)",
+							"GITHUB_TOKEN":     "$(GITHUB_TOKEN)",
+						},
+					},
 				},
 			},
 		},
-	}
-	for _, containerdVersion := range constants.TestData.ContainerdVersions {
-		pipeline.Jobs = append(
-			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
-		)
-	}
-	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-		pipeline.Jobs = append(
-			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
-			publishContainerJob(fmt.Sprintf("kubelet-installer:%s", kubernetesVersion.Version)),
-		)
+		Trigger: &azure.Trigger{
+			Tags: &azure.TagsTrigger{
+				Include: []string{"*"},
+			},
+		},
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)
 	if err != nil {
@@ -70,29 +66,4 @@ func AzureRelease() error {
 	)
 	fmt.Print(azurifiedYAML)
 	return nil
-}
-
-func publishContainerJob(container string) azure.Job {
-	underscoredVersion := strings.ReplaceAll(
-		strings.ReplaceAll(
-			strings.ReplaceAll(container, ".", "_"),
-			"-", "_",
-		),
-		":", "_",
-	)
-	return azure.Job{
-		Job:         fmt.Sprintf("publish_%s_container_image", underscoredVersion),
-		DisplayName: fmt.Sprintf("Publish %s container image", container),
-		Pool:        azure.DefaultPool,
-		Steps: []azure.Step{
-			{
-				Bash:        "make publish-container-image-ci",
-				DisplayName: "Publish container image",
-				Env: map[string]string{
-					"CONTAINER_IMAGE":  container,
-					"DOCKER_HUB_TOKEN": "$(DOCKER_HUB_TOKEN)",
-				},
-			},
-		},
-	}
 }

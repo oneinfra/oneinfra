@@ -40,8 +40,8 @@
     ```console
     $ kubectl get clusters -A
     NAMESPACE   NAME             KUBERNETES VERSION   API SERVER ENDPOINT        VPN     VPN CIDR   AGE
-    default     ha-cluster       1.18.2               https://172.17.0.4:30001   false              3m10s
-    default     simple-cluster   1.18.2               https://172.17.0.4:30000   false              6m40s
+    default     ha-cluster       1.18.3               https://172.17.0.4:30001   false              3m10s
+    default     simple-cluster   1.18.3               https://172.17.0.4:30000   false              6m40s
     ```
 
     ```console

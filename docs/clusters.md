@@ -68,14 +68,14 @@ kind: Cluster
 metadata:
   name: my-1-17-cluster
 spec:
-  kubernetesVersion: 1.17.5
+  kubernetesVersion: 1.17.6
 ---
 apiVersion: cluster.oneinfra.ereslibre.es/v1alpha1
 kind: Cluster
 metadata:
   name: my-1-18-cluster
 spec:
-  kubernetesVersion: 1.18.2
+  kubernetesVersion: 1.18.3
 ```
 
 When the `Cluster` resource is created, `oneinfra` will automatically

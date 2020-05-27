@@ -78,7 +78,7 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "image",
-								Usage: "images to build; can be provided several times in the form of image:version, all if not provided",
+								Usage: "images to build; can be provided several times in the form of image:version, all if not provided or empty",
 							},
 							&cli.BoolFlag{
 								Name:  "force",
@@ -100,7 +100,7 @@ func main() {
 						Flags: []cli.Flag{
 							&cli.StringSliceFlag{
 								Name:  "image",
-								Usage: "images to publish; can be provided several times in the form of image:version, all if not provided",
+								Usage: "images to publish; can be provided several times in the form of image:version, all if not provided or empty",
 							},
 							&cli.BoolFlag{
 								Name:  "force",
@@ -190,6 +190,9 @@ func main() {
 }
 
 func chosenContainerImages(containerImages []string) images.ContainerImageMapWithTags {
+	if len(containerImages) == 1 && containerImages[0] == "" {
+		return images.ContainerImageMapWithTags{}
+	}
 	chosenContainerImages := images.ContainerImageMapWithTags{}
 	// Used to avoid image:version duplicates
 	chosenContainerImageMap := map[string]map[string]struct{}{}

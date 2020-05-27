@@ -26,7 +26,7 @@ jobs:
   - bash: make pull-builder
     displayName: Pull builder image
   - bash: make publish-container-image-ci
-    displayName: Publish CI container images
+    displayName: Publish test container images
     env:
       CONTAINER_BUILD_OPTIONS: --image containerd:1.3.4 --image hypervisor:1.15.12
         --image hypervisor:1.16.9 --image hypervisor:1.17.5 --image hypervisor:1.18.2

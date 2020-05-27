@@ -91,7 +91,7 @@ func AzureTest() error {
 				},
 				{
 					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish CI container images",
+					DisplayName: "Publish test container images",
 					Env: map[string]string{
 						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
 						"CONTAINER_BUILD_OPTIONS": strings.Join(containerImagesToBuild, " "),

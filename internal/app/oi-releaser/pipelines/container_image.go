@@ -23,7 +23,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
 )
 
-func publishContainerJob(container string) azure.Job {
+func publishContainerJob(container string, dependsOn []string) azure.Job {
 	return azure.Job{
 		Job:         jobName(container),
 		DisplayName: fmt.Sprintf("Publish %s container image", container),
@@ -38,6 +38,7 @@ func publishContainerJob(container string) azure.Job {
 				},
 			},
 		},
+		DependsOn: dependsOn,
 	}
 }
 

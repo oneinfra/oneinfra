@@ -33,8 +33,8 @@ func AzurePublishNightlyImages() error {
 			"CONTAINER_BUILD_OPTIONS": "--force", // Always push, even if the image and tag exists already
 		},
 		Jobs: []azure.Job{
-			publishContainerJob("oi-manager:master"),
-			publishContainerJob("oi:master"),
+			publishContainerJob("oi-manager:master", []string{}),
+			publishContainerJob("oi:master", []string{}),
 		},
 		Trigger: &azure.Trigger{
 			Branches: &azure.BranchesTrigger{

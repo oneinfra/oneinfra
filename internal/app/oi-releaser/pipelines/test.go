@@ -65,35 +65,36 @@ func AzureTest() error {
 			},
 		},
 	}
-	publishJobs := []string{}
 	for _, containerdVersion := range constants.TestData.ContainerdVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
-		)
-		publishJobs = append(
-			publishJobs,
-			jobName(fmt.Sprintf("containerd:%s", containerdVersion.Version)),
+			publishContainerJob(
+				fmt.Sprintf("containerd:%s", containerdVersion.Version),
+				[]string{},
+			),
 		)
 	}
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
+		testDependencies, exists := constants.TestData.KubernetesVersions[kubernetesVersion.Version]
+		if !exists {
+			continue
+		}
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			publishContainerJob(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
-		)
-		publishJobs = append(
-			publishJobs,
-			jobName(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version)),
+			publishContainerJob(
+				fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version),
+				[]string{jobName(fmt.Sprintf("containerd:%s", testDependencies.ContainerdVersion))},
+			),
 		)
 	}
 	pipeline.Jobs = append(
 		pipeline.Jobs,
-		e2eTestsWithKubernetesVersion("default", publishJobs)...,
+		e2eTestsWithKubernetesVersion("default", []string{jobName(fmt.Sprintf("hypervisor:%s", constants.ReleaseData.DefaultKubernetesVersion))})...,
 	)
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, publishJobs)...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{jobName(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version))})...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)

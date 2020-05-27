@@ -29,12 +29,11 @@ import (
 func AzurePublishNightlyImages() error {
 	pipeline := azure.Pipeline{
 		Variables: map[string]string{
-			"CI":                      "1",
-			"CONTAINER_BUILD_OPTIONS": "--force", // Always push, even if the image and tag exists already
+			"CI": "1",
 		},
 		Jobs: []azure.Job{
-			publishContainerJob("oi-manager:master", []string{}),
-			publishContainerJob("oi:master", []string{}),
+			publishContainerJob("oi-manager:master", []string{}, forcePublish),
+			publishContainerJob("oi:master", []string{}, forcePublish),
 		},
 		Trigger: &azure.Trigger{
 			Branches: &azure.BranchesTrigger{

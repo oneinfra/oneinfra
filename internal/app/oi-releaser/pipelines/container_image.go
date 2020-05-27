@@ -23,7 +23,18 @@ import (
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines/azure"
 )
 
-func publishContainerJob(container string, dependsOn []string) azure.Job {
+type publishOption string
+
+const (
+	forcePublish publishOption = "force"
+)
+
+func publishContainerJob(container string, dependsOn []string, publishOption publishOption) azure.Job {
+	buildOptions := []string{}
+	if publishOption == forcePublish {
+		buildOptions = append(buildOptions, "--force")
+	}
+	buildOptions = append(buildOptions, fmt.Sprintf("--image %s", container))
 	return azure.Job{
 		Job:         jobName(container),
 		DisplayName: fmt.Sprintf("Publish %s container image", container),
@@ -33,7 +44,7 @@ func publishContainerJob(container string, dependsOn []string) azure.Job {
 				Bash:        "make publish-container-image-ci",
 				DisplayName: "Publish container image",
 				Env: map[string]string{
-					"CONTAINER_BUILD_OPTIONS": fmt.Sprintf("--image %s", container),
+					"CONTAINER_BUILD_OPTIONS": strings.Join(buildOptions, " "),
 					"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
 				},
 			},

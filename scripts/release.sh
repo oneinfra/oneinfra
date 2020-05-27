@@ -34,12 +34,14 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+HUB_PATH=/tmp/hub-${HUB_VERSION}
+export PATH=${HUB_PATH}:${PATH}
 if ! which hub &> /dev/null; then
     wget -O hub.tgz https://github.com/github/hub/releases/download/v${HUB_VERSION}/hub-linux-amd64-${HUB_VERSION}.tgz
     tar --strip-components 2 -xf hub.tgz hub-linux-amd64-${HUB_VERSION}/bin/hub
     rm hub.tgz
-    mv hub /tmp
-    export PATH=/tmp:${PATH}
+    mkdir -p ${HUB_PATH}
+    mv hub ${HUB_PATH}
 fi
 
 TARGET_COMMITISH=$(git show-ref -d ${CURRENT_TAG} | tail -n1 | awk '{print $1}')
@@ -51,7 +53,7 @@ git log $(git tag --sort=-version:refname | head -n2 | tail -n1)..${CURRENT_TAG}
 
 echo "Creating release ${CURRENT_TAG}"
 
-hub release create -p -t "${TARGET_COMMITISH}" -F "${CHANGELOG_FILE}" "${CURRENT_TAG}"
+hub release create -d -p -t "${TARGET_COMMITISH}" -F "${CHANGELOG_FILE}" "${CURRENT_TAG}"
 
 echo "Publishing container images"
 

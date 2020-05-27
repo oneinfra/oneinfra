@@ -167,6 +167,19 @@ func main() {
 						},
 					},
 					{
+						Name:  "publish-tooling-images",
+						Usage: "publish tooling images pipeline operations",
+						Subcommands: []*cli.Command{
+							{
+								Name:  "dump",
+								Usage: "dump the publish tooling images pipeline to stdout",
+								Action: func(c *cli.Context) error {
+									return pipelines.AzurePublishToolingImages()
+								},
+							},
+						},
+					},
+					{
 						Name:  "publish-nightly-images",
 						Usage: "publish nightly images pipeline operations",
 						Subcommands: []*cli.Command{

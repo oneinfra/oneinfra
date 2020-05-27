@@ -26,7 +26,8 @@ import (
 type publishOption string
 
 const (
-	forcePublish publishOption = "force"
+	defaultOptions publishOption = ""
+	forcePublish   publishOption = "force"
 )
 
 func publishContainerJob(container string, dependsOn []string, publishOption publishOption) azure.Job {

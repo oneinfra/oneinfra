@@ -50,6 +50,7 @@ clientsets-generate:
 pipelines: oi-releaser
 	oi-releaser pipelines test dump > .azure-pipelines/test.yml
 	oi-releaser pipelines release dump > .azure-pipelines/release.yml
+	oi-releaser pipelines publish-tooling-images dump > .azure-pipelines/publish-tooling-images.yml
 	oi-releaser pipelines publish-nightly-images dump > .azure-pipelines/publish-nightly-images.yml
 
 go-generate: RELEASE

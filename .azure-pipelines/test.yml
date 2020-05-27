@@ -26,11 +26,15 @@ jobs:
   - bash: make pull-builder
     displayName: Pull builder image
   - bash: make publish-container-image-ci
-    displayName: Publish test container images
+    displayName: Publish test containerd images
     env:
-      CONTAINER_BUILD_OPTIONS: --image containerd:1.3.4 --image hypervisor:1.15.12
-        --image hypervisor:1.16.9 --image hypervisor:1.17.5 --image hypervisor:1.18.2
-        --image hypervisor:1.19.0-alpha.3
+      CONTAINER_BUILD_OPTIONS: --image containerd:1.3.4
+      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
+  - bash: make publish-container-image-ci
+    displayName: Publish test hypervisor images
+    env:
+      CONTAINER_BUILD_OPTIONS: --image hypervisor:1.15.12 --image hypervisor:1.16.9
+        --image hypervisor:1.17.5 --image hypervisor:1.18.2 --image hypervisor:1.19.0-alpha.3
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: e2e_default
   dependsOn:

@@ -65,16 +65,17 @@ func AzureTest() error {
 			},
 		},
 	}
-	containerImagesToBuild := []string{}
+	containerdImagesToBuild := []string{}
 	for _, containerdVersion := range constants.TestData.ContainerdVersions {
-		containerImagesToBuild = append(
-			containerImagesToBuild,
+		containerdImagesToBuild = append(
+			containerdImagesToBuild,
 			fmt.Sprintf("--image containerd:%s", containerdVersion.Version),
 		)
 	}
+	hypervisorImagesToBuild := []string{}
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-		containerImagesToBuild = append(
-			containerImagesToBuild,
+		hypervisorImagesToBuild = append(
+			hypervisorImagesToBuild,
 			fmt.Sprintf("--image hypervisor:%s", kubernetesVersion.Version),
 		)
 	}
@@ -91,10 +92,18 @@ func AzureTest() error {
 				},
 				{
 					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish test container images",
+					DisplayName: "Publish test containerd images",
 					Env: map[string]string{
 						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
-						"CONTAINER_BUILD_OPTIONS": strings.Join(containerImagesToBuild, " "),
+						"CONTAINER_BUILD_OPTIONS": strings.Join(containerdImagesToBuild, " "),
+					},
+				},
+				{
+					Bash:        "make publish-container-image-ci",
+					DisplayName: "Publish test hypervisor images",
+					Env: map[string]string{
+						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
+						"CONTAINER_BUILD_OPTIONS": strings.Join(hypervisorImagesToBuild, " "),
 					},
 				},
 			},

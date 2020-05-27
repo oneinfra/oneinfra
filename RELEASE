@@ -1,4 +1,4 @@
-version: "20.05.0-alpha14"
+version: "20.05.0-alpha15"
 consoleVersion: "20.05.0-alpha4"
 defaultKubernetesVersion: "1.18.3"
 kubernetesVersions:

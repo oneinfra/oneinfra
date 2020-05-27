@@ -32,7 +32,7 @@ prefer.](quick-start-without-kubernetes.md)
     ```console
     $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml
     $ kubectl wait --for=condition=Available deployment --timeout=2m -n cert-manager --all
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha14/config/generated/all.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha15/config/generated/all.yaml
     $ kubectl wait --for=condition=Available deployment --timeout=2m -n oneinfra-system --all
     ```
 

@@ -32,8 +32,6 @@ if [ -z "${DOCKER_HUB_TOKEN}" ]; then
     exit 1
 fi
 
-set -x
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 if ! which hub &> /dev/null; then

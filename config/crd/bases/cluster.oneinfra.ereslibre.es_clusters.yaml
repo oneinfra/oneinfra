@@ -204,11 +204,12 @@ spec:
                     by default.
                   type: boolean
                 privateKey:
-                  description: The VPN ingress private key. Auto-generated if not
-                    provided.
+                  description: The VPN ingress private key. Auto-generated if the
+                    VPN is enabled and was not provided.
                   type: string
                 publicKey:
-                  description: The VPN ingress public key. Auto-generated if not provided.
+                  description: The VPN ingress public key. Auto-generated if the VPN
+                    is enabled and was not provided.
                   type: string
               type: object
           type: object

@@ -65,47 +65,24 @@ func AzureTest() error {
 			},
 		},
 	}
-	containerdImagesToBuild := []string{}
+	containerImagesToBuild := []string{}
 	for _, containerdVersion := range constants.TestData.ContainerdVersions {
-		containerdImagesToBuild = append(
-			containerdImagesToBuild,
+		containerImagesToBuild = append(
+			containerImagesToBuild,
 			fmt.Sprintf("--image containerd:%s", containerdVersion.Version),
 		)
 	}
-	pipeline.Jobs = append(
-		pipeline.Jobs,
-		azure.Job{
-			Job:         "publish_containerd_images",
-			DisplayName: "Publish containerd images",
-			Pool:        azure.DefaultPool,
-			Steps: []azure.Step{
-				{
-					Bash:        "make pull-builder",
-					DisplayName: "Pull builder image",
-				},
-				{
-					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish missing CI container images",
-					Env: map[string]string{
-						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
-						"CONTAINER_BUILD_OPTIONS": strings.Join(containerdImagesToBuild, " "),
-					},
-				},
-			},
-		},
-	)
-	hypervisorImagesToBuild := []string{}
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-		hypervisorImagesToBuild = append(
-			hypervisorImagesToBuild,
+		containerImagesToBuild = append(
+			containerImagesToBuild,
 			fmt.Sprintf("--image hypervisor:%s", kubernetesVersion.Version),
 		)
 	}
 	pipeline.Jobs = append(
 		pipeline.Jobs,
 		azure.Job{
-			Job:         "publish_hypervisor_images",
-			DisplayName: "Publish hypervisor images",
+			Job:         "publish_test_container_images",
+			DisplayName: "Publish test container images",
 			Pool:        azure.DefaultPool,
 			Steps: []azure.Step{
 				{
@@ -114,24 +91,23 @@ func AzureTest() error {
 				},
 				{
 					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish missing CI container images",
+					DisplayName: "Publish CI container images",
 					Env: map[string]string{
 						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
-						"CONTAINER_BUILD_OPTIONS": strings.Join(hypervisorImagesToBuild, " "),
+						"CONTAINER_BUILD_OPTIONS": strings.Join(containerImagesToBuild, " "),
 					},
 				},
 			},
-			DependsOn: []string{"publish_containerd_images"},
 		},
 	)
 	pipeline.Jobs = append(
 		pipeline.Jobs,
-		e2eTestsWithKubernetesVersion("default", []string{"publish_hypervisor_images"})...,
+		e2eTestsWithKubernetesVersion("default", []string{"publish_test_container_images"})...,
 	)
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{"publish_hypervisor_images"})...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{"publish_test_container_images"})...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)

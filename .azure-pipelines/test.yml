@@ -18,79 +18,20 @@ jobs:
     displayName: Pull builder image
   - bash: make test
     displayName: Test
-- job: publish_containerd_1_3_4_container_image
-  displayName: Publish containerd:1.3.4 container image
+- job: publish_test_dependencies
+  displayName: Publish test dependencies
   pool:
     vmImage: ubuntu-18.04
   steps:
+  - bash: make pull-builder
+    displayName: Pull builder image
   - bash: make publish-container-image-ci
-    displayName: Publish container image
+    displayName: Publish missing CI container images
     env:
-      CONTAINER_IMAGE: containerd:1.3.4
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_15_12_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.15.12 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.15.12
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_16_9_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.16.9 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.16.9
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_17_5_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.17.5 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.17.5
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_18_2_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.18.2 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.18.2
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_19_0_alpha_3_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.19.0-alpha.3 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_IMAGE: hypervisor:1.19.0-alpha.3
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: e2e_default
   dependsOn:
-  - publish_hypervisor_1_18_2_container_image
+  - publish_test_dependencies
   displayName: e2e tests (default)
   pool:
     vmImage: ubuntu-18.04
@@ -105,7 +46,7 @@ jobs:
       KUBERNETES_VERSION: default
 - job: e2e_1_15_12
   dependsOn:
-  - publish_hypervisor_1_15_12_container_image
+  - publish_test_dependencies
   displayName: e2e tests (1.15.12)
   pool:
     vmImage: ubuntu-18.04
@@ -120,7 +61,7 @@ jobs:
       KUBERNETES_VERSION: 1.15.12
 - job: e2e_1_16_9
   dependsOn:
-  - publish_hypervisor_1_16_9_container_image
+  - publish_test_dependencies
   displayName: e2e tests (1.16.9)
   pool:
     vmImage: ubuntu-18.04
@@ -135,7 +76,7 @@ jobs:
       KUBERNETES_VERSION: 1.16.9
 - job: e2e_1_17_5
   dependsOn:
-  - publish_hypervisor_1_17_5_container_image
+  - publish_test_dependencies
   displayName: e2e tests (1.17.5)
   pool:
     vmImage: ubuntu-18.04
@@ -150,7 +91,7 @@ jobs:
       KUBERNETES_VERSION: 1.17.5
 - job: e2e_1_18_2
   dependsOn:
-  - publish_hypervisor_1_18_2_container_image
+  - publish_test_dependencies
   displayName: e2e tests (1.18.2)
   pool:
     vmImage: ubuntu-18.04
@@ -165,7 +106,7 @@ jobs:
       KUBERNETES_VERSION: 1.18.2
 - job: e2e_1_19_0_alpha_3
   dependsOn:
-  - publish_hypervisor_1_19_0_alpha_3_container_image
+  - publish_test_dependencies
   displayName: e2e tests (1.19.0-alpha.3)
   pool:
     vmImage: ubuntu-18.04

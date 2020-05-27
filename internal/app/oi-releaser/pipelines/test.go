@@ -63,38 +63,34 @@ func AzureTest() error {
 					},
 				},
 			},
+			{
+				Job:         "publish_test_dependencies",
+				DisplayName: "Publish test dependencies",
+				Pool:        azure.DefaultPool,
+				Steps: []azure.Step{
+					{
+						Bash:        "make pull-builder",
+						DisplayName: "Pull builder image",
+					},
+					{
+						Bash:        "make publish-container-image-ci",
+						DisplayName: "Publish missing CI container images",
+						Env: map[string]string{
+							"DOCKER_HUB_TOKEN": "$(DOCKER_HUB_TOKEN)",
+						},
+					},
+				},
+			},
 		},
-	}
-	for _, containerdVersion := range constants.TestData.ContainerdVersions {
-		pipeline.Jobs = append(
-			pipeline.Jobs,
-			publishContainerJob(
-				fmt.Sprintf("containerd:%s", containerdVersion.Version),
-				[]string{},
-			),
-		)
-	}
-	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-		testDependencies, exists := constants.TestData.KubernetesVersions[kubernetesVersion.Version]
-		if !exists {
-			continue
-		}
-		pipeline.Jobs = append(
-			pipeline.Jobs,
-			publishContainerJob(
-				fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version),
-				[]string{jobName(fmt.Sprintf("containerd:%s", testDependencies.ContainerdVersion))},
-			),
-		)
 	}
 	pipeline.Jobs = append(
 		pipeline.Jobs,
-		e2eTestsWithKubernetesVersion("default", []string{jobName(fmt.Sprintf("hypervisor:%s", constants.ReleaseData.DefaultKubernetesVersion))})...,
+		e2eTestsWithKubernetesVersion("default", []string{"publish_test_dependencies"})...,
 	)
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{jobName(fmt.Sprintf("hypervisor:%s", kubernetesVersion.Version))})...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{"publish_test_dependencies"})...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)

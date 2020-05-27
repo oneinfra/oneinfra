@@ -8,7 +8,7 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_IMAGE: oi-manager:master
+      CONTAINER_BUILD_OPTIONS: --image oi-manager:master
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_oi_master_container_image
   displayName: Publish oi:master container image
@@ -18,7 +18,7 @@ jobs:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_IMAGE: oi:master
+      CONTAINER_BUILD_OPTIONS: --image oi:master
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 trigger:
   branches:

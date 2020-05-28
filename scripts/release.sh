@@ -53,7 +53,7 @@ git log $(git tag --sort=-version:refname | head -n2 | tail -n1)..${CURRENT_TAG}
 
 echo "Creating release ${CURRENT_TAG}"
 
-hub release create -d -p -t "${TARGET_COMMITISH}" -F "${CHANGELOG_FILE}" "${CURRENT_TAG}"
+hub release create -p -t "${TARGET_COMMITISH}" -F "${CHANGELOG_FILE}" "${CURRENT_TAG}"
 
 echo "Publishing container images"
 

@@ -37,6 +37,12 @@ func AzurePublishTestingImages() error {
 			Branches: &azure.BranchesTrigger{
 				Include: []string{"master"},
 			},
+			Paths: &azure.PathsTrigger{
+				Include: []string{
+					"RELEASE",
+					".azure-pipelines/publish-testing-images.yml",
+				},
+			},
 		},
 	}
 	for _, containerdVersion := range constants.TestData.ContainerdVersions {

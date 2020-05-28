@@ -34,6 +34,10 @@ import (
 	"k8s.io/klog"
 )
 
+var (
+	architectures = []string{"amd64", "arm", "arm64"}
+)
+
 // GithubRelease represents a Github release
 type GithubRelease struct {
 	ID int `json:"id"`
@@ -58,19 +62,21 @@ func PublishBinaries(binaries []string) error {
 	if err != nil {
 		return errors.Wrapf(err, "could not fetch release id for tag %q", tagName())
 	}
-	for _, binary := range binaries {
-		binaryName := binaryName(binary, tagName())
-		if err := publishBinary(binaryName, releaseID); err != nil {
-			klog.Errorf("could not publish binary %q: %v", binaryName, err)
-			continue
+	for _, architecture := range architectures {
+		for _, binary := range binaries {
+			binaryName := binaryName(binary, architecture, tagName())
+			if err := publishBinary(binaryName, releaseID); err != nil {
+				klog.Errorf("could not publish binary %q: %v", binaryName, err)
+				continue
+			}
+			klog.Infof("binary %q successfully published in release %q", binaryName, tagName())
 		}
-		klog.Infof("binary %q successfully published in release %q", binaryName, tagName())
 	}
 	return nil
 }
 
-func binaryName(binary, tagName string) string {
-	return fmt.Sprintf("%s-linux-amd64-%s", binary, tagName)
+func binaryName(binary, architecture, tagName string) string {
+	return fmt.Sprintf("%s-linux-%s-%s", binary, architecture, tagName)
 }
 
 func fetchReleaseID(tagName string) (string, error) {
@@ -97,28 +103,30 @@ func fetchReleaseID(tagName string) (string, error) {
 }
 
 func buildBinaries(binaries []string, tagName string) error {
-	for _, binary := range binaries {
-		binaryName := binaryName(binary, tagName)
-		cmd := exec.Command(
-			"go",
-			"build",
-			"-mod", "vendor",
-			"-o", filepath.Join("bin", binaryName),
-			fmt.Sprintf("github.com/oneinfra/oneinfra/cmd/%s", binary),
-		)
-		cmd.Env = os.Environ()
-		cmd.Env = append(
-			cmd.Env,
-			"CGO_ENABLED=0",
-			"GOOS=linux",
-			"GOARCH=amd64",
-			"GO111MODULE=on",
-		)
-		if err := cmd.Run(); err != nil {
-			klog.Errorf("failed to build %q binary: %v", binaryName, err)
-			continue
+	for _, architecture := range architectures {
+		for _, binary := range binaries {
+			binaryName := binaryName(binary, architecture, tagName)
+			cmd := exec.Command(
+				"go",
+				"build",
+				"-mod", "vendor",
+				"-o", filepath.Join("bin", binaryName),
+				fmt.Sprintf("github.com/oneinfra/oneinfra/cmd/%s", binary),
+			)
+			cmd.Env = os.Environ()
+			cmd.Env = append(
+				cmd.Env,
+				"CGO_ENABLED=0",
+				"GOOS=linux",
+				fmt.Sprintf("GOARCH=%s", architecture),
+				"GO111MODULE=on",
+			)
+			if err := cmd.Run(); err != nil {
+				klog.Errorf("failed to build %q binary: %v", binaryName, err)
+				continue
+			}
+			klog.Infof("binary %q successfully built", binaryName)
 		}
-		klog.Infof("binary %q successfully built", binaryName)
 	}
 	return nil
 }

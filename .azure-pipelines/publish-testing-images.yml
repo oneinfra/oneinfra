@@ -77,6 +77,7 @@ trigger:
   paths:
     include:
     - RELEASE
+    - RELEASE_TEST
     - .azure-pipelines/publish-testing-images.yml
 variables:
   CI: "1"

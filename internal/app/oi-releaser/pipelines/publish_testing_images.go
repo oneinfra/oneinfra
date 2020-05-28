@@ -40,6 +40,7 @@ func AzurePublishTestingImages() error {
 			Paths: &azure.PathsTrigger{
 				Include: []string{
 					"RELEASE",
+					"RELEASE_TEST",
 					".azure-pipelines/publish-testing-images.yml",
 				},
 			},

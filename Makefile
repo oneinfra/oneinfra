@@ -52,6 +52,7 @@ pipelines: oi-releaser
 	oi-releaser pipelines release dump > .azure-pipelines/release.yml
 	oi-releaser pipelines publish-tooling-images dump > .azure-pipelines/publish-tooling-images.yml
 	oi-releaser pipelines publish-nightly-images dump > .azure-pipelines/publish-nightly-images.yml
+	oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
 
 go-generate: RELEASE
 	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
@@ -110,10 +111,10 @@ os-information:
 	cat /etc/os-release
 	uname -a
 
-deps: os-information pull-builder oi pull-hypervisor kubectl crictl
+deps: os-information pull-builder oi oi-releaser pull-or-build-hypervisor kubectl crictl
 
-pull-hypervisor:
-	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-hypervisor
+pull-or-build-hypervisor:
+	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-or-build-hypervisor
 
 pull-builder:
 	@docker pull oneinfra/builder:latest

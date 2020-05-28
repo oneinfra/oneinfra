@@ -40,8 +40,8 @@ install_crictl() {
 }
 
 case "$1" in
-    pull-hypervisor)
-        docker pull oneinfra/hypervisor:$(kubernetes_version)
+    pull-or-build-hypervisor)
+        docker pull oneinfra/hypervisor:$(kubernetes_version) || ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image hypervisor:$(kubernetes_version)
         shift
         ;;
     kubectl)

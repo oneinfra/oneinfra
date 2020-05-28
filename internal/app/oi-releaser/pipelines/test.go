@@ -65,58 +65,14 @@ func AzureTest() error {
 			},
 		},
 	}
-	containerdImagesToBuild := []string{}
-	for _, containerdVersion := range constants.TestData.ContainerdVersions {
-		containerdImagesToBuild = append(
-			containerdImagesToBuild,
-			fmt.Sprintf("--image containerd:%s", containerdVersion.Version),
-		)
-	}
-	hypervisorImagesToBuild := []string{}
-	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
-		hypervisorImagesToBuild = append(
-			hypervisorImagesToBuild,
-			fmt.Sprintf("--image hypervisor:%s", kubernetesVersion.Version),
-		)
-	}
 	pipeline.Jobs = append(
 		pipeline.Jobs,
-		azure.Job{
-			Job:         "publish_test_container_images",
-			DisplayName: "Publish test container images",
-			Pool:        azure.DefaultPool,
-			Steps: []azure.Step{
-				{
-					Bash:        "make pull-builder",
-					DisplayName: "Pull builder image",
-				},
-				{
-					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish test containerd images",
-					Env: map[string]string{
-						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
-						"CONTAINER_BUILD_OPTIONS": strings.Join(containerdImagesToBuild, " "),
-					},
-				},
-				{
-					Bash:        "make publish-container-image-ci",
-					DisplayName: "Publish test hypervisor images",
-					Env: map[string]string{
-						"DOCKER_HUB_TOKEN":        "$(DOCKER_HUB_TOKEN)",
-						"CONTAINER_BUILD_OPTIONS": strings.Join(hypervisorImagesToBuild, " "),
-					},
-				},
-			},
-		},
-	)
-	pipeline.Jobs = append(
-		pipeline.Jobs,
-		e2eTestsWithKubernetesVersion("default", []string{"publish_test_container_images"})...,
+		e2eTestsWithKubernetesVersion("default")...,
 	)
 	for _, kubernetesVersion := range constants.ReleaseData.KubernetesVersions {
 		pipeline.Jobs = append(
 			pipeline.Jobs,
-			e2eTestsWithKubernetesVersion(kubernetesVersion.Version, []string{"publish_test_container_images"})...,
+			e2eTestsWithKubernetesVersion(kubernetesVersion.Version)...,
 		)
 	}
 	marshaledPipeline, err := yaml.Marshal(&pipeline)
@@ -133,7 +89,7 @@ func AzureTest() error {
 	return nil
 }
 
-func e2eTestsWithKubernetesVersion(kubernetesVersion string, dependsOn []string) []azure.Job {
+func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 	underscoredVersion := strings.ReplaceAll(
 		strings.ReplaceAll(kubernetesVersion, ".", "_"),
 		"-", "_",
@@ -159,7 +115,6 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string, dependsOn []string)
 					},
 				},
 			},
-			DependsOn: dependsOn,
 		},
 	}
 }

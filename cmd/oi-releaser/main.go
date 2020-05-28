@@ -192,6 +192,19 @@ func main() {
 							},
 						},
 					},
+					{
+						Name:  "publish-testing-images",
+						Usage: "publish testing images pipeline operations",
+						Subcommands: []*cli.Command{
+							{
+								Name:  "dump",
+								Usage: "dump the publish testing images pipeline to stdout",
+								Action: func(c *cli.Context) error {
+									return pipelines.AzurePublishTestingImages()
+								},
+							},
+						},
+					},
 				},
 			},
 		},

@@ -1,4 +1,10 @@
-# Considerations
+# Release
+
+This document describes what artifacts conform a `oneinfra` release
+and how to create one.
+
+
+## Considerations
 
 A `oneinfra` release might include only changes on `oneinfra` itself,
 or on some other components as well (e.g. the supported Kubernetes
@@ -8,7 +14,7 @@ In general, there are a number of artifacts that conform a `oneinfra`
 release as a whole, let's go through them.
 
 
-## The `RELEASE` file
+### The `RELEASE` file
 
 The [`RELEASE` file](../RELEASE) contains all versioning information
 for a given `oneinfra` release.
@@ -30,7 +36,7 @@ The `RELEASE` file is used to construct all release artifacts when
 tagging a new release.
 
 
-### Artifacts constructed from the `RELEASE` file
+#### Artifacts constructed from the `RELEASE` file
 
 These artifacts are core for `oneinfra` and require to be built for
 every release.
@@ -51,7 +57,7 @@ For each supported Kubernetes version tag:
   they are joined to a managed cluster
 
 
-## The `RELEASE_TEST` file
+### The `RELEASE_TEST` file
 
 The [`RELEASE_TEST` file](../RELEASE_TEST) contains all versioning
 information for ease of testing.
@@ -67,7 +73,7 @@ information for ease of testing.
   version and `pause` image version.
 
 
-### Artifacts constructed from the `RELEASE_TEST` file
+#### Artifacts constructed from the `RELEASE_TEST` file
 
 These artifacts are published for faster CI runs. They are not
 required to exist in any case, but they improve the CI times if they
@@ -89,7 +95,7 @@ For each Kubernetes version:
   `kube-scheduler:<kubernetes-version>`...)
 
 
-## Artifacts not managed by the release
+### Artifacts not managed by the release
 
 Some artifacts are manually constructed and pushed, and are core for
 `oneinfra` to operate correctly. They are not (yet) managed by the

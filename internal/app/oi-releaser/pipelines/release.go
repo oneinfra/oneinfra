@@ -34,7 +34,7 @@ func AzureRelease() error {
 		Jobs: []azure.Job{
 			{
 				Job:         "release",
-				DisplayName: "release",
+				DisplayName: "Release",
 				Pool:        azure.DefaultPool,
 				Steps: []azure.Step{
 					{

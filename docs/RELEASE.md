@@ -28,9 +28,9 @@ for a given `oneinfra` release.
   cluster should be defaulted to if it doesn't include an explicit
   Kubernetes version.
 
-* `kubernetesVersions`: the list of all suppoted Kubernetes versions
-  for this `oneinfra` release. This list contains a specific `etcd`
-  and `CoreDNS` version for that specific Kubernetes version.
+* `kubernetesVersions`: the list of all supported Kubernetes versions
+  for this `oneinfra` release. This list contains an `etcd` and
+  `CoreDNS` version for every Kubernetes version.
 
 The `RELEASE` file is used to construct all release artifacts when
 tagging a new release.
@@ -38,23 +38,23 @@ tagging a new release.
 
 #### Artifacts constructed from the `RELEASE` file
 
-These artifacts are core for `oneinfra` and require to be built for
-every release.
+These artifacts are core for `oneinfra` and are required to be built
+for every release.
 
 For the current `oneinfra` tag:
 
-* `oi-local-hypervisor-set` binary in the GitHub release itself.
-* `oi` binary in the GitHub release itself.
+* `oi-local-hypervisor-set` binary in the GitHub release.
+* `oi` binary in the GitHub release.
 * `oneinfra/oi-manager:<oneinfra-tag>` container image that contains
-  the `oneinfra` Kubernetes manager
+  the `oneinfra` Kubernetes manager.
 * `oneinfra/oi:<oneinfra-tag>` container image that contains the
-  `oneinfra` CLI tool
+  `oneinfra` CLI tool.
 
 For each supported Kubernetes version tag:
 
 * `oneinfra/kubelet-installer:<kubernetes-tag>` container image that
   contains the Kubelet installer to be pulled on worker nodes when
-  they are joined to a managed cluster
+  they are joined to a managed cluster.
 
 
 ### The `RELEASE_TEST` file
@@ -82,7 +82,7 @@ do.
 For each `containerd` version:
 
 * `oneinfra/containerd:<containerd-tag>`: container image that
-  contains a `containerd` instance
+  contains a `containerd` instance.
 
 For each Kubernetes version:
 
@@ -106,11 +106,11 @@ release pipeline or process.
   independently to `oneinfra`.
 
 * `oneinfra/builder`: the builder image used to build `oneinfra`
-  binaries everywhere
+  binaries everywhere.
 
 * `oneinfra/tooling`: a tooling image used to perform changes on the
   host (like copying files, or calling to the D-Bus system bus on the
-  host)
+  host.)
 
 * `oneinfra/etcd`: [contains some changes to `etcd` so learner members
   can be properly
@@ -138,7 +138,7 @@ create a new release tagged `YY.MM.MINOR-META`. The `META` section
 could be ommitted if it's not an `alpha`, `beta` or `rc` release.
 
 * Make sure `RELEASE` and `RELEASE_TEST` matches and that they have
-  the intended versions of all required components before releasing.
+  the intended versions of all required components before releasing
 * Create a new branch for the release preparation
   * `git co -b prepare-YY.MM.MINOR-META`
 * Ensure that all generated code is up to date
@@ -163,4 +163,4 @@ could be ommitted if it's not an `alpha`, `beta` or `rc` release.
   * `git branch -d prepare-YY.MM.MINOR-META`
   * `git push origin :prepare-YY.MM.MINOR-META`
 
-Release is completely finished now!
+Release is done now!

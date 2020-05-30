@@ -138,7 +138,7 @@ create a new release tagged `YY.MM.MINOR-META`. The `META` section
 could be ommitted if it's not an `alpha`, `beta` or `rc` release.
 
 * Make sure `RELEASE` and `RELEASE_TEST` matches and that they have
-  the indended versions of all required components before releasing.
+  the intended versions of all required components before releasing.
 * Create a new branch for the release preparation
   * `git co -b prepare-YY.MM.MINOR-META`
 * Ensure that all generated code is up to date

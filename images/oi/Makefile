@@ -1,8 +1,7 @@
-ONEINFRA_VERSION ?= $(shell git describe --tags --dirty)
-ONEINFRA_VERSION_TAG ?= $(shell git describe --tags)
+BUILD_VERSION ?= $(shell git describe --tags --dirty)
 
 image:
-	docker build --build-arg ONEINFRA_VERSION=${ONEINFRA_VERSION} -t oneinfra/oi:${ONEINFRA_VERSION_TAG} -f Dockerfile ../..
+	docker build --build-arg ONEINFRA_VERSION=${BUILD_VERSION} -t oneinfra/oi:${ONEINFRA_VERSION} -f Dockerfile ../..
 
 publish:
-	docker push oneinfra/oi:${ONEINFRA_VERSION_TAG}
+	docker push oneinfra/oi:${ONEINFRA_VERSION}

@@ -10,8 +10,8 @@ release as a whole, let's go through them.
 
 ## The `RELEASE` file
 
-The [`RELEASE` file](RELEASE) contains all versioning information for
-a given `oneinfra` release.
+The [`RELEASE` file](../RELEASE) contains all versioning information
+for a given `oneinfra` release.
 
 * `consoleVersion`: the recommended [`console`
   project](https://github.com/oneinfra/console) tag that should be
@@ -53,7 +53,7 @@ For each supported Kubernetes version tag:
 
 ## The `RELEASE_TEST` file
 
-The [`RELEASE_TEST` file](RELEASE_TEST) contains all versioning
+The [`RELEASE_TEST` file](../RELEASE_TEST) contains all versioning
 information for ease of testing.
 
 * `containerdVersions`: the list of all `containerd` versions used for

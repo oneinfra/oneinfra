@@ -39,7 +39,7 @@ func containerImagesFromChosen(chosenContainerImages ContainerImageMapWithTags) 
 		res[hypervisor] = append(res[hypervisor], kubernetesVersion)
 		res[kubeletInstaller] = append(res[kubeletInstaller], kubernetesVersion)
 	}
-	res[oi] = []string{constants.ReleaseData.Version}
-	res[oiManager] = []string{constants.ReleaseData.Version}
+	res[oi] = []string{constants.BuildVersion}
+	res[oiManager] = []string{constants.BuildVersion}
 	return res
 }

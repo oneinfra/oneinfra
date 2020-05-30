@@ -261,7 +261,7 @@ func main() {
 				Name:  "version",
 				Usage: "version information",
 				Action: func(c *cli.Context) error {
-					fmt.Println(constants.ReleaseData.Version)
+					fmt.Println(constants.BuildVersion)
 					return nil
 				},
 				Subcommands: []*cli.Command{

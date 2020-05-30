@@ -27,7 +27,7 @@ import (
 // and returns the replaced content
 func ReplacePlaceholders(inputText string) string {
 	replacements := map[string]string{
-		"ONEINFRA_VERSION": constants.ReleaseData.Version,
+		"ONEINFRA_VERSION": constants.BuildVersion,
 		"CONSOLE_VERSION":  constants.ReleaseData.ConsoleVersion,
 	}
 	for placeHolder, value := range replacements {

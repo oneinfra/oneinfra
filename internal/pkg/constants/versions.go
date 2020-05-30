@@ -23,11 +23,17 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	releasecomponents "github.com/oneinfra/oneinfra/internal/pkg/release-components"
 	constantsapi "github.com/oneinfra/oneinfra/pkg/constants"
 	"github.com/oneinfra/oneinfra/pkg/versions"
 	"github.com/pkg/errors"
+)
+
+var (
+	// BuildVersion is the oneinfra version provided at build time
+	BuildVersion string
 )
 
 // KubernetesVersionBundle returns the KubernetesVersion for the
@@ -58,17 +64,25 @@ func KubernetesComponentVersion(version string, component releasecomponents.Kube
 // UpdateOneInfraVersionsConfigMap creates or updates the oneinfra
 // version ConfigMap
 func UpdateOneInfraVersionsConfigMap(ctx context.Context, client client.Client) error {
+	releaseData := versions.ReleaseInfo{}
+	if err := yaml.Unmarshal([]byte(RawReleaseData), &releaseData); err != nil {
+		return err
+	}
+	releaseData.Version = BuildVersion
+	rawReleaseData, err := yaml.Marshal(&releaseData)
+	if err != nil {
+		return err
+	}
 	versionConfigMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      constantsapi.OneInfraVersionsConfigMap,
 			Namespace: constantsapi.OneInfraNamespace,
 		},
 		Data: map[string]string{
-			constantsapi.OneInfraVersionsKeyName: RawReleaseData,
+			constantsapi.OneInfraVersionsKeyName: string(rawReleaseData),
 		},
 	}
-	err := client.Create(ctx, versionConfigMap)
-	if err == nil || !apierrors.IsAlreadyExists(err) {
+	if err := client.Create(ctx, versionConfigMap); err == nil || !apierrors.IsAlreadyExists(err) {
 		return err
 	}
 	return client.Update(ctx, versionConfigMap)

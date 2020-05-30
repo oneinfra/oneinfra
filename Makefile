@@ -1,6 +1,11 @@
 # Kubernetes version to use
 KUBERNETES_VERSION ?= default
 
+# The build version of oneinfra
+BUILD_VERSION ?= $(shell git describe --tags --dirty)
+
+GO_INSTALL_FLAGS ?= -ldflags='-X github.com/oneinfra/oneinfra/internal/pkg/constants.BuildVersion=${BUILD_VERSION}'
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
@@ -28,19 +33,19 @@ test-coverage: test
 
 # Build and install manager binary
 manager: go-generate
-	./scripts/run.sh go install ./cmd/oi-manager
+	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-manager
 
 # Build and install oi binary
 oi: go-generate
-	./scripts/run.sh go install ./cmd/oi
+	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi
 
 # Build and install oi-local-hypervisor-set
 oi-local-hypervisor-set: go-generate
-	./scripts/run.sh go install ./cmd/oi-local-hypervisor-set
+	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
 
 # Build and install oi-releaser
 oi-releaser: oi
-	./scripts/run.sh go install ./cmd/oi-releaser
+	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
 
 clientsets-generate:
 	rm -rf pkg/clientsets/*

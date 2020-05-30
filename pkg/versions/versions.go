@@ -18,7 +18,7 @@ package versions
 
 // ReleaseInfo represents a list of supported component versions
 type ReleaseInfo struct {
-	Version                  string              `json:"version"`
+	Version                  string              `json:"version,omitempty"`
 	ConsoleVersion           string              `json:"consoleVersion"`
 	DefaultKubernetesVersion string              `json:"defaultKubernetesVersion"`
 	KubernetesVersions       []KubernetesVersion `json:"kubernetesVersions"`

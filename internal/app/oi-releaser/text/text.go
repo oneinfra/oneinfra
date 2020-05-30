@@ -18,6 +18,7 @@ package text
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
@@ -29,6 +30,9 @@ func ReplacePlaceholders(inputText string) string {
 	replacements := map[string]string{
 		"ONEINFRA_VERSION": constants.BuildVersion,
 		"CONSOLE_VERSION":  constants.ReleaseData.ConsoleVersion,
+	}
+	if oneinfraVersion := os.Getenv("ONEINFRA_VERSION"); len(oneinfraVersion) > 0 {
+		replacements["ONEINFRA_VERSION"] = oneinfraVersion
 	}
 	for placeHolder, value := range replacements {
 		inputText = strings.ReplaceAll(

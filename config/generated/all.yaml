@@ -967,7 +967,7 @@ spec:
         - --enable-leader-election
         command:
         - /oi-manager
-        image: oneinfra/oi-manager:20.05.0-alpha15
+        image: oneinfra/oi-manager:20.05.0-alpha16
         name: manager
         ports:
         - containerPort: 9443

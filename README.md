@@ -20,11 +20,11 @@ service provider. You decide.
 
 | Kubernetes version | Deployable with      | Default in           |                                                                                                                                                                                                           |
 |--------------------|----------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `1.15.12`          | `20.05.0-alpha15` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)       |
-| `1.16.9`           | `20.05.0-alpha15` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
-| `1.17.6`           | `20.05.0-alpha15` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.6))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
-| `1.18.3`           | `20.05.0-alpha15` | `20.05.0-alpha15` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.3))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
-| `1.19.0-beta.0`    | `20.05.0-alpha15` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-beta.0))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
+| `1.15.12`          | `20.05.0-alpha16` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.15.12))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)       |
+| `1.16.9`           | `20.05.0-alpha16` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.16.9))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
+| `1.17.6`           | `20.05.0-alpha16` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.17.6))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
+| `1.18.3`           | `20.05.0-alpha16` | `20.05.0-alpha16` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.18.3))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
+| `1.19.0-beta.0`    | `20.05.0-alpha16` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20(1.19.0-beta.0))](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
 
 
 ## Install
@@ -51,9 +51,9 @@ The `oneinfra` installation has several components:
 ### From released binaries
 
 ```console
-$ wget -O oi https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha15/oi-linux-amd64-20.05.0-alpha15
+$ wget -O oi https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha16/oi-linux-amd64-20.05.0-alpha16
 $ chmod +x oi
-$ wget -O oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha15/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha15
+$ wget -O oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha16/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha16
 $ chmod +x oi-local-hypervisor-set
 ```
 
@@ -75,7 +75,7 @@ prefer](docs/install-from-source.md).
 On a Linux environment, execute:
 
 ```console
-$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha15/scripts/demo.sh | sh
+$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha16/scripts/demo.sh | sh
 ```
 
 After the script is done, you will be able to access your `oneinfra`

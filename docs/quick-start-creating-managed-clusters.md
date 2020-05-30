@@ -5,7 +5,7 @@
 1. Create a [managed cluster](../config/samples/simple-cluster.yaml):
 
     ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha16/config/samples/simple-cluster.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha17/config/samples/simple-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster simple-cluster
     ```
 
@@ -23,7 +23,7 @@
    three control plane instances:
 
     ```console
-    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha16/config/samples/ha-cluster.yaml
+    $ kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.05.0-alpha17/config/samples/ha-cluster.yaml
     $ kubectl wait --for=condition=ReconcileSucceeded --timeout=2m cluster ha-cluster
     ```
 

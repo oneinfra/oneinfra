@@ -20,6 +20,6 @@ spec:
         - /oi-manager
         args:
         - --enable-leader-election
-        image: oneinfra/oi-manager:20.05.0-alpha16
+        image: oneinfra/oi-manager:20.05.0-alpha17
         name: manager
       terminationGracePeriodSeconds: 10

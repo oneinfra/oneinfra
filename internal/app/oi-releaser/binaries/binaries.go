@@ -30,8 +30,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"k8s.io/klog"
+
+	"github.com/oneinfra/oneinfra/internal/pkg/constants"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -109,6 +111,7 @@ func buildBinaries(binaries []string, tagName string) error {
 			cmd := exec.Command(
 				"go",
 				"build",
+				"-ldflags", fmt.Sprintf("-X github.com/oneinfra/oneinfra/internal/pkg/constants.BuildVersion=%s", constants.BuildVersion),
 				"-mod", "vendor",
 				"-o", filepath.Join("bin", binaryName),
 				fmt.Sprintf("github.com/oneinfra/oneinfra/cmd/%s", binary),

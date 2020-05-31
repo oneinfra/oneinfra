@@ -97,7 +97,7 @@ func e2eTestsWithKubernetesVersion(kubernetesVersion string) []azure.Job {
 	return []azure.Job{
 		{
 			Job:         fmt.Sprintf("e2e_%s", underscoredVersion),
-			DisplayName: fmt.Sprintf("e2e tests (%s)", kubernetesVersion),
+			DisplayName: fmt.Sprintf("e2e tests - %s", kubernetesVersion),
 			Pool:        azure.DefaultPool,
 			Steps: []azure.Step{
 				{

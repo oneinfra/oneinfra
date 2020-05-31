@@ -19,7 +19,7 @@ jobs:
   - bash: make test
     displayName: Test
 - job: e2e_default
-  displayName: e2e tests (default)
+  displayName: e2e tests - default
   pool:
     vmImage: ubuntu-18.04
   steps:
@@ -32,7 +32,7 @@ jobs:
     env:
       KUBERNETES_VERSION: default
 - job: e2e_1_15_12
-  displayName: e2e tests (1.15.12)
+  displayName: e2e tests - 1.15.12
   pool:
     vmImage: ubuntu-18.04
   steps:
@@ -45,7 +45,7 @@ jobs:
     env:
       KUBERNETES_VERSION: 1.15.12
 - job: e2e_1_16_9
-  displayName: e2e tests (1.16.9)
+  displayName: e2e tests - 1.16.9
   pool:
     vmImage: ubuntu-18.04
   steps:
@@ -58,7 +58,7 @@ jobs:
     env:
       KUBERNETES_VERSION: 1.16.9
 - job: e2e_1_17_6
-  displayName: e2e tests (1.17.6)
+  displayName: e2e tests - 1.17.6
   pool:
     vmImage: ubuntu-18.04
   steps:
@@ -71,7 +71,7 @@ jobs:
     env:
       KUBERNETES_VERSION: 1.17.6
 - job: e2e_1_18_3
-  displayName: e2e tests (1.18.3)
+  displayName: e2e tests - 1.18.3
   pool:
     vmImage: ubuntu-18.04
   steps:
@@ -84,7 +84,7 @@ jobs:
     env:
       KUBERNETES_VERSION: 1.18.3
 - job: e2e_1_19_0_beta_0
-  displayName: e2e tests (1.19.0-beta.0)
+  displayName: e2e tests - 1.19.0-beta.0
   pool:
     vmImage: ubuntu-18.04
   steps:

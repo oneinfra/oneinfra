@@ -24,5 +24,9 @@ trigger:
   branches:
     include:
     - master
+  pr:
+    branches:
+      exclude:
+      - '*'
 variables:
   CI: "1"

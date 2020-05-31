@@ -58,5 +58,9 @@ trigger:
     include:
     - RELEASE
     - .azure-pipelines/publish-tooling-images.yml
+  pr:
+    branches:
+      exclude:
+      - '*'
 variables:
   CI: "1"

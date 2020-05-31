@@ -44,6 +44,11 @@ func AzurePublishTestingImages() error {
 					".azure-pipelines/publish-testing-images.yml",
 				},
 			},
+			PR: &azure.PRTrigger{
+				Branches: &azure.BranchesTrigger{
+					Exclude: []string{"*"},
+				},
+			},
 		},
 	}
 	for _, containerdVersion := range constants.TestData.ContainerdVersions {

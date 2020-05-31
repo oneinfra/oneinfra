@@ -79,5 +79,9 @@ trigger:
     - RELEASE
     - RELEASE_TEST
     - .azure-pipelines/publish-testing-images.yml
+  pr:
+    branches:
+      exclude:
+      - '*'
 variables:
   CI: "1"

@@ -38,11 +38,13 @@ type Trigger struct {
 	Branches *BranchesTrigger `json:"branches,omitempty"`
 	Tags     *TagsTrigger     `json:"tags,omitempty"`
 	Paths    *PathsTrigger    `json:"paths,omitempty"`
+	PR       *PRTrigger       `json:"pr,omitempty"`
 }
 
 // BranchesTrigger represents a branch trigger
 type BranchesTrigger struct {
 	Include []string `json:"include,omitempty"`
+	Exclude []string `json:"exclude,omitempty"`
 }
 
 // TagsTrigger represents a tag trigger
@@ -53,6 +55,11 @@ type TagsTrigger struct {
 // PathsTrigger represents a path trigger
 type PathsTrigger struct {
 	Include []string `json:"include,omitempty"`
+}
+
+// PRTrigger represents a PR trigger
+type PRTrigger struct {
+	Branches *BranchesTrigger `json:"branches,omitempty"`
 }
 
 // Job represents an Azure job

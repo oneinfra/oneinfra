@@ -43,10 +43,10 @@ func AzurePublishToolingImages() error {
 					".azure-pipelines/publish-tooling-images.yml",
 				},
 			},
-			PR: &azure.PRTrigger{
-				Branches: &azure.BranchesTrigger{
-					Exclude: []string{"*"},
-				},
+		},
+		PR: &azure.PRTrigger{
+			Branches: &azure.BranchesTrigger{
+				Exclude: []string{"*"},
 			},
 		},
 	}

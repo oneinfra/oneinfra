@@ -52,10 +52,10 @@ func AzureRelease() error {
 			Tags: &azure.TagsTrigger{
 				Include: []string{"*"},
 			},
-			PR: &azure.PRTrigger{
-				Branches: &azure.BranchesTrigger{
-					Exclude: []string{"*"},
-				},
+		},
+		PR: &azure.PRTrigger{
+			Branches: &azure.BranchesTrigger{
+				Exclude: []string{"*"},
 			},
 		},
 	}

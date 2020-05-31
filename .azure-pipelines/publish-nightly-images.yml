@@ -20,13 +20,13 @@ jobs:
     env:
       CONTAINER_BUILD_OPTIONS: --force --image oi:master
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
+pr:
+  branches:
+    exclude:
+    - '*'
 trigger:
   branches:
     include:
     - master
-  pr:
-    branches:
-      exclude:
-      - '*'
 variables:
   CI: "1"

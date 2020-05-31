@@ -10,11 +10,11 @@ jobs:
     env:
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
       GITHUB_TOKEN: $(GITHUB_TOKEN)
+pr:
+  branches:
+    exclude:
+    - '*'
 trigger:
-  pr:
-    branches:
-      exclude:
-      - '*'
   tags:
     include:
     - '*'

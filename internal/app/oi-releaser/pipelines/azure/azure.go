@@ -30,6 +30,7 @@ package azure
 type Pipeline struct {
 	Variables map[string]string `json:"variables,omitempty"`
 	Trigger   *Trigger          `json:"trigger,omitempty"`
+	PR        *PRTrigger        `json:"pr,omitempty"`
 	Jobs      []Job             `json:"jobs,omitempty"`
 }
 
@@ -38,7 +39,6 @@ type Trigger struct {
 	Branches *BranchesTrigger `json:"branches,omitempty"`
 	Tags     *TagsTrigger     `json:"tags,omitempty"`
 	Paths    *PathsTrigger    `json:"paths,omitempty"`
-	PR       *PRTrigger       `json:"pr,omitempty"`
 }
 
 // BranchesTrigger represents a branch trigger

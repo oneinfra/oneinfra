@@ -50,6 +50,10 @@ jobs:
     env:
       CONTAINER_BUILD_OPTIONS: --image kubelet-installer:1.19.0-beta.0
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
+pr:
+  branches:
+    exclude:
+    - '*'
 trigger:
   branches:
     include:
@@ -58,9 +62,5 @@ trigger:
     include:
     - RELEASE
     - .azure-pipelines/publish-tooling-images.yml
-  pr:
-    branches:
-      exclude:
-      - '*'
 variables:
   CI: "1"

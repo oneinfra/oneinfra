@@ -70,6 +70,10 @@ jobs:
     env:
       CONTAINER_BUILD_OPTIONS: --image hypervisor:1.19.0-beta.0
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
+pr:
+  branches:
+    exclude:
+    - '*'
 trigger:
   branches:
     include:
@@ -79,9 +83,5 @@ trigger:
     - RELEASE
     - RELEASE_TEST
     - .azure-pipelines/publish-testing-images.yml
-  pr:
-    branches:
-      exclude:
-      - '*'
 variables:
   CI: "1"

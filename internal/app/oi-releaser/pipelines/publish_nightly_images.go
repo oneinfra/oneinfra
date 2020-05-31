@@ -39,10 +39,10 @@ func AzurePublishNightlyImages() error {
 			Branches: &azure.BranchesTrigger{
 				Include: []string{"master"},
 			},
-			PR: &azure.PRTrigger{
-				Branches: &azure.BranchesTrigger{
-					Exclude: []string{"*"},
-				},
+		},
+		PR: &azure.PRTrigger{
+			Branches: &azure.BranchesTrigger{
+				Exclude: []string{"*"},
 			},
 		},
 	}

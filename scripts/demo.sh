@@ -16,7 +16,11 @@ if ! which kubectl &> /dev/null; then
 fi
 
 if ! which oi-local-hypervisor-set &> /dev/null; then
-    bail_out "Please, install oi-local-hypervisor-set in order to continue"
+    ONEINFRA_PATH=/tmp/oneinfra-20.05.0-alpha17
+    mkdir -p ${ONEINFRA_PATH}
+    wget -O ${ONEINFRA_PATH}/oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.05.0-alpha17/oi-local-hypervisor-set-linux-amd64-20.05.0-alpha17
+    chmod +x ${ONEINFRA_PATH}/oi-local-hypervisor-set
+    export PATH=${ONEINFRA_PATH}:${PATH}
 fi
 
 execute_command() {

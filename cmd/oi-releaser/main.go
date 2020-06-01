@@ -17,6 +17,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,6 +29,7 @@ import (
 	"k8s.io/klog"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/binaries"
+	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/git"
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/images"
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/pipelines"
 	"github.com/oneinfra/oneinfra/internal/app/oi-releaser/text"
@@ -131,6 +134,35 @@ func main() {
 								return err
 							}
 							fmt.Print(text.ReplacePlaceholders(string(stdin)))
+							return nil
+						},
+					},
+				},
+			},
+			{
+				Name:  "git",
+				Usage: "git operations",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "release-notes",
+						Usage: "given a log of commits, extract the release notes marked with release-note block",
+						Action: func(c *cli.Context) error {
+							stdin, err := ioutil.ReadAll(os.Stdin)
+							if err != nil {
+								return err
+							}
+							for _, releaseNote := range git.ReleaseNotes(string(stdin)) {
+								fmt.Printf("- :heavy_check_mark: %s\n", releaseNote.Commit)
+								fmt.Println("    ```")
+								inputBuffer := bytes.NewBufferString(releaseNote.ReleaseNote)
+								scanner := bufio.NewScanner(inputBuffer)
+								scanner.Split(bufio.ScanLines)
+								for scanner.Scan() {
+									fmt.Printf("    %s\n", scanner.Text())
+								}
+								fmt.Println("    ```")
+								fmt.Println()
+							}
 							return nil
 						},
 					},

@@ -60,7 +60,7 @@ pipelines: oi-releaser
 	oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
 
 go-generate: RELEASE
-	sh -c "SKIP_CI=1 ./scripts/run.sh go generate ./..."
+	sh -c 'SKIP_CI=1 ./scripts/run.sh go generate ./...'
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -193,7 +193,7 @@ publish-container-images: oi-releaser
 	./scripts/run-local.sh oi-releaser container-images publish
 
 release: oi-releaser docker-login
-	./scripts/release.sh
+	sh -c 'RUN_EXTRA_OPTS="-t" ./scripts/release.sh'
 
 docker-login:
 	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin

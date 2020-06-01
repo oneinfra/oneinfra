@@ -57,11 +57,6 @@ You can read more details about the [worker joining process
 here](docs/joining-worker-nodes.md).
 
 
-## Release
-
-You can read more about the [release artifacts and release procedure
-here](docs/RELEASE.md).
-
 ## License
 
 `oneinfra` is licensed under the terms of the Apache 2.0 license.

@@ -29,12 +29,18 @@ import (
 	"k8s.io/klog"
 )
 
-// ContainerImage is a type representing a container image
+// ContainerImage is a container image name
 type ContainerImage string
 
-// ContainerImageMapWithTags is a map of container images and a list
-// of tags for each image
-type ContainerImageMapWithTags map[ContainerImage][]string
+// ContainerImageWithTags is a type representing a container image
+type ContainerImageWithTags struct {
+	Image ContainerImage
+	Tags  []string
+}
+
+// ContainerImageList is a list of container images and a list of tags
+// for each image
+type ContainerImageList []ContainerImageWithTags
 
 const (
 	namespace string = "oneinfra"
@@ -49,7 +55,7 @@ const (
 )
 
 // BuildContainerImages builds the container images to be published
-func BuildContainerImages(chosenContainerImages ContainerImageMapWithTags, forceBuild bool) {
+func BuildContainerImages(chosenContainerImages ContainerImageList, forceBuild bool) {
 	executeForEachContainerImage(chosenContainerImages, shouldBuildImage(forceBuild), buildImage)
 }
 
@@ -69,7 +75,7 @@ func buildImage(containerImage ContainerImage, containerVersion string) *exec.Cm
 }
 
 // PublishContainerImages publishes the container images
-func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags, forcePublish bool) {
+func PublishContainerImages(chosenContainerImages ContainerImageList, forcePublish bool) {
 	executeForEachContainerImage(
 		chosenContainerImages,
 		func(containerImage ContainerImage, containerVersion string) bool {
@@ -100,12 +106,12 @@ func PublishContainerImages(chosenContainerImages ContainerImageMapWithTags, for
 	)
 }
 
-func executeForEachContainerImage(chosenContainerImages ContainerImageMapWithTags, shouldDo func(ContainerImage, string) bool, do func(ContainerImage, string) *exec.Cmd) {
+func executeForEachContainerImage(chosenContainerImages ContainerImageList, shouldDo func(ContainerImage, string) bool, do func(ContainerImage, string) *exec.Cmd) {
 	containerImages := containerImagesFromChosen(chosenContainerImages)
-	for containerImage, containerVersions := range containerImages {
-		for _, containerVersion := range containerVersions {
-			if shouldDo(containerImage, containerVersion) {
-				if err := executeForContainerImage(containerImage, containerVersion, do); err != nil {
+	for _, containerImage := range containerImages {
+		for _, containerTag := range containerImage.Tags {
+			if shouldDo(containerImage.Image, containerTag) {
+				if err := executeForContainerImage(containerImage.Image, containerTag, do); err != nil {
 					log.Printf("failed to execute command for image %q: %v", containerImage, err)
 				}
 			}

@@ -20,26 +20,49 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 )
 
-func containerImagesFromChosen(chosenContainerImages ContainerImageMapWithTags) ContainerImageMapWithTags {
+func containerImagesFromChosen(chosenContainerImages ContainerImageList) ContainerImageList {
 	if len(chosenContainerImages) > 0 {
 		return chosenContainerImages
 	}
-	res := ContainerImageMapWithTags{}
+	res := ContainerImageList{}
+	containerdImageWithTags := ContainerImageWithTags{
+		Image: containerd,
+		Tags:  []string{},
+	}
 	for containerdVersion := range constants.ContainerdTestVersions {
-		if res[containerd] == nil {
-			res[containerd] = []string{}
-		}
-		res[containerd] = append(res[containerd], containerdVersion)
+		containerdImageWithTags.Tags = append(
+			containerdImageWithTags.Tags,
+			containerdVersion,
+		)
+	}
+	if len(containerdImageWithTags.Tags) > 0 {
+		res = append(res, containerdImageWithTags)
+	}
+	hypervisorImageWithTags := ContainerImageWithTags{
+		Image: hypervisor,
+		Tags:  []string{},
+	}
+	kubeletInstallerImageWithTags := ContainerImageWithTags{
+		Image: kubeletInstaller,
+		Tags:  []string{},
 	}
 	for kubernetesVersion := range constants.KubernetesVersions {
-		if res[hypervisor] == nil {
-			res[hypervisor] = []string{}
-			res[kubeletInstaller] = []string{}
-		}
-		res[hypervisor] = append(res[hypervisor], kubernetesVersion)
-		res[kubeletInstaller] = append(res[kubeletInstaller], kubernetesVersion)
+		hypervisorImageWithTags.Tags = append(
+			hypervisorImageWithTags.Tags,
+			kubernetesVersion,
+		)
+		kubeletInstallerImageWithTags.Tags = append(
+			kubeletInstallerImageWithTags.Tags,
+			kubernetesVersion,
+		)
 	}
-	res[oi] = []string{constants.BuildVersion}
-	res[oiManager] = []string{constants.BuildVersion}
+	if len(hypervisorImageWithTags.Tags) > 0 {
+		res = append(res, hypervisorImageWithTags)
+	}
+	if len(kubeletInstallerImageWithTags.Tags) > 0 {
+		res = append(res, kubeletInstallerImageWithTags)
+	}
+	res = append(res, ContainerImageWithTags{Image: oi, Tags: []string{constants.BuildVersion}})
+	res = append(res, ContainerImageWithTags{Image: oiManager, Tags: []string{constants.BuildVersion}})
 	return res
 }

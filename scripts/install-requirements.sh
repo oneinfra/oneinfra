@@ -24,6 +24,10 @@ kubernetes_version() {
     fi
 }
 
+containerd_version() {
+    ${SCRIPT_DIR}/run-local.sh oi version component --kubernetes-version $(kubernetes_version) --component containerd
+}
+
 cri_tools_version() {
     ${SCRIPT_DIR}/run-local.sh oi version component --kubernetes-version $(kubernetes_version) --component cri-tools
 }
@@ -39,9 +43,22 @@ install_crictl() {
     rm cri-tools.tar.gz
 }
 
+pull_or_build_containerd() {
+    docker pull oneinfra/containerd:$(containerd_version) ||
+        ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image containerd:$(containerd_version)
+}
+
+pull_or_build_hypervisor() {
+    docker pull oneinfra/hypervisor:$(kubernetes_version) ||
+        (
+            pull_or_build_containerd &&
+            ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image hypervisor:$(kubernetes_version)
+        )
+}
+
 case "$1" in
     pull-or-build-hypervisor)
-        docker pull oneinfra/hypervisor:$(kubernetes_version) || ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image hypervisor:$(kubernetes_version)
+        pull_or_build_hypervisor
         shift
         ;;
     kubectl)

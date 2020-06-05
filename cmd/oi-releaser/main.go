@@ -247,11 +247,10 @@ func main() {
 	}
 }
 
-func chosenContainerImages(containerImages []string) images.ContainerImageMapWithTags {
+func chosenContainerImages(containerImages []string) images.ContainerImageList {
 	if len(containerImages) == 1 && containerImages[0] == "" {
-		return images.ContainerImageMapWithTags{}
+		return images.ContainerImageList{}
 	}
-	chosenContainerImages := images.ContainerImageMapWithTags{}
 	// Used to avoid image:version duplicates
 	chosenContainerImageMap := map[string]map[string]struct{}{}
 	for _, chosenContainerImage := range containerImages {
@@ -261,17 +260,29 @@ func chosenContainerImages(containerImages []string) images.ContainerImageMapWit
 		}
 		imageName, imageVersion := imageSplit[0], imageSplit[1]
 		if chosenContainerImageMap[imageName] == nil {
-			chosenContainerImages[images.ContainerImage(imageName)] = []string{}
 			chosenContainerImageMap[imageName] = map[string]struct{}{}
 		}
 		if _, exists := chosenContainerImageMap[imageName][imageVersion]; exists {
 			continue
 		}
-		chosenContainerImages[images.ContainerImage(imageName)] = append(
-			chosenContainerImages[images.ContainerImage(imageName)],
-			imageVersion,
-		)
 		chosenContainerImageMap[imageName][imageVersion] = struct{}{}
+	}
+	chosenContainerImages := images.ContainerImageList{}
+	for containerImage, containerVersions := range chosenContainerImageMap {
+		containerImageWithTags := images.ContainerImageWithTags{
+			Image: images.ContainerImage(containerImage),
+			Tags:  []string{},
+		}
+		for containerVersion := range containerVersions {
+			containerImageWithTags.Tags = append(
+				containerImageWithTags.Tags,
+				containerVersion,
+			)
+		}
+		chosenContainerImages = append(
+			chosenContainerImages,
+			containerImageWithTags,
+		)
 	}
 	return chosenContainerImages
 }

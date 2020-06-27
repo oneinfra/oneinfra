@@ -50,9 +50,8 @@ CHANGELOG_FILE=/tmp/oneinfra-${CURRENT_TAG}-changelog.txt
 echo ${CURRENT_TAG} > ${CHANGELOG_FILE}
 echo >> ${CHANGELOG_FILE}
 
-
 echo "## :bulb: Release notes" >> ${CHANGELOG_FILE}
-RELEASE_NOTES=$(git log $(git tag --sort=-version:refname | head -n2 | tail -n1)..${CURRENT_TAG} | ${SCRIPT_DIR}/run.sh oi-releaser git release-notes)
+RELEASE_NOTES=$(git log $(git tag --sort=-version:refname | head -n2 | tail -n1)..${CURRENT_TAG} | ${SCRIPT_DIR}/run-local.sh oi-releaser git release-notes)
 if [ -n "${RELEASE_NOTES}" ]; then
     echo "${RELEASE_NOTES}" >> ${CHANGELOG_FILE}
 else

@@ -34,16 +34,16 @@ kubernetesVersions:
   "1.15.12":
     containerdVersion: "1.3.4"
     pauseVersion: "3.1"
-  "1.16.9":
+  "1.16.12":
     containerdVersion: "1.3.4"
     pauseVersion: "3.1"
-  "1.17.6":
+  "1.17.8":
     containerdVersion: "1.3.4"
     pauseVersion: "3.1"
-  "1.18.3":
+  "1.18.5":
     containerdVersion: "1.3.4"
     pauseVersion: "3.1"
-  "1.19.0-beta.0":
+  "1.19.0-beta.2":
     containerdVersion: "1.3.4"
     pauseVersion: "3.1"`
 )

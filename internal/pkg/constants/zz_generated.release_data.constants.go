@@ -21,21 +21,21 @@ package constants
 const (
 	// RawReleaseData represents the supported versions for this release
 	RawReleaseData = `consoleVersion: "20.05.0-alpha4"
-defaultKubernetesVersion: "1.18.3"
+defaultKubernetesVersion: "1.18.5"
 kubernetesVersions:
 - version: "1.15.12"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.3.1"
-- version: "1.16.9"
+- version: "1.16.12"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.2"
-- version: "1.17.6"
+- version: "1.17.8"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.18.3"
+- version: "1.18.5"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.19.0-beta.0"
+- version: "1.19.0-beta.2"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"`
 )

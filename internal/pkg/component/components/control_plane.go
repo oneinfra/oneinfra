@@ -129,7 +129,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 		"--cluster-signing-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
 		"--cluster-cidr", cluster.ClusterCIDR,
 		"--service-cluster-ip-range", cluster.ServiceCIDR,
-		"--allocate-node-cidrs",
+		"--allocate-node-cidrs", "true",
 	}
 	if cluster.NodeCIDRMaskSize > 0 {
 		kubeControllerManagerArguments = append(

@@ -40,15 +40,15 @@ jobs:
     env:
       CONTAINER_BUILD_OPTIONS: --image kubelet-installer:1.18.5
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_kubelet_installer_1_19_0_beta_2_container_image
-  displayName: Publish kubelet-installer:1.19.0-beta.2 container image
+- job: publish_kubelet_installer_1_19_0_beta_0_container_image
+  displayName: Publish kubelet-installer:1.19.0-beta.0 container image
   pool:
     vmImage: ubuntu-18.04
   steps:
   - bash: make publish-container-image-ci
     displayName: Publish container image
     env:
-      CONTAINER_BUILD_OPTIONS: --image kubelet-installer:1.19.0-beta.2
+      CONTAINER_BUILD_OPTIONS: --image kubelet-installer:1.19.0-beta.0
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 pr:
   branches:

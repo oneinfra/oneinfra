@@ -35,7 +35,7 @@ kubernetesVersions:
 - version: "1.18.5"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.19.0-beta.2"
+- version: "1.19.0-beta.0"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"`
 )

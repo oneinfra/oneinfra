@@ -46,18 +46,6 @@ jobs:
     env:
       CONTAINER_BUILD_OPTIONS: --image hypervisor:1.17.9
       DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
-- job: publish_hypervisor_1_18_5_container_image
-  dependsOn:
-  - publish_containerd_1_3_4_container_image
-  displayName: Publish hypervisor:1.18.5 container image
-  pool:
-    vmImage: ubuntu-18.04
-  steps:
-  - bash: make publish-container-image-ci
-    displayName: Publish container image
-    env:
-      CONTAINER_BUILD_OPTIONS: --image hypervisor:1.18.5
-      DOCKER_HUB_TOKEN: $(DOCKER_HUB_TOKEN)
 - job: publish_hypervisor_1_18_6_container_image
   dependsOn:
   - publish_containerd_1_3_4_container_image

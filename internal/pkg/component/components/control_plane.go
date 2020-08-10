@@ -121,33 +121,24 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if err := controlPlane.runEtcd(inquirer); err != nil {
 		return err
 	}
-	kubeControllerManagerArguments := []string{
-		"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"),
-		"--controllers=*,tokencleaner",
-		"--service-account-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
-		"--cluster-signing-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"),
-		"--cluster-signing-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
-		"--cluster-cidr", cluster.ClusterCIDR,
-		"--service-cluster-ip-range", cluster.ServiceCIDR,
-		"--allocate-node-cidrs", "true",
+	kubeControllerManagerArguments := map[string]string{
+		"kubeconfig":                       componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "controller-manager.kubeconfig"),
+		"controllers":                      "*,tokencleaner",
+		"service-account-private-key-file": componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
+		"cluster-signing-cert-file":        componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.crt"),
+		"cluster-signing-key-file":         componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "cluster-signing-ca.key"),
+		"cluster-cidr":                     cluster.ClusterCIDR,
+		"service-cluster-ip-range":         cluster.ServiceCIDR,
+		"allocate-node-cidrs":              "true",
 	}
 	if cluster.NodeCIDRMaskSize > 0 {
-		kubeControllerManagerArguments = append(
-			kubeControllerManagerArguments,
-			"--node-cidr-mask-size", strconv.Itoa(cluster.NodeCIDRMaskSize),
-		)
+		kubeControllerManagerArguments["node-cidr-mask-size"] = strconv.Itoa(cluster.NodeCIDRMaskSize)
 	}
 	if cluster.NodeCIDRMaskSizeIPv4 > 0 {
-		kubeControllerManagerArguments = append(
-			kubeControllerManagerArguments,
-			"--node-cidr-mask-size-ipv4", strconv.Itoa(cluster.NodeCIDRMaskSizeIPv4),
-		)
+		kubeControllerManagerArguments["node-cidr-mask-size-ipv4"] = strconv.Itoa(cluster.NodeCIDRMaskSizeIPv4)
 	}
 	if cluster.NodeCIDRMaskSizeIPv6 > 0 {
-		kubeControllerManagerArguments = append(
-			kubeControllerManagerArguments,
-			"--node-cidr-mask-size-ipv6", strconv.Itoa(cluster.NodeCIDRMaskSizeIPv6),
-		)
+		kubeControllerManagerArguments["node-cidr-mask-size-ipv6"] = strconv.Itoa(cluster.NodeCIDRMaskSizeIPv6)
 	}
 	_, err = hypervisor.EnsurePod(
 		cluster.Namespace,
@@ -160,28 +151,28 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Name:    "kube-apiserver",
 					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
-					Args: []string{
-						"--insecure-port", "0",
-						"--advertise-address", advertiseAddressHost,
-						"--secure-port", strconv.Itoa(advertiseAddressPort),
-						"--etcd-servers", strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
-						"--etcd-cafile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
-						"--etcd-certfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
-						"--etcd-keyfile", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
-						"--anonymous-auth", "false",
-						"--authorization-mode", "Node,RBAC",
-						"--enable-bootstrap-token-auth",
-						"--allow-privileged", "true",
-						"--tls-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"),
-						"--tls-private-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
-						"--client-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
-						"--service-account-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
-						"--kubelet-certificate-authority", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"),
-						"--kubelet-client-certificate", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"),
-						"--kubelet-client-key", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"),
-						"--kubelet-preferred-address-types", "ExternalIP,ExternalDNS,InternalIP,InternalDNS,Hostname",
-						"--service-cluster-ip-range", cluster.ServiceCIDR,
-					},
+					Args: component.ArgsFromMap(map[string]string{
+						"insecure-port":                   "0",
+						"advertise-address":               advertiseAddressHost,
+						"secure-port":                     strconv.Itoa(advertiseAddressPort),
+						"etcd-servers":                    strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
+						"etcd-cafile":                     componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
+						"etcd-certfile":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
+						"etcd-keyfile":                    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
+						"anonymous-auth":                  "true",
+						"authorization-mode":              "Node,RBAC",
+						"enable-bootstrap-token-auth":     "true",
+						"allow-privileged":                "true",
+						"tls-cert-file":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"),
+						"tls-private-key-file":            componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
+						"client-ca-file":                  componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
+						"service-account-key-file":        componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
+						"kubelet-certificate-authority":   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"),
+						"kubelet-client-certificate":      componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"),
+						"kubelet-client-key":              componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"),
+						"kubelet-preferred-address-types": "ExternalIP,ExternalDNS,InternalIP,InternalDNS,Hostname",
+						"service-cluster-ip-range":        cluster.ServiceCIDR,
+					}),
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
@@ -190,7 +181,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Name:    "kube-controller-manager",
 					Image:   fmt.Sprintf(kubeControllerManagerImage, kubernetesVersion),
 					Command: []string{"kube-controller-manager"},
-					Args:    kubeControllerManagerArguments,
+					Args:    component.ArgsFromMap(kubeControllerManagerArguments),
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},
@@ -199,9 +190,9 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Name:    "kube-scheduler",
 					Image:   fmt.Sprintf(kubeSchedulerImage, kubernetesVersion),
 					Command: []string{"kube-scheduler"},
-					Args: []string{
-						"--kubeconfig", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"),
-					},
+					Args: component.ArgsFromMap(map[string]string{
+						"kubeconfig": componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "scheduler.kubeconfig"),
+					}),
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},

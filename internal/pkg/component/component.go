@@ -338,3 +338,12 @@ func (component *Component) Specs() (string, error) {
 	}
 	return "", errors.Errorf("could not encode component %q", component.Name)
 }
+
+// ArgsFromMap returns a list of arguments from the given argument map
+func (component *Component) ArgsFromMap(args map[string]string) []string {
+	res := []string{}
+	for argumentName, argumentValue := range args {
+		res = append(res, fmt.Sprintf("--%s=%s", argumentName, argumentValue))
+	}
+	return res
+}

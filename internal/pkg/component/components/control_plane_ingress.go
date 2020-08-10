@@ -55,6 +55,7 @@ frontend control-plane
   default_backend apiservers
 backend apiservers
   option httpchk GET /healthz
+  http-check expect status 200
   {{ range $server, $address := .APIServers }}
   server {{ $server }} {{ $address }} check check-ssl verify none
   {{- end }}

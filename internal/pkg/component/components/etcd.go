@@ -434,24 +434,24 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 		Name:    "etcd",
 		Image:   fmt.Sprintf(etcdImage, versionBundle.EtcdVersion),
 		Command: []string{"etcd"},
-		Args: []string{
-			"--name", component.Name,
-			"--client-cert-auth",
-			"--peer-cert-allowed-cn", fmt.Sprintf("%s.etcd.cluster", cluster.Name),
-			"--experimental-peer-skip-client-san-verification",
-			"--cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.crt"),
-			"--key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.key"),
-			"--trusted-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-client-ca.crt"),
-			"--peer-trusted-ca-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer-ca.crt"),
-			"--peer-cert-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.crt"),
-			"--peer-key-file", componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.key"),
-			"--data-dir", etcdDataDir,
-			"--listen-client-urls", listenClientURLs.String(),
-			"--advertise-client-urls", advertiseClientURLs.String(),
-			"--listen-peer-urls", listenPeerURLs.String(),
-			"--initial-advertise-peer-urls", initialAdvertisePeerURLs.String(),
-			"--enable-grpc-gateway=false",
-		},
+		Args: component.ArgsFromMap(map[string]string{
+			"name":                 component.Name,
+			"client-cert-auth":     "true",
+			"peer-cert-allowed-cn": fmt.Sprintf("%s.etcd.cluster", cluster.Name),
+			"experimental-peer-skip-client-san-verification": "true",
+			"cert-file":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.crt"),
+			"key-file":                    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd.key"),
+			"trusted-ca-file":             componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-client-ca.crt"),
+			"peer-trusted-ca-file":        componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer-ca.crt"),
+			"peer-cert-file":              componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.crt"),
+			"peer-key-file":               componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-peer.key"),
+			"data-dir":                    etcdDataDir,
+			"listen-client-urls":          listenClientURLs.String(),
+			"advertise-client-urls":       advertiseClientURLs.String(),
+			"listen-peer-urls":            listenPeerURLs.String(),
+			"initial-advertise-peer-urls": initialAdvertisePeerURLs.String(),
+			"enable-grpc-gateway":         "false",
+		}),
 		Env: map[string]string{
 			"ETCDCTL_CACERT":    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
 			"ETCDCTL_CERT":      componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
@@ -467,7 +467,7 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 	if err != nil && len(cluster.StoragePeerEndpoints) == 0 {
 		etcdContainer.Args = append(
 			etcdContainer.Args,
-			"--initial-cluster-state", "new",
+			"--initial-cluster-state=new",
 		)
 	} else if err == nil {
 		endpoints := []string{}
@@ -487,8 +487,10 @@ func (controlPlane *ControlPlane) etcdContainer(inquirer inquirer.ReconcilerInqu
 		}
 		etcdContainer.Args = append(
 			etcdContainer.Args,
-			"--initial-cluster", strings.Join(endpoints, ","),
-			"--initial-cluster-state", "existing",
+			component.ArgsFromMap(map[string]string{
+				"initial-cluster":       strings.Join(endpoints, ","),
+				"initial-cluster-state": "existing",
+			})...,
 		)
 	}
 	return etcdContainer, nil

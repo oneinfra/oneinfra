@@ -1,5 +1,5 @@
 consoleVersion: "20.05.0-alpha4"
-defaultKubernetesVersion: "1.18.6"
+defaultKubernetesVersion: "1.19.0"
 kubernetesVersions:
 - version: "1.15.12"
   etcdVersion: "3.4.3"
@@ -13,6 +13,9 @@ kubernetesVersions:
 - version: "1.18.6"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.19.0-rc.4"
+- version: "1.19.0"
+  etcdVersion: "3.4.3"
+  coreDNSVersion: "1.6.7"
+- version: "1.20.0-alpha.0"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"

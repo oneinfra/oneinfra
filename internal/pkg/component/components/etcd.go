@@ -33,7 +33,7 @@ import (
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/clientv3"
 	"go.uber.org/zap"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"

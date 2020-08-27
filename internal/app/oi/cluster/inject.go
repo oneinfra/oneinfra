@@ -23,7 +23,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/component"
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	"github.com/oneinfra/oneinfra/internal/pkg/manifests"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Inject injects a cluster with name componentName

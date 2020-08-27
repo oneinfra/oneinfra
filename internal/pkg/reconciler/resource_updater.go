@@ -19,7 +19,7 @@ package reconciler
 import (
 	"context"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	clientapi "sigs.k8s.io/controller-runtime/pkg/client"
 )
 

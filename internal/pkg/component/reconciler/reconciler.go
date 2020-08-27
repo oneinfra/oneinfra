@@ -19,7 +19,7 @@ package reconciler
 import (
 	"errors"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	clusterapi "github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"

@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/oneinfra/oneinfra/internal/app/oi/cluster"
 	jointoken "github.com/oneinfra/oneinfra/internal/app/oi/join-token"

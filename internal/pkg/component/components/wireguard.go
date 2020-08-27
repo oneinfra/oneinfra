@@ -29,7 +29,7 @@ import (
 	"github.com/oneinfra/oneinfra/internal/pkg/infra"
 	podapi "github.com/oneinfra/oneinfra/internal/pkg/infra/pod"
 	"github.com/oneinfra/oneinfra/internal/pkg/inquirer"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 const (

@@ -29,7 +29,7 @@ import (
 	tokenutil "k8s.io/cluster-bootstrap/token/util"
 	utilsecrets "k8s.io/cluster-bootstrap/util/secrets"
 	utiltokens "k8s.io/cluster-bootstrap/util/tokens"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/oneinfra/oneinfra/pkg/constants"
 )

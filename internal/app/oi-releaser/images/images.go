@@ -26,7 +26,7 @@ import (
 
 	"github.com/oneinfra/oneinfra/internal/pkg/constants"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // ContainerImage is a container image name

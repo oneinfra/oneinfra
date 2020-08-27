@@ -19,7 +19,7 @@ package cluster
 import (
 	"time"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/oneinfra/oneinfra/internal/pkg/cluster"
 	clusterreconciler "github.com/oneinfra/oneinfra/internal/pkg/cluster/reconciler"

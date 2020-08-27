@@ -24,8 +24,9 @@ service provider. You decide.
 | `1.16.13`          | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.16.13)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
 | `1.17.9`           | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.17.9)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
 | `1.18.6`           | `20.08.0-alpha20` | `20.08.0-alpha20` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.18.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.19.0`           | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.19.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.20.0-alpha.0`   | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.20.0-alpha.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
+| `1.19.0-rc.4`      | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.18.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
+| `1.19.0`           | `master`             |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.19.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
+| `1.20.0-alpha.0`   | `master`             |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.20.0-alpha.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
 
 
 ## Lightning-quick start

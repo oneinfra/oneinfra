@@ -16,9 +16,9 @@ if ! which kubectl &> /dev/null; then
 fi
 
 if ! which oi-local-hypervisor-set &> /dev/null; then
-    ONEINFRA_PATH=/tmp/oneinfra-20.08.0-alpha20
+    ONEINFRA_PATH=/tmp/oneinfra-20.09.0-alpha21
     mkdir -p ${ONEINFRA_PATH}
-    wget -O ${ONEINFRA_PATH}/oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.08.0-alpha20/oi-local-hypervisor-set-linux-amd64-20.08.0-alpha20
+    wget -O ${ONEINFRA_PATH}/oi-local-hypervisor-set https://github.com/oneinfra/oneinfra/releases/download/20.09.0-alpha21/oi-local-hypervisor-set-linux-amd64-20.09.0-alpha21
     chmod +x ${ONEINFRA_PATH}/oi-local-hypervisor-set
     export PATH=${ONEINFRA_PATH}:${PATH}
 fi
@@ -37,7 +37,7 @@ wait_for_ns() {
 execute_command "Creating kind cluster..." "kind create cluster"
 execute_command "Deploying cert-manager..." "kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.1/cert-manager.yaml"
 wait_for_ns cert-manager
-execute_command "Deploying oneinfra 20.08.0-alpha20..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.08.0-alpha20/config/generated/all.yaml"
+execute_command "Deploying oneinfra 20.09.0-alpha21..." "kubectl apply -f https://raw.githubusercontent.com/oneinfra/oneinfra/20.09.0-alpha21/config/generated/all.yaml"
 wait_for_ns oneinfra-system
 execute_command "Creating fake local hypervisors..." "oi-local-hypervisor-set create --tcp | kubectl apply -f -"
 execute_command "Generating oneinfra console JWT key..." "kubectl create secret generic -n oneinfra-system jwt-key --from-literal=jwt-key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"

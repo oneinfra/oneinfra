@@ -20,13 +20,12 @@ service provider. You decide.
 
 | Kubernetes version | Deployable with      | Default in           |                                                                                                                                                                                                              |
 |--------------------|----------------------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `1.15.12`          | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.15.12)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
-| `1.16.13`          | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.16.13)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
-| `1.17.9`           | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.17.9)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.18.6`           | `20.08.0-alpha20` | `20.08.0-alpha20` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.18.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.19.0-rc.4`      | `20.08.0-alpha20` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.18.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.19.0`           | `master`             |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.19.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
-| `1.20.0-alpha.0`   | `master`             |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.20.0-alpha.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
+| `1.15.12`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.15.12)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
+| `1.16.13`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.16.13)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)        |
+| `1.17.9`           | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.17.9)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
+| `1.18.6`           | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.18.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
+| `1.19.0`           | `20.09.0-alpha21` | `20.09.0-alpha21` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.19.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)         |
+| `1.20.0-alpha.0`   | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=master&jobName=e2e%20tests%20-%201.20.0-alpha.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
 
 
 ## Lightning-quick start
@@ -39,7 +38,7 @@ service provider. You decide.
 On a Linux environment, execute:
 
 ```console
-$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/20.08.0-alpha20/scripts/demo.sh | sh
+$ curl https://raw.githubusercontent.com/oneinfra/oneinfra/20.09.0-alpha21/scripts/demo.sh | sh
 ```
 
 After the script is done, you will be able to access your `oneinfra`

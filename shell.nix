@@ -4,5 +4,7 @@ pkgs.mkShell {
     (import ./nix/kubebuilder.nix { inherit pkgs; })
     (import ./nix/controller-tools.nix { inherit pkgs; })
     pkgs.kustomize
+    pkgs.jq
+    pkgs.yq-go
   ];
 }

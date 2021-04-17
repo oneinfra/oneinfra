@@ -33,7 +33,7 @@ func (component *Component) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-cluster-oneinfra-ereslibre-es-v1alpha1-component,mutating=true,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=components,verbs=create;update,versions=v1alpha1,name=mcomponent.kb.io
+// +kubebuilder:webhook:path=/mutate-cluster-oneinfra-ereslibre-es-v1alpha1-component,mutating=true,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=components,verbs=create;update,versions=v1alpha1,name=mcomponent.kb.io,sideEffects=None,admissionReviewVersions=v1
 
 var _ webhook.Defaulter = &Component{}
 
@@ -64,7 +64,7 @@ func (component *Component) addClusterNameLabel() {
 	component.Labels[constants.OneInfraClusterNameLabelName] = component.Spec.Cluster
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-component,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=components,versions=v1alpha1,name=vcomponent.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-component,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=components,versions=v1alpha1,name=vcomponent.kb.io,sideEffects=None,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Component{}
 

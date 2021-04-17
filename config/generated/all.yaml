@@ -5,31 +5,14 @@ metadata:
     control-plane: controller-manager
   name: oneinfra-system
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: (devel)
   name: clusters.cluster.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.kubernetesVersion
-    name: Kubernetes version
-    type: string
-  - JSONPath: .status.apiServerEndpoint
-    name: API server endpoint
-    type: string
-  - JSONPath: .spec.vpn.enabled
-    name: VPN
-    type: boolean
-  - JSONPath: .spec.vpn.CIDR
-    name: VPN CIDR
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -46,263 +29,269 @@ spec:
     singular: cluster
   preserveUnknownFields: false
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Cluster is the Schema for the clusters API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ClusterSpec defines the desired state of Cluster
-          properties:
-            apiServer:
-              description: KubeAPIServer represents a kube apiserver
-              properties:
-                ca:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                extraSANs:
-                  items:
-                    type: string
-                  type: array
-                serviceAccount:
-                  description: KeyPair represents a public/private key pair
-                  properties:
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                    publicKey:
-                      description: PublicKey is a PEM encoded public key
-                      type: string
-                  type: object
-              type: object
-            certificateAuthorities:
-              description: CertificateAuthorities represents a set of Certificate
-                Authorities
-              properties:
-                apiServerClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                certificateSigner:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                etcdClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                etcdPeer:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                kubelet:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                kubeletClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-              type: object
-            controlPlaneReplicas:
-              description: The number of control plane replicas this cluster will
-                manage. One control plane replica if not provided.
-              type: integer
-            etcdServer:
-              description: EtcdServer represents an etcd server
-              properties:
-                ca:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-              type: object
-            joinKey:
-              description: KeyPair represents a public/private key pair
-              properties:
-                privateKey:
-                  description: PrivateKey is a PEM encoded private key
-                  type: string
-                publicKey:
-                  description: PublicKey is a PEM encoded public key
-                  type: string
-              type: object
-            joinTokens:
-              items:
-                type: string
-              type: array
-            kubernetesVersion:
-              type: string
-            networking:
-              description: ClusterNetworking represents the cluster networking settings
-              properties:
-                clusterCIDR:
-                  type: string
-                nodeCIDRMaskSize:
-                  type: integer
-                nodeCIDRMaskSizeIPv4:
-                  type: integer
-                nodeCIDRMaskSizeIPv6:
-                  type: integer
-                serviceCIDR:
-                  type: string
-              type: object
-            vpn:
-              description: VPN defines the VPN configuration for this cluster
-              properties:
-                CIDR:
-                  description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
-                  type: string
-                enabled:
-                  description: Whether a VPN should be set for this cluster. Disabled
-                    by default.
-                  type: boolean
-                privateKey:
-                  description: The VPN ingress private key. Auto-generated if the
-                    VPN is enabled and was not provided.
-                  type: string
-                publicKey:
-                  description: The VPN ingress public key. Auto-generated if the VPN
-                    is enabled and was not provided.
-                  type: string
-              type: object
-          type: object
-        status:
-          description: ClusterStatus defines the observed state of Cluster
-          properties:
-            apiServerEndpoint:
-              type: string
-            clientCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.kubernetesVersion
+      name: Kubernetes version
+      type: string
+    - jsonPath: .status.apiServerEndpoint
+      name: API server endpoint
+      type: string
+    - jsonPath: .spec.vpn.enabled
+      name: VPN
+      type: boolean
+    - jsonPath: .spec.vpn.CIDR
+      name: VPN CIDR
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Cluster is the Schema for the clusters API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ClusterSpec defines the desired state of Cluster
+            properties:
+              apiServer:
+                description: KubeAPIServer represents a kube apiserver
                 properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
+                  ca:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  extraSANs:
+                    items:
+                      type: string
+                    type: array
+                  serviceAccount:
+                    description: KeyPair represents a public/private key pair
+                    properties:
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                      publicKey:
+                        description: PublicKey is a PEM encoded public key
+                        type: string
+                    type: object
+                type: object
+              certificateAuthorities:
+                description: CertificateAuthorities represents a set of Certificate Authorities
+                properties:
+                  apiServerClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  certificateSigner:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  etcdClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  etcdPeer:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  kubelet:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  kubeletClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                type: object
+              controlPlaneReplicas:
+                description: The number of control plane replicas this cluster will manage. One control plane replica if not provided.
+                type: integer
+              etcdServer:
+                description: EtcdServer represents an etcd server
+                properties:
+                  ca:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                type: object
+              joinKey:
+                description: KeyPair represents a public/private key pair
+                properties:
                   privateKey:
                     description: PrivateKey is a PEM encoded private key
                     type: string
-                type: object
-              type: object
-            conditions:
-              description: ConditionList represents a list of conditions
-              items:
-                description: Condition represents a condition
-                properties:
-                  lastSetTime:
-                    format: date-time
-                    type: string
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    description: ConditionStatus represents a condition status
-                    type: string
-                  type:
-                    description: ConditionType represents a condition type
+                  publicKey:
+                    description: PublicKey is a PEM encoded public key
                     type: string
                 type: object
-              type: array
-            joinTokens:
-              items:
+              joinTokens:
+                items:
+                  type: string
+                type: array
+              kubernetesVersion:
                 type: string
-              type: array
-            storageClientEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            storagePeerEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            vpnPeers:
-              items:
-                description: VPNPeer represents a VPN peer
+              networking:
+                description: ClusterNetworking represents the cluster networking settings
                 properties:
-                  address:
+                  clusterCIDR:
                     type: string
-                  name:
+                  nodeCIDRMaskSize:
+                    type: integer
+                  nodeCIDRMaskSizeIPv4:
+                    type: integer
+                  nodeCIDRMaskSizeIPv6:
+                    type: integer
+                  serviceCIDR:
                     type: string
+                type: object
+              vpn:
+                description: VPN defines the VPN configuration for this cluster
+                properties:
+                  CIDR:
+                    description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
+                    type: string
+                  enabled:
+                    description: Whether a VPN should be set for this cluster. Disabled by default.
+                    type: boolean
                   privateKey:
+                    description: The VPN ingress private key. Auto-generated if the VPN is enabled and was not provided.
                     type: string
                   publicKey:
+                    description: The VPN ingress public key. Auto-generated if the VPN is enabled and was not provided.
                     type: string
                 type: object
-              type: array
-            vpnServerEndpoint:
-              type: string
-          type: object
-      type: object
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
+            type: object
+          status:
+            description: ClusterStatus defines the observed state of Cluster
+            properties:
+              apiServerEndpoint:
+                type: string
+              clientCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+              conditions:
+                description: ConditionList represents a list of conditions
+                items:
+                  description: Condition represents a condition
+                  properties:
+                    lastSetTime:
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      description: ConditionStatus represents a condition status
+                      type: string
+                    type:
+                      description: ConditionType represents a condition type
+                      type: string
+                  type: object
+                type: array
+              joinTokens:
+                items:
+                  type: string
+                type: array
+              storageClientEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              storagePeerEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              vpnPeers:
+                items:
+                  description: VPNPeer represents a VPN peer
+                  properties:
+                    address:
+                      type: string
+                    name:
+                      type: string
+                    privateKey:
+                      type: string
+                    publicKey:
+                      type: string
+                  type: object
+                type: array
+              vpnServerEndpoint:
+                type: string
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
@@ -310,28 +299,14 @@ status:
   conditions: []
   storedVersions: []
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: (devel)
   name: components.cluster.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.cluster
-    name: Cluster
-    type: string
-  - JSONPath: .spec.role
-    name: Role
-    type: string
-  - JSONPath: .spec.hypervisor
-    name: Hypervisor
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -348,111 +323,118 @@ spec:
     singular: component
   preserveUnknownFields: false
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Component is the Schema for the components API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ComponentSpec defines the desired state of Component
-          properties:
-            cluster:
-              type: string
-            hypervisor:
-              type: string
-            role:
-              description: Role defines the role of this component
-              type: string
-          type: object
-        status:
-          description: ComponentStatus defines the observed state of Component
-          properties:
-            allocatedHostPorts:
-              items:
-                description: ComponentHostPortAllocation represents a port allocation
-                  in a component
-                properties:
-                  name:
-                    type: string
-                  port:
-                    type: integer
-                type: object
-              type: array
-            clientCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
-                properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
-                  privateKey:
-                    description: PrivateKey is a PEM encoded private key
-                    type: string
-                type: object
-              type: object
-            conditions:
-              description: ConditionList represents a list of conditions
-              items:
-                description: Condition represents a condition
-                properties:
-                  lastSetTime:
-                    format: date-time
-                    type: string
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    description: ConditionStatus represents a condition status
-                    type: string
-                  type:
-                    description: ConditionType represents a condition type
-                    type: string
-                type: object
-              type: array
-            inputEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            outputEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            serverCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
-                properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
-                  privateKey:
-                    description: PrivateKey is a PEM encoded private key
-                    type: string
-                type: object
-              type: object
-          type: object
-      type: object
-  version: v1alpha1
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.cluster
+      name: Cluster
+      type: string
+    - jsonPath: .spec.role
+      name: Role
+      type: string
+    - jsonPath: .spec.hypervisor
+      name: Hypervisor
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Component is the Schema for the components API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ComponentSpec defines the desired state of Component
+            properties:
+              cluster:
+                type: string
+              hypervisor:
+                type: string
+              role:
+                description: Role defines the role of this component
+                type: string
+            type: object
+          status:
+            description: ComponentStatus defines the observed state of Component
+            properties:
+              allocatedHostPorts:
+                items:
+                  description: ComponentHostPortAllocation represents a port allocation in a component
+                  properties:
+                    name:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              clientCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+              conditions:
+                description: ConditionList represents a list of conditions
+                items:
+                  description: Condition represents a condition
+                  properties:
+                    lastSetTime:
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      description: ConditionStatus represents a condition status
+                      type: string
+                    type:
+                      description: ConditionType represents a condition type
+                      type: string
+                  type: object
+                type: array
+              inputEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              outputEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              serverCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
@@ -460,31 +442,14 @@ status:
   conditions: []
   storedVersions: []
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-    controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: (devel)
   name: hypervisors.infra.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.public
-    name: Public
-    type: boolean
-  - JSONPath: .spec.ipAddress
-    name: IP Address
-    type: string
-  - JSONPath: .spec.portRange.low
-    name: Port Low
-    type: integer
-  - JSONPath: .spec.portRange.high
-    name: Port High
-    type: integer
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -501,184 +466,132 @@ spec:
     singular: hypervisor
   preserveUnknownFields: false
   scope: Cluster
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Hypervisor is the Schema for the hypervisors API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: HypervisorSpec defines the desired state of Hypervisor
-          properties:
-            ipAddress:
-              description: IPAddress of this hypervisor. Public hypervisors must have
-                a publicly reachable IP address.
-              type: string
-            localCRIEndpoint:
-              description: LocalCRIEndpoint is the unix socket where this hypervisor
-                is reachable. This is only intended for development and testing purposes.
-                On production environments RemoteCRIEndpoint should be used. Either
-                a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
-              properties:
-                criEndpointPath:
-                  description: CRIEndpoint is the unix socket path
-                  type: string
-              type: object
-            portRange:
-              description: PortRange is the port range to be used for allocating exposed
-                components.
-              properties:
-                high:
-                  type: integer
-                low:
-                  type: integer
-              type: object
-            public:
-              description: Public hypervisors will be scheduled cluster ingress components,
-                whereas private hypervisors will be scheduled the control plane components
-                themselves.
-              type: boolean
-            remoteCRIEndpoint:
-              description: RemoteCRIEndpoint is the TCP address where this hypervisor
-                is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
-                to be provided.
-              properties:
-                caCertificate:
-                  description: CACertificate is the CA certificate to validate the
-                    connection against
-                  type: string
-                clientCertificate:
-                  description: ClientCertificate is the client certificate that will
-                    be used to authenticate requests
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                criEndpointURI:
-                  description: CRIEndpoint is the address where this CRI endpoint
-                    is listening
-                  type: string
-              type: object
-          required:
-          - public
-          type: object
-        status:
-          description: HypervisorStatus defines the observed state of Hypervisor
-          properties:
-            allocatedPorts:
-              description: AllocatedPorts is a list of hypervisor allocated ports
-              items:
-                description: HypervisorPortAllocation represents a port allocation
-                  in an hypervisor
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.public
+      name: Public
+      type: boolean
+    - jsonPath: .spec.ipAddress
+      name: IP Address
+      type: string
+    - jsonPath: .spec.portRange.low
+      name: Port Low
+      type: integer
+    - jsonPath: .spec.portRange.high
+      name: Port High
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Hypervisor is the Schema for the hypervisors API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: HypervisorSpec defines the desired state of Hypervisor
+            properties:
+              ipAddress:
+                description: IPAddress of this hypervisor. Public hypervisors must have a publicly reachable IP address.
+                type: string
+              localCRIEndpoint:
+                description: LocalCRIEndpoint is the unix socket where this hypervisor is reachable. This is only intended for development and testing purposes. On production environments RemoteCRIEndpoint should be used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
                 properties:
-                  cluster:
+                  criEndpointPath:
+                    description: CRIEndpoint is the unix socket path
                     type: string
-                  clusterNamespace:
-                    type: string
-                  component:
-                    type: string
-                  port:
+                type: object
+              portRange:
+                description: PortRange is the port range to be used for allocating exposed components.
+                properties:
+                  high:
+                    type: integer
+                  low:
                     type: integer
                 type: object
-              type: array
-            files:
-              additionalProperties:
+              public:
+                description: Public hypervisors will be scheduled cluster ingress components, whereas private hypervisors will be scheduled the control plane components themselves.
+                type: boolean
+              remoteCRIEndpoint:
+                description: RemoteCRIEndpoint is the TCP address where this hypervisor is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
+                properties:
+                  caCertificate:
+                    description: CACertificate is the CA certificate to validate the connection against
+                    type: string
+                  clientCertificate:
+                    description: ClientCertificate is the client certificate that will be used to authenticate requests
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  criEndpointURI:
+                    description: CRIEndpoint is the address where this CRI endpoint is listening
+                    type: string
+                type: object
+            required:
+            - public
+            type: object
+          status:
+            description: HypervisorStatus defines the observed state of Hypervisor
+            properties:
+              allocatedPorts:
+                description: AllocatedPorts is a list of hypervisor allocated ports
+                items:
+                  description: HypervisorPortAllocation represents a port allocation in an hypervisor
+                  properties:
+                    cluster:
+                      type: string
+                    clusterNamespace:
+                      type: string
+                    component:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              files:
                 additionalProperties:
                   additionalProperties:
                     additionalProperties:
-                      type: string
-                    description: FileMap is a map of file paths as keys and their
-                      sum as values
+                      additionalProperties:
+                        type: string
+                      description: FileMap is a map of file paths as keys and their sum as values
+                      type: object
+                    description: ComponentFileMap is a map of filemaps, with component as keys, and filemaps as values
                     type: object
-                  description: ComponentFileMap is a map of filemaps, with component
-                    as keys, and filemaps as values
+                  description: ClusterFileMap is a map of component filemaps, with clusters as keys, and component filemaps as values
                   type: object
-                description: ClusterFileMap is a map of component filemaps, with clusters
-                  as keys, and component filemaps as values
+                description: NamespacedClusterFileMap is a map of cluster filemaps, with namespaces as keys, and cluster filemaps as values
                 type: object
-              description: NamespacedClusterFileMap is a map of cluster filemaps,
-                with namespaces as keys, and cluster filemaps as values
-              type: object
-            freedPorts:
-              description: FreedPorts is a list of ports available for usage, freed
-                when components have been deleted
-              items:
-                type: integer
-              type: array
-          type: object
-      type: object
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
+              freedPorts:
+                description: FreedPorts is a list of ports available for usage, freed when components have been deleted
+                items:
+                  type: integer
+                type: array
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
     plural: ""
   conditions: []
   storedVersions: []
----
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
-metadata:
-  annotations:
-    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-  creationTimestamp: null
-  name: oneinfra-mutating-webhook-configuration
-webhooks:
-- clientConfig:
-    caBundle: Cg==
-    service:
-      name: oneinfra-webhook-service
-      namespace: oneinfra-system
-      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster
-  failurePolicy: Fail
-  name: mcluster.kb.io
-  rules:
-  - apiGroups:
-    - cluster.oneinfra.ereslibre.es
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - clusters
-- clientConfig:
-    caBundle: Cg==
-    service:
-      name: oneinfra-webhook-service
-      namespace: oneinfra-system
-      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-component
-  failurePolicy: Fail
-  name: mcomponent.kb.io
-  rules:
-  - apiGroups:
-    - cluster.oneinfra.ereslibre.es
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - components
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -814,6 +727,16 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: oneinfra-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: oneinfra-proxy-role
 rules:
 - apiGroups:
@@ -828,16 +751,6 @@ rules:
   - subjectaccessreviews
   verbs:
   - create
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: oneinfra-metrics-reader
-rules:
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -953,16 +866,6 @@ spec:
     spec:
       containers:
       - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --v=10
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.1
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-      - args:
         - --metrics-addr=127.0.0.1:8080
         - --enable-leader-election
         command:
@@ -977,6 +880,16 @@ spec:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
           readOnly: true
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.1
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
       terminationGracePeriodSeconds: 10
       volumes:
       - name: cert
@@ -1006,16 +919,64 @@ metadata:
 spec:
   selfSigned: {}
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
+  name: oneinfra-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster
+  failurePolicy: Fail
+  name: mcluster.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: oneinfra-webhook-service
+      namespace: oneinfra-system
+      path: /mutate-cluster-oneinfra-ereslibre-es-v1alpha1-component
+  failurePolicy: Fail
+  name: mcomponent.kb.io
+  rules:
+  - apiGroups:
+    - cluster.oneinfra.ereslibre.es
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - components
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: oneinfra-system/oneinfra-serving-cert
-  creationTimestamp: null
   name: oneinfra-validating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: oneinfra-webhook-service
       namespace: oneinfra-system
@@ -1032,8 +993,10 @@ webhooks:
     - UPDATE
     resources:
     - clusters
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: oneinfra-webhook-service
       namespace: oneinfra-system
@@ -1050,3 +1013,4 @@ webhooks:
     - UPDATE
     resources:
     - components
+  sideEffects: None

@@ -1,26 +1,13 @@
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
   name: components.cluster.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.cluster
-    name: Cluster
-    type: string
-  - JSONPath: .spec.role
-    name: Role
-    type: string
-  - JSONPath: .spec.hypervisor
-    name: Hypervisor
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: cluster.oneinfra.ereslibre.es
   names:
     kind: Component
@@ -28,111 +15,118 @@ spec:
     plural: components
     singular: component
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Component is the Schema for the components API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ComponentSpec defines the desired state of Component
-          properties:
-            cluster:
-              type: string
-            hypervisor:
-              type: string
-            role:
-              description: Role defines the role of this component
-              type: string
-          type: object
-        status:
-          description: ComponentStatus defines the observed state of Component
-          properties:
-            allocatedHostPorts:
-              items:
-                description: ComponentHostPortAllocation represents a port allocation
-                  in a component
-                properties:
-                  name:
-                    type: string
-                  port:
-                    type: integer
-                type: object
-              type: array
-            clientCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
-                properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
-                  privateKey:
-                    description: PrivateKey is a PEM encoded private key
-                    type: string
-                type: object
-              type: object
-            conditions:
-              description: ConditionList represents a list of conditions
-              items:
-                description: Condition represents a condition
-                properties:
-                  lastSetTime:
-                    format: date-time
-                    type: string
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    description: ConditionStatus represents a condition status
-                    type: string
-                  type:
-                    description: ConditionType represents a condition type
-                    type: string
-                type: object
-              type: array
-            inputEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            outputEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            serverCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
-                properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
-                  privateKey:
-                    description: PrivateKey is a PEM encoded private key
-                    type: string
-                type: object
-              type: object
-          type: object
-      type: object
-  version: v1alpha1
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.cluster
+      name: Cluster
+      type: string
+    - jsonPath: .spec.role
+      name: Role
+      type: string
+    - jsonPath: .spec.hypervisor
+      name: Hypervisor
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Component is the Schema for the components API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ComponentSpec defines the desired state of Component
+            properties:
+              cluster:
+                type: string
+              hypervisor:
+                type: string
+              role:
+                description: Role defines the role of this component
+                type: string
+            type: object
+          status:
+            description: ComponentStatus defines the observed state of Component
+            properties:
+              allocatedHostPorts:
+                items:
+                  description: ComponentHostPortAllocation represents a port allocation in a component
+                  properties:
+                    name:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              clientCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+              conditions:
+                description: ConditionList represents a list of conditions
+                items:
+                  description: Condition represents a condition
+                  properties:
+                    lastSetTime:
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      description: ConditionStatus represents a condition status
+                      type: string
+                    type:
+                      description: ConditionType represents a condition type
+                      type: string
+                  type: object
+                type: array
+              inputEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              outputEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              serverCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

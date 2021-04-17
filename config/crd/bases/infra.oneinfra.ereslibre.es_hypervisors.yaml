@@ -1,29 +1,13 @@
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
   name: hypervisors.infra.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.public
-    name: Public
-    type: boolean
-  - JSONPath: .spec.ipAddress
-    name: IP Address
-    type: string
-  - JSONPath: .spec.portRange.low
-    name: Port Low
-    type: integer
-  - JSONPath: .spec.portRange.high
-    name: Port High
-    type: integer
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: infra.oneinfra.ereslibre.es
   names:
     kind: Hypervisor
@@ -31,133 +15,126 @@ spec:
     plural: hypervisors
     singular: hypervisor
   scope: Cluster
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Hypervisor is the Schema for the hypervisors API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: HypervisorSpec defines the desired state of Hypervisor
-          properties:
-            ipAddress:
-              description: IPAddress of this hypervisor. Public hypervisors must have
-                a publicly reachable IP address.
-              type: string
-            localCRIEndpoint:
-              description: LocalCRIEndpoint is the unix socket where this hypervisor
-                is reachable. This is only intended for development and testing purposes.
-                On production environments RemoteCRIEndpoint should be used. Either
-                a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
-              properties:
-                criEndpointPath:
-                  description: CRIEndpoint is the unix socket path
-                  type: string
-              type: object
-            portRange:
-              description: PortRange is the port range to be used for allocating exposed
-                components.
-              properties:
-                high:
-                  type: integer
-                low:
-                  type: integer
-              type: object
-            public:
-              description: Public hypervisors will be scheduled cluster ingress components,
-                whereas private hypervisors will be scheduled the control plane components
-                themselves.
-              type: boolean
-            remoteCRIEndpoint:
-              description: RemoteCRIEndpoint is the TCP address where this hypervisor
-                is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
-                to be provided.
-              properties:
-                caCertificate:
-                  description: CACertificate is the CA certificate to validate the
-                    connection against
-                  type: string
-                clientCertificate:
-                  description: ClientCertificate is the client certificate that will
-                    be used to authenticate requests
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                criEndpointURI:
-                  description: CRIEndpoint is the address where this CRI endpoint
-                    is listening
-                  type: string
-              type: object
-          required:
-          - public
-          type: object
-        status:
-          description: HypervisorStatus defines the observed state of Hypervisor
-          properties:
-            allocatedPorts:
-              description: AllocatedPorts is a list of hypervisor allocated ports
-              items:
-                description: HypervisorPortAllocation represents a port allocation
-                  in an hypervisor
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.public
+      name: Public
+      type: boolean
+    - jsonPath: .spec.ipAddress
+      name: IP Address
+      type: string
+    - jsonPath: .spec.portRange.low
+      name: Port Low
+      type: integer
+    - jsonPath: .spec.portRange.high
+      name: Port High
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Hypervisor is the Schema for the hypervisors API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: HypervisorSpec defines the desired state of Hypervisor
+            properties:
+              ipAddress:
+                description: IPAddress of this hypervisor. Public hypervisors must have a publicly reachable IP address.
+                type: string
+              localCRIEndpoint:
+                description: LocalCRIEndpoint is the unix socket where this hypervisor is reachable. This is only intended for development and testing purposes. On production environments RemoteCRIEndpoint should be used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
                 properties:
-                  cluster:
+                  criEndpointPath:
+                    description: CRIEndpoint is the unix socket path
                     type: string
-                  clusterNamespace:
-                    type: string
-                  component:
-                    type: string
-                  port:
+                type: object
+              portRange:
+                description: PortRange is the port range to be used for allocating exposed components.
+                properties:
+                  high:
+                    type: integer
+                  low:
                     type: integer
                 type: object
-              type: array
-            files:
-              additionalProperties:
+              public:
+                description: Public hypervisors will be scheduled cluster ingress components, whereas private hypervisors will be scheduled the control plane components themselves.
+                type: boolean
+              remoteCRIEndpoint:
+                description: RemoteCRIEndpoint is the TCP address where this hypervisor is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
+                properties:
+                  caCertificate:
+                    description: CACertificate is the CA certificate to validate the connection against
+                    type: string
+                  clientCertificate:
+                    description: ClientCertificate is the client certificate that will be used to authenticate requests
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  criEndpointURI:
+                    description: CRIEndpoint is the address where this CRI endpoint is listening
+                    type: string
+                type: object
+            required:
+            - public
+            type: object
+          status:
+            description: HypervisorStatus defines the observed state of Hypervisor
+            properties:
+              allocatedPorts:
+                description: AllocatedPorts is a list of hypervisor allocated ports
+                items:
+                  description: HypervisorPortAllocation represents a port allocation in an hypervisor
+                  properties:
+                    cluster:
+                      type: string
+                    clusterNamespace:
+                      type: string
+                    component:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              files:
                 additionalProperties:
                   additionalProperties:
                     additionalProperties:
-                      type: string
-                    description: FileMap is a map of file paths as keys and their
-                      sum as values
+                      additionalProperties:
+                        type: string
+                      description: FileMap is a map of file paths as keys and their sum as values
+                      type: object
+                    description: ComponentFileMap is a map of filemaps, with component as keys, and filemaps as values
                     type: object
-                  description: ComponentFileMap is a map of filemaps, with component
-                    as keys, and filemaps as values
+                  description: ClusterFileMap is a map of component filemaps, with clusters as keys, and component filemaps as values
                   type: object
-                description: ClusterFileMap is a map of component filemaps, with clusters
-                  as keys, and component filemaps as values
+                description: NamespacedClusterFileMap is a map of cluster filemaps, with namespaces as keys, and cluster filemaps as values
                 type: object
-              description: NamespacedClusterFileMap is a map of cluster filemaps,
-                with namespaces as keys, and cluster filemaps as values
-              type: object
-            freedPorts:
-              description: FreedPorts is a list of ports available for usage, freed
-                when components have been deleted
-              items:
-                type: integer
-              type: array
-          type: object
-      type: object
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
+              freedPorts:
+                description: FreedPorts is a list of ports available for usage, freed when components have been deleted
+                items:
+                  type: integer
+                type: array
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

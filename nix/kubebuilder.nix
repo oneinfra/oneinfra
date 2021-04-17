@@ -10,6 +10,7 @@ in pkgs.buildGoModule {
   vendorSha256 = vendorSha256;
   subPackages = [ "cmd" ];
 
+  doCheck = false;
   runVend = true;
 
   src = pkgs.fetchFromGitHub {

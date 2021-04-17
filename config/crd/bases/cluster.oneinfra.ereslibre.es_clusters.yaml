@@ -1,29 +1,13 @@
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
   name: clusters.cluster.oneinfra.ereslibre.es
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.kubernetesVersion
-    name: Kubernetes version
-    type: string
-  - JSONPath: .status.apiServerEndpoint
-    name: API server endpoint
-    type: string
-  - JSONPath: .spec.vpn.enabled
-    name: VPN
-    type: boolean
-  - JSONPath: .spec.vpn.CIDR
-    name: VPN CIDR
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: cluster.oneinfra.ereslibre.es
   names:
     kind: Cluster
@@ -31,263 +15,269 @@ spec:
     plural: clusters
     singular: cluster
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Cluster is the Schema for the clusters API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ClusterSpec defines the desired state of Cluster
-          properties:
-            apiServer:
-              description: KubeAPIServer represents a kube apiserver
-              properties:
-                ca:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                extraSANs:
-                  items:
-                    type: string
-                  type: array
-                serviceAccount:
-                  description: KeyPair represents a public/private key pair
-                  properties:
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                    publicKey:
-                      description: PublicKey is a PEM encoded public key
-                      type: string
-                  type: object
-              type: object
-            certificateAuthorities:
-              description: CertificateAuthorities represents a set of Certificate
-                Authorities
-              properties:
-                apiServerClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                certificateSigner:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                etcdClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                etcdPeer:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                kubelet:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-                kubeletClient:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-              type: object
-            controlPlaneReplicas:
-              description: The number of control plane replicas this cluster will
-                manage. One control plane replica if not provided.
-              type: integer
-            etcdServer:
-              description: EtcdServer represents an etcd server
-              properties:
-                ca:
-                  description: Certificate represents a Certificate
-                  properties:
-                    certificate:
-                      description: Certificate is a PEM encoded certificate
-                      type: string
-                    privateKey:
-                      description: PrivateKey is a PEM encoded private key
-                      type: string
-                  type: object
-              type: object
-            joinKey:
-              description: KeyPair represents a public/private key pair
-              properties:
-                privateKey:
-                  description: PrivateKey is a PEM encoded private key
-                  type: string
-                publicKey:
-                  description: PublicKey is a PEM encoded public key
-                  type: string
-              type: object
-            joinTokens:
-              items:
-                type: string
-              type: array
-            kubernetesVersion:
-              type: string
-            networking:
-              description: ClusterNetworking represents the cluster networking settings
-              properties:
-                clusterCIDR:
-                  type: string
-                nodeCIDRMaskSize:
-                  type: integer
-                nodeCIDRMaskSizeIPv4:
-                  type: integer
-                nodeCIDRMaskSizeIPv6:
-                  type: integer
-                serviceCIDR:
-                  type: string
-              type: object
-            vpn:
-              description: VPN defines the VPN configuration for this cluster
-              properties:
-                CIDR:
-                  description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
-                  type: string
-                enabled:
-                  description: Whether a VPN should be set for this cluster. Disabled
-                    by default.
-                  type: boolean
-                privateKey:
-                  description: The VPN ingress private key. Auto-generated if the
-                    VPN is enabled and was not provided.
-                  type: string
-                publicKey:
-                  description: The VPN ingress public key. Auto-generated if the VPN
-                    is enabled and was not provided.
-                  type: string
-              type: object
-          type: object
-        status:
-          description: ClusterStatus defines the observed state of Cluster
-          properties:
-            apiServerEndpoint:
-              type: string
-            clientCertificates:
-              additionalProperties:
-                description: Certificate represents a Certificate
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.kubernetesVersion
+      name: Kubernetes version
+      type: string
+    - jsonPath: .status.apiServerEndpoint
+      name: API server endpoint
+      type: string
+    - jsonPath: .spec.vpn.enabled
+      name: VPN
+      type: boolean
+    - jsonPath: .spec.vpn.CIDR
+      name: VPN CIDR
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Cluster is the Schema for the clusters API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ClusterSpec defines the desired state of Cluster
+            properties:
+              apiServer:
+                description: KubeAPIServer represents a kube apiserver
                 properties:
-                  certificate:
-                    description: Certificate is a PEM encoded certificate
-                    type: string
+                  ca:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  extraSANs:
+                    items:
+                      type: string
+                    type: array
+                  serviceAccount:
+                    description: KeyPair represents a public/private key pair
+                    properties:
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                      publicKey:
+                        description: PublicKey is a PEM encoded public key
+                        type: string
+                    type: object
+                type: object
+              certificateAuthorities:
+                description: CertificateAuthorities represents a set of Certificate Authorities
+                properties:
+                  apiServerClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  certificateSigner:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  etcdClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  etcdPeer:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  kubelet:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                  kubeletClient:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                type: object
+              controlPlaneReplicas:
+                description: The number of control plane replicas this cluster will manage. One control plane replica if not provided.
+                type: integer
+              etcdServer:
+                description: EtcdServer represents an etcd server
+                properties:
+                  ca:
+                    description: Certificate represents a Certificate
+                    properties:
+                      certificate:
+                        description: Certificate is a PEM encoded certificate
+                        type: string
+                      privateKey:
+                        description: PrivateKey is a PEM encoded private key
+                        type: string
+                    type: object
+                type: object
+              joinKey:
+                description: KeyPair represents a public/private key pair
+                properties:
                   privateKey:
                     description: PrivateKey is a PEM encoded private key
                     type: string
-                type: object
-              type: object
-            conditions:
-              description: ConditionList represents a list of conditions
-              items:
-                description: Condition represents a condition
-                properties:
-                  lastSetTime:
-                    format: date-time
-                    type: string
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    description: ConditionStatus represents a condition status
-                    type: string
-                  type:
-                    description: ConditionType represents a condition type
+                  publicKey:
+                    description: PublicKey is a PEM encoded public key
                     type: string
                 type: object
-              type: array
-            joinTokens:
-              items:
+              joinTokens:
+                items:
+                  type: string
+                type: array
+              kubernetesVersion:
                 type: string
-              type: array
-            storageClientEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            storagePeerEndpoints:
-              additionalProperties:
-                type: string
-              type: object
-            vpnPeers:
-              items:
-                description: VPNPeer represents a VPN peer
+              networking:
+                description: ClusterNetworking represents the cluster networking settings
                 properties:
-                  address:
+                  clusterCIDR:
                     type: string
-                  name:
+                  nodeCIDRMaskSize:
+                    type: integer
+                  nodeCIDRMaskSizeIPv4:
+                    type: integer
+                  nodeCIDRMaskSizeIPv6:
+                    type: integer
+                  serviceCIDR:
                     type: string
+                type: object
+              vpn:
+                description: VPN defines the VPN configuration for this cluster
+                properties:
+                  CIDR:
+                    description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
+                    type: string
+                  enabled:
+                    description: Whether a VPN should be set for this cluster. Disabled by default.
+                    type: boolean
                   privateKey:
+                    description: The VPN ingress private key. Auto-generated if the VPN is enabled and was not provided.
                     type: string
                   publicKey:
+                    description: The VPN ingress public key. Auto-generated if the VPN is enabled and was not provided.
                     type: string
                 type: object
-              type: array
-            vpnServerEndpoint:
-              type: string
-          type: object
-      type: object
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
+            type: object
+          status:
+            description: ClusterStatus defines the observed state of Cluster
+            properties:
+              apiServerEndpoint:
+                type: string
+              clientCertificates:
+                additionalProperties:
+                  description: Certificate represents a Certificate
+                  properties:
+                    certificate:
+                      description: Certificate is a PEM encoded certificate
+                      type: string
+                    privateKey:
+                      description: PrivateKey is a PEM encoded private key
+                      type: string
+                  type: object
+                type: object
+              conditions:
+                description: ConditionList represents a list of conditions
+                items:
+                  description: Condition represents a condition
+                  properties:
+                    lastSetTime:
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      description: ConditionStatus represents a condition status
+                      type: string
+                    type:
+                      description: ConditionType represents a condition type
+                      type: string
+                  type: object
+                type: array
+              joinTokens:
+                items:
+                  type: string
+                type: array
+              storageClientEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              storagePeerEndpoints:
+                additionalProperties:
+                  type: string
+                type: object
+              vpnPeers:
+                items:
+                  description: VPNPeer represents a VPN peer
+                  properties:
+                    address:
+                      type: string
+                    name:
+                      type: string
+                    privateKey:
+                      type: string
+                    publicKey:
+                      type: string
+                  type: object
+                type: array
+              vpnServerEndpoint:
+                type: string
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

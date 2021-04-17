@@ -36,7 +36,7 @@ func (cluster *Cluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster,mutating=true,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=clusters,verbs=create;update,versions=v1alpha1,name=mcluster.kb.io
+// +kubebuilder:webhook:path=/mutate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster,mutating=true,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=clusters,verbs=create;update,versions=v1alpha1,name=mcluster.kb.io,sideEffects=None,admissionReviewVersions=v1
 
 var _ webhook.Defaulter = &Cluster{}
 
@@ -140,7 +140,7 @@ func (cluster *Cluster) needsCertificateInitialization() bool {
 	return cluster.Spec.JoinKey == nil
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=clusters,versions=v1alpha1,name=vcluster.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-cluster-oneinfra-ereslibre-es-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=cluster.oneinfra.ereslibre.es,resources=clusters,versions=v1alpha1,name=vcluster.kb.io,sideEffects=None,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Cluster{}
 

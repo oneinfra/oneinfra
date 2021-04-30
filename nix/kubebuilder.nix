@@ -15,6 +15,10 @@ pkgs.buildGoModule rec {
     sha256 = "10f48nmpkb3kx36x92a77mnrn48y6fvwq9dxlfw0r35hsrv1sm2g";
   };
 
+  postInstall = ''
+    mv $out/bin/cmd $out/bin/kubebuilder
+  '';
+
   meta = {
     description = "SDK for building Kubernetes APIs using CRDs";
     homepage = "https://kubebuilder.io/";

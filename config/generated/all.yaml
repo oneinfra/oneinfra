@@ -52,10 +52,14 @@ spec:
         description: Cluster is the Schema for the clusters API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -91,7 +95,8 @@ spec:
                     type: object
                 type: object
               certificateAuthorities:
-                description: CertificateAuthorities represents a set of Certificate Authorities
+                description: CertificateAuthorities represents a set of Certificate
+                  Authorities
                 properties:
                   apiServerClient:
                     description: Certificate represents a Certificate
@@ -155,7 +160,8 @@ spec:
                     type: object
                 type: object
               controlPlaneReplicas:
-                description: The number of control plane replicas this cluster will manage. One control plane replica if not provided.
+                description: The number of control plane replicas this cluster will
+                  manage. One control plane replica if not provided.
                 type: integer
               etcdServer:
                 description: EtcdServer represents an etcd server
@@ -208,13 +214,16 @@ spec:
                     description: The VPN CIDR for this cluster. 10.0.0.0/16 by default.
                     type: string
                   enabled:
-                    description: Whether a VPN should be set for this cluster. Disabled by default.
+                    description: Whether a VPN should be set for this cluster. Disabled
+                      by default.
                     type: boolean
                   privateKey:
-                    description: The VPN ingress private key. Auto-generated if the VPN is enabled and was not provided.
+                    description: The VPN ingress private key. Auto-generated if the
+                      VPN is enabled and was not provided.
                     type: string
                   publicKey:
-                    description: The VPN ingress public key. Auto-generated if the VPN is enabled and was not provided.
+                    description: The VPN ingress public key. Auto-generated if the
+                      VPN is enabled and was not provided.
                     type: string
                 type: object
             type: object
@@ -343,10 +352,14 @@ spec:
         description: Component is the Schema for the components API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -366,7 +379,8 @@ spec:
             properties:
               allocatedHostPorts:
                 items:
-                  description: ComponentHostPortAllocation represents a port allocation in a component
+                  description: ComponentHostPortAllocation represents a port allocation
+                    in a component
                   properties:
                     name:
                       type: string
@@ -489,10 +503,14 @@ spec:
         description: Hypervisor is the Schema for the hypervisors API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -500,17 +518,23 @@ spec:
             description: HypervisorSpec defines the desired state of Hypervisor
             properties:
               ipAddress:
-                description: IPAddress of this hypervisor. Public hypervisors must have a publicly reachable IP address.
+                description: IPAddress of this hypervisor. Public hypervisors must
+                  have a publicly reachable IP address.
                 type: string
               localCRIEndpoint:
-                description: LocalCRIEndpoint is the unix socket where this hypervisor is reachable. This is only intended for development and testing purposes. On production environments RemoteCRIEndpoint should be used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
+                description: LocalCRIEndpoint is the unix socket where this hypervisor
+                  is reachable. This is only intended for development and testing
+                  purposes. On production environments RemoteCRIEndpoint should be
+                  used. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be
+                  provided.
                 properties:
                   criEndpointPath:
                     description: CRIEndpoint is the unix socket path
                     type: string
                 type: object
               portRange:
-                description: PortRange is the port range to be used for allocating exposed components.
+                description: PortRange is the port range to be used for allocating
+                  exposed components.
                 properties:
                   high:
                     type: integer
@@ -518,16 +542,22 @@ spec:
                     type: integer
                 type: object
               public:
-                description: Public hypervisors will be scheduled cluster ingress components, whereas private hypervisors will be scheduled the control plane components themselves.
+                description: Public hypervisors will be scheduled cluster ingress
+                  components, whereas private hypervisors will be scheduled the control
+                  plane components themselves.
                 type: boolean
               remoteCRIEndpoint:
-                description: RemoteCRIEndpoint is the TCP address where this hypervisor is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has to be provided.
+                description: RemoteCRIEndpoint is the TCP address where this hypervisor
+                  is reachable. Either a LocalCRIEndpoint or a RemoteCRIEndpoint has
+                  to be provided.
                 properties:
                   caCertificate:
-                    description: CACertificate is the CA certificate to validate the connection against
+                    description: CACertificate is the CA certificate to validate the
+                      connection against
                     type: string
                   clientCertificate:
-                    description: ClientCertificate is the client certificate that will be used to authenticate requests
+                    description: ClientCertificate is the client certificate that
+                      will be used to authenticate requests
                     properties:
                       certificate:
                         description: Certificate is a PEM encoded certificate
@@ -537,7 +567,8 @@ spec:
                         type: string
                     type: object
                   criEndpointURI:
-                    description: CRIEndpoint is the address where this CRI endpoint is listening
+                    description: CRIEndpoint is the address where this CRI endpoint
+                      is listening
                     type: string
                 type: object
             required:
@@ -549,7 +580,8 @@ spec:
               allocatedPorts:
                 description: AllocatedPorts is a list of hypervisor allocated ports
                 items:
-                  description: HypervisorPortAllocation represents a port allocation in an hypervisor
+                  description: HypervisorPortAllocation represents a port allocation
+                    in an hypervisor
                   properties:
                     cluster:
                       type: string
@@ -567,16 +599,21 @@ spec:
                     additionalProperties:
                       additionalProperties:
                         type: string
-                      description: FileMap is a map of file paths as keys and their sum as values
+                      description: FileMap is a map of file paths as keys and their
+                        sum as values
                       type: object
-                    description: ComponentFileMap is a map of filemaps, with component as keys, and filemaps as values
+                    description: ComponentFileMap is a map of filemaps, with component
+                      as keys, and filemaps as values
                     type: object
-                  description: ClusterFileMap is a map of component filemaps, with clusters as keys, and component filemaps as values
+                  description: ClusterFileMap is a map of component filemaps, with
+                    clusters as keys, and component filemaps as values
                   type: object
-                description: NamespacedClusterFileMap is a map of cluster filemaps, with namespaces as keys, and cluster filemaps as values
+                description: NamespacedClusterFileMap is a map of cluster filemaps,
+                  with namespaces as keys, and cluster filemaps as values
                 type: object
               freedPorts:
-                description: FreedPorts is a list of ports available for usage, freed when components have been deleted
+                description: FreedPorts is a list of ports available for usage, freed
+                  when components have been deleted
                 items:
                   type: integer
                 type: array

@@ -35,7 +35,7 @@ func AzurePublishToolingImages() error {
 		Jobs: []azure.Job{},
 		Trigger: &azure.Trigger{
 			Branches: &azure.BranchesTrigger{
-				Include: []string{"master"},
+				Include: []string{"main"},
 			},
 			Paths: &azure.PathsTrigger{
 				Include: []string{

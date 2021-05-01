@@ -155,10 +155,10 @@ could be ommitted if it's not an `alpha`, `beta` or `rc` release.
   * A new release should have been created on GitHub automatically
   * New images should have been published to the Docker Hub
   * Assets should have been published in the release in GitHub
-* Merge changes into `master` and push them
-  * `git checkout master`
+* Merge changes into `main` and push them
+  * `git checkout main`
   * `git merge prepare-YY.MM.MINOR-META`
-  * `git push origin master`
+  * `git push origin main`
 * Remove the preparation branch locally and remotely
   * `git branch -d prepare-YY.MM.MINOR-META`
   * `git push origin :prepare-YY.MM.MINOR-META`

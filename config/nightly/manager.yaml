@@ -7,5 +7,5 @@ spec:
   template:
     spec:
       containers:
-      - image: oneinfra/oi-manager:master
+      - image: oneinfra/oi-manager:latest
         name: manager

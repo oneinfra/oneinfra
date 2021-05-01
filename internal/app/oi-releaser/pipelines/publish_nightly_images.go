@@ -32,12 +32,12 @@ func AzurePublishNightlyImages() error {
 			"CI": "1",
 		},
 		Jobs: []azure.Job{
-			publishContainerJob("oi-manager:master", []string{}, forcePublish),
-			publishContainerJob("oi:master", []string{}, forcePublish),
+			publishContainerJob("oi-manager:latest", []string{}, forcePublish),
+			publishContainerJob("oi:latest", []string{}, forcePublish),
 		},
 		Trigger: &azure.Trigger{
 			Branches: &azure.BranchesTrigger{
-				Include: []string{"master"},
+				Include: []string{"main"},
 			},
 		},
 		PR: &azure.PRTrigger{

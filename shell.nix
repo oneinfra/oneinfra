@@ -8,14 +8,14 @@ let
   }) {};
 in
 pkgs.mkShell {
-  buildInputs = [
+  buildInputs = with pkgs; [
     (import ./nix/code-generator.nix { inherit pkgs; })
     (import ./nix/controller-tools.nix { inherit pkgs; })
     (import ./nix/kubebuilder.nix { inherit pkgs; })
-    pkgs.go_1_16
-    pkgs.golint
-    pkgs.kustomize
-    pkgs.jq
-    pkgs.yq-go
+    go_1_16
+    golint
+    kustomize
+    jq
+    yq-go
   ];
 }

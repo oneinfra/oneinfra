@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/klog/v2"
 
 	componentapi "github.com/oneinfra/oneinfra/internal/pkg/component"
@@ -44,6 +45,10 @@ const (
 	kubeAPIServerImage         = "k8s.gcr.io/kube-apiserver:v%s"
 	kubeControllerManagerImage = "k8s.gcr.io/kube-controller-manager:v%s"
 	kubeSchedulerImage         = "k8s.gcr.io/kube-scheduler:v%s"
+)
+
+var (
+	version1_20 = version.MustParseGeneric("1.20.0")
 )
 
 // ControlPlane represents a complete control plane instance,
@@ -140,6 +145,37 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 	if cluster.NodeCIDRMaskSizeIPv6 > 0 {
 		kubeControllerManagerArguments["node-cidr-mask-size-ipv6"] = strconv.Itoa(cluster.NodeCIDRMaskSizeIPv6)
 	}
+
+	apiserverArgs := map[string]string{
+		"advertise-address":                advertiseAddressHost,
+		"secure-port":                      strconv.Itoa(advertiseAddressPort),
+		"etcd-servers":                     strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
+		"etcd-cafile":                      componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
+		"etcd-certfile":                    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
+		"etcd-keyfile":                     componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
+		"anonymous-auth":                   "true",
+		"authorization-mode":               "Node,RBAC",
+		"enable-bootstrap-token-auth":      "true",
+		"allow-privileged":                 "true",
+		"tls-cert-file":                    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"),
+		"tls-private-key-file":             componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
+		"client-ca-file":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
+		"service-account-key-file":         componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
+		"service-account-signing-key-file": componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account.key"),
+		"kubelet-certificate-authority":    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"),
+		"kubelet-client-certificate":       componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"),
+		"kubelet-client-key":               componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"),
+		"kubelet-preferred-address-types":  "ExternalIP,ExternalDNS,InternalIP,InternalDNS,Hostname",
+		"service-cluster-ip-range":         cluster.ServiceCIDR,
+		"service-account-issuer":           "api",
+		"service-account-api-audiences":    "api",
+	}
+
+	apiserverVersion := version.MustParseSemantic(kubernetesVersion)
+	if apiserverVersion.LessThan(version1_20) {
+		apiserverArgs["insecure-port"] = "0"
+	}
+
 	_, err = hypervisor.EnsurePod(
 		cluster.Namespace,
 		cluster.Name,
@@ -151,28 +187,7 @@ func (controlPlane *ControlPlane) Reconcile(inquirer inquirer.ReconcilerInquirer
 					Name:    "kube-apiserver",
 					Image:   fmt.Sprintf(kubeAPIServerImage, kubernetesVersion),
 					Command: []string{"kube-apiserver"},
-					Args: component.ArgsFromMap(map[string]string{
-						"insecure-port":                   "0",
-						"advertise-address":               advertiseAddressHost,
-						"secure-port":                     strconv.Itoa(advertiseAddressPort),
-						"etcd-servers":                    strings.Join(controlPlane.etcdClientEndpoints(inquirer), ","),
-						"etcd-cafile":                     componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "etcd-ca.crt"),
-						"etcd-certfile":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.crt"),
-						"etcd-keyfile":                    componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-etcd-client.key"),
-						"anonymous-auth":                  "true",
-						"authorization-mode":              "Node,RBAC",
-						"enable-bootstrap-token-auth":     "true",
-						"allow-privileged":                "true",
-						"tls-cert-file":                   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.crt"),
-						"tls-private-key-file":            componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver.key"),
-						"client-ca-file":                  componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-client-ca.crt"),
-						"service-account-key-file":        componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "service-account-pub.key"),
-						"kubelet-certificate-authority":   componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "kubelet-ca.crt"),
-						"kubelet-client-certificate":      componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.crt"),
-						"kubelet-client-key":              componentSecretsPathFile(cluster.Namespace, cluster.Name, component.Name, "apiserver-kubelet-client.key"),
-						"kubelet-preferred-address-types": "ExternalIP,ExternalDNS,InternalIP,InternalDNS,Hostname",
-						"service-cluster-ip-range":        cluster.ServiceCIDR,
-					}),
+					Args:    component.ArgsFromMap(apiserverArgs),
 					Mounts: map[string]string{
 						componentSecretsPath(cluster.Namespace, cluster.Name, component.Name): componentSecretsPath(cluster.Namespace, cluster.Name, component.Name),
 					},

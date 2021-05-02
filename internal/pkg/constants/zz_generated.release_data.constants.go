@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Rafael Fernández López <ereslibre@ereslibre.es>
+ * Copyright 2021 Rafael Fernández López <ereslibre@ereslibre.es>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,27 @@ package constants
 const (
 	// RawReleaseData represents the supported versions for this release
 	RawReleaseData = `consoleVersion: "20.05.0-alpha4"
-defaultKubernetesVersion: "1.19.0"
+defaultKubernetesVersion: "1.19.10"
 kubernetesVersions:
 - version: "1.15.12"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.3.1"
-- version: "1.16.13"
+- version: "1.16.15"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.2"
-- version: "1.17.9"
+- version: "1.17.17"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.18.6"
+- version: "1.18.18"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.19.0"
+- version: "1.19.10"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"
-- version: "1.20.0-alpha.0"
+- version: "1.20.6"
+  etcdVersion: "3.4.3"
+  coreDNSVersion: "1.6.7"
+- version: "1.21.0"
   etcdVersion: "3.4.3"
   coreDNSVersion: "1.6.7"`
 )

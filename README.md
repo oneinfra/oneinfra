@@ -63,7 +63,7 @@ here](docs/joining-worker-nodes.md).
 `oneinfra` is licensed under the terms of the Apache 2.0 license.
 
 ```
-Copyright (C) 2020 Rafael Fernández López <ereslibre@ereslibre.es>
+Copyright (C) 2021 Rafael Fernández López <ereslibre@ereslibre.es>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

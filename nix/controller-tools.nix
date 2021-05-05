@@ -1,12 +1,9 @@
-{ pkgs }:
+{ pkgs, version, sha256, vendorSha256 }:
 let
   name = "controller-tools";
-  controllerToolsVersion = "0.5.0";
-  sha256 = "169nljr5718hlww7d21cq853qmjiszkfl9mxx1j1k7bdl4nps2vq";
-  vendorSha256 = "0xgrs0b3z9pwa57bh24nhmm3rp2wi0ynhxjwyp6zsqas6snnxnzc";
 in pkgs.buildGoModule {
   pname = name;
-  version = controllerToolsVersion;
+  version = version;
 
   vendorSha256 = vendorSha256;
   subPackages = [ "cmd/controller-gen" ];
@@ -17,7 +14,7 @@ in pkgs.buildGoModule {
   src = pkgs.fetchFromGitHub {
     owner = "kubernetes-sigs";
     repo = name;
-    rev = "v${controllerToolsVersion}";
+    rev = "v${version}";
     sha256 = sha256;
   };
 

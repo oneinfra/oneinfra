@@ -1,22 +1,18 @@
-{ pkgs }:
+{ pkgs, version, sha256, vendorSha256 }:
 let
   name = "code-generator";
-  codeGeneratorVersion = "0.21.0";
-  sha256 = "1xbwibyrscxvffdya53p258dardib9q34gjhzyi7lgb4pq6465h5";
-  vendorSha256 = "0lhm6q6pf22773idj9idjqz9cdj4i6y1ms9wb9hlb516pprgyid4";
 in pkgs.buildGoModule {
   pname = name;
-  version = codeGeneratorVersion;
-
-  vendorSha256 = vendorSha256;
+  version = version;
 
   doCheck = false;
   runVend = true;
+  vendorSha256 = vendorSha256;
 
   src = pkgs.fetchFromGitHub {
     owner = "kubernetes";
     repo = name;
-    rev = "v${codeGeneratorVersion}";
+    rev = "v${version}";
     sha256 = sha256;
   };
 

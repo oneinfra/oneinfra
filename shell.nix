@@ -1,8 +1,4 @@
 {
-  nixpkgs ? {
-    revision = "c576998594b4b8790f291d17fa92d499d1dc5d42";
-    sha256 = "1k1xpardbbpb23wdki2ws30b3f20nd6fpx6lm802s1c6k3xh2d4c";
-  },
   code-generator ? {
     version = "0.21.0";
     sha256 = "1xbwibyrscxvffdya53p258dardib9q34gjhzyi7lgb4pq6465h5";
@@ -20,11 +16,7 @@
   }
 }:
 let
-  pkgs = import (builtins.fetchTarball {
-    name = "nixpkgs-${nixpkgs.revision}";
-    url = "https://github.com/nixos/nixpkgs/archive/${nixpkgs.revision}.tar.gz";
-    sha256 = nixpkgs.sha256;
-  }) {};
+  pkgs = import (./nix/nixpkgs.nix) {};
 in
 pkgs.mkShell {
   buildInputs = with pkgs; [

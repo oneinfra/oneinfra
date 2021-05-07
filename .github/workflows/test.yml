@@ -15,15 +15,33 @@ jobs:
       run: |
         make pull-builder
         make oi-binaries
+  unit_and_integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        git fetch --prune --unshallow --tags
     - name: Unit and integration tests
       run: |
         make pull-builder
         make test
+  e2e_tests_with_local_CRI_endpoints:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        git fetch --prune --unshallow --tags
     - name: e2e tests with local CRI endpoints
       run: |
         make deps
         make e2e
-    # - name: e2e tests with remote CRI endpoints
-    #   run: |
-    #     make deps
-    #     make e2e-remote
+  e2e_tests_with_remote_CRI_endpoints:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        git fetch --prune --unshallow --tags
+    - name: e2e tests with remote CRI endpoints
+      run: |
+        make deps
+        make e2e-remote

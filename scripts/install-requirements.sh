@@ -18,18 +18,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 kubernetes_version() {
     if [ "${KUBERNETES_VERSION}" = "default" ]; then
-        ${SCRIPT_DIR}/run-local.sh oi version kubernetes --default
+        oi version kubernetes --default
     else
         echo "${KUBERNETES_VERSION}"
     fi
 }
 
 containerd_version() {
-    ${SCRIPT_DIR}/run-local.sh oi version component --kubernetes-version $(kubernetes_version) --component containerd
+    oi version component --kubernetes-version $(kubernetes_version) --component containerd
 }
 
 cri_tools_version() {
-    ${SCRIPT_DIR}/run-local.sh oi version component --kubernetes-version $(kubernetes_version) --component cri-tools
+    oi version component --kubernetes-version $(kubernetes_version) --component cri-tools
 }
 
 install_kubectl() {
@@ -45,14 +45,14 @@ install_crictl() {
 
 pull_or_build_containerd() {
     docker pull oneinfra/containerd:$(containerd_version) ||
-        ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image containerd:$(containerd_version)
+        oi-releaser container-images build --image containerd:$(containerd_version)
 }
 
 pull_or_build_hypervisor() {
     docker pull oneinfra/hypervisor:$(kubernetes_version) ||
         (
             pull_or_build_containerd &&
-            ${SCRIPT_DIR}/run-local.sh oi-releaser container-images build --image hypervisor:$(kubernetes_version)
+            oi-releaser container-images build --image hypervisor:$(kubernetes_version)
         )
 }
 

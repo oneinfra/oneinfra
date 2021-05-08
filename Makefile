@@ -181,18 +181,18 @@ kind-delete:
 	kind delete cluster --name oi-test-cluster
 
 build-container-image: oi-releaser
-	./scripts/run-local.sh oi-releaser container-images build $(CONTAINER_BUILD_OPTIONS)
+	oi-releaser container-images build $(CONTAINER_BUILD_OPTIONS)
 
 build-container-images: oi-releaser
-	./scripts/run-local.sh oi-releaser container-images build
+	oi-releaser container-images build
 
 publish-container-image: oi-releaser
-	./scripts/run-local.sh oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
+	oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
 
 publish-container-image-ci: docker-login publish-container-image
 
 publish-container-images: oi-releaser
-	./scripts/run-local.sh oi-releaser container-images publish
+	oi-releaser container-images publish
 
 release: oi-releaser docker-login
 	sh -c 'RUN_EXTRA_OPTS="-t" ./scripts/release.sh'

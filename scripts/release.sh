@@ -72,4 +72,4 @@ oi-releaser container-images publish
 
 echo "Publishing release assets"
 
-RUN_EXTRA_OPTS="-e GITHUB_TOKEN" ${SCRIPT_DIR}/run.sh oi-releaser binaries publish --binary oi --binary oi-local-hypervisor-set
+oi-releaser binaries publish --binary oi --binary oi-local-hypervisor-set

@@ -26,26 +26,26 @@ all: oi-binaries generate pipelines
 
 # Run tests
 test: lint fmt vet
-	./scripts/run.sh go test ./... -coverprofile cover.out
+	go test ./... -coverprofile cover.out
 
 test-coverage: test
 	go tool cover -html=cover.out
 
 # Build and install manager binary
 manager: go-generate
-	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-manager
+	go install ${GO_INSTALL_FLAGS} ./cmd/oi-manager
 
 # Build and install oi binary
 oi: go-generate
-	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi
+	go install ${GO_INSTALL_FLAGS} ./cmd/oi
 
 # Build and install oi-local-hypervisor-set
 oi-local-hypervisor-set: go-generate
-	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
+	go install ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
 
 # Build and install oi-releaser
 oi-releaser: oi
-	./scripts/run.sh go install ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
+	go install ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
 
 clientsets-generate:
 	rm -rf pkg/clientsets/*
@@ -62,7 +62,7 @@ pipelines: oi-releaser
 	oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
 
 go-generate: RELEASE
-	sh -c 'SKIP_CI=1 ./scripts/run.sh go generate ./...'
+	go generate ./...
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -90,22 +90,22 @@ manifests: platform-manifests guest-manifests
 	kustomize build config/nightly > config/generated/nightly.yaml
 
 platform-manifests:
-	./scripts/run.sh controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
+	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
 
 guest-manifests:
-	sh -c 'CRD_OPTIONS=$(CRD_OPTIONS) RUN_EXTRA_OPTS="-e CRD_OPTIONS" ./scripts/run.sh ./scripts/openapi-gen.sh apis/node'
+	scripts/openapi-gen.sh apis/node
 
 # Run golint against code
 lint:
-	./scripts/run.sh golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
+	golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
 
 # Run gofmt against code
 fmt:
-	@test -z "$(shell ./scripts/run.sh gofmt -l ${PROJECT_GO_FOLDERS})" || (./scripts/run.sh gofmt -d -l ${PROJECT_GO_FOLDERS} && exit 1)
+	@test -z "$(shell gofmt -l ${PROJECT_GO_FOLDERS})" || (gofmt -d -l ${PROJECT_GO_FOLDERS} && exit 1)
 
 # Run go vet against code
 vet:
-	./scripts/run.sh go vet ./...
+	go vet ./...
 
 # Generate code
 generate: replace-text-placeholders manifests
@@ -127,9 +127,6 @@ pull-or-build-hypervisor:
 
 pull-builder:
 	@docker pull oneinfra/builder:latest
-
-builder-shell:
-	sh -c 'CI="1" RUN_EXTRA_OPTS="-it" ./scripts/run.sh bash'
 
 # Install kubectl
 kubectl:

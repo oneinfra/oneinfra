@@ -16,11 +16,6 @@ in pkgs.buildGoModule {
     sha256 = sha256;
   };
 
-  postInstall = ''
-    install -m755 -D generate-groups.sh $out/bin/generate-groups.sh
-    install -m755 -D generate-internal-groups.sh $out/bin/generate-internal-groups.sh
-  '';
-
   meta = {
     description = "Generators for kube-like API types";
     homepage = "https://github.com/kubernetes/code-generator";

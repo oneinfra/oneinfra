@@ -16,7 +16,7 @@ in pkgs.buildGoModule {
     sha256 = sha256;
   };
 
-  installPhase = ''
+  postInstall = ''
     install -m755 -D generate-groups.sh $out/bin/generate-groups.sh
     install -m755 -D generate-internal-groups.sh $out/bin/generate-internal-groups.sh
   '';

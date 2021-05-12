@@ -49,8 +49,10 @@ oi-releaser: oi
 
 clientsets-generate:
 	rm -rf pkg/clientsets/*
-	client-gen --input-base github.com/oneinfra/oneinfra/apis --input cluster/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n manager
-	client-gen --input-base github.com/oneinfra/oneinfra/apis --input node/v1alpha1 -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n managed
+	client-gen --input-base github.com/oneinfra/oneinfra/apis --input cluster/v1alpha1 --output-base pkg/clientsets -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n manager
+	client-gen --input-base github.com/oneinfra/oneinfra/apis --input node/v1alpha1 --output-base pkg/clientsets -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n managed
+	mv pkg/clientsets/github.com/oneinfra/oneinfra/pkg/clientsets/* pkg/clientsets
+	rm -rf pkg/clientsets/github.com
 
 pipelines: oi-releaser
 	oi-releaser pipelines test dump > .azure-pipelines/test.yml

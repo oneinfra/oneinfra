@@ -116,19 +116,6 @@ generate-all: generate clientsets-generate pipelines
 replace-text-placeholders: oi-releaser
 	@./scripts/replace-text-placeholders.sh
 
-deps: oi oi-releaser pull-or-build-hypervisor kubectl crictl
-
-pull-or-build-hypervisor:
-	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-or-build-hypervisor
-
-# Install kubectl
-kubectl:
-	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh kubectl
-
-# Install crictl
-crictl:
-	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh crictl
-
 # Run e2e with local CRI endpoints (to be moved to a proper e2e framework)
 e2e: oi oi-local-hypervisor-set
 	./scripts/e2e.sh

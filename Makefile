@@ -116,17 +116,10 @@ generate-all: generate clientsets-generate pipelines
 replace-text-placeholders: oi-releaser
 	@./scripts/replace-text-placeholders.sh
 
-os-information:
-	cat /etc/os-release
-	uname -a
-
-deps: os-information pull-builder oi oi-releaser pull-or-build-hypervisor kubectl crictl
+deps: oi oi-releaser pull-or-build-hypervisor kubectl crictl
 
 pull-or-build-hypervisor:
 	KUBERNETES_VERSION=$(KUBERNETES_VERSION) ./scripts/install-requirements.sh pull-or-build-hypervisor
-
-pull-builder:
-	@docker pull oneinfra/builder:latest
 
 # Install kubectl
 kubectl:

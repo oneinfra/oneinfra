@@ -5,6 +5,7 @@ in pkgs.buildGoModule {
   pname = name;
   version = version;
 
+  allowGoReference = true;
   doCheck = false;
   runVend = true;
   vendorSha256 = vendorSha256;

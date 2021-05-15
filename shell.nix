@@ -42,9 +42,4 @@ pkgs.mkShell {
     jq
     yq-go
   ];
-
-  shellHook = ''
-    export GOPATH=$HOME/go
-    export PATH=$GOPATH/bin:$PATH
-  '';
 }

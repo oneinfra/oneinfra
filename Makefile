@@ -33,19 +33,19 @@ test-coverage: test
 
 # Build and install manager binary
 manager: go-generate
-	go install ${GO_INSTALL_FLAGS} ./cmd/oi-manager
+	go build -o bin/manager ${GO_INSTALL_FLAGS} ./cmd/oi-manager
 
 # Build and install oi binary
 oi: go-generate
-	go install ${GO_INSTALL_FLAGS} ./cmd/oi
+	go build -o bin/oi ${GO_INSTALL_FLAGS} ./cmd/oi
 
 # Build and install oi-local-hypervisor-set
 oi-local-hypervisor-set: go-generate
-	go install ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
+	go build -o bin/oi-local-hypervisor-set ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
 
 # Build and install oi-releaser
 oi-releaser: oi
-	go install ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
+	go build -o bin/oi-releaser ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
 
 clientsets-generate:
 	rm -rf pkg/clientsets/*
@@ -55,11 +55,11 @@ clientsets-generate:
 	rm -rf pkg/clientsets/github.com
 
 pipelines: oi-releaser
-	oi-releaser pipelines test dump > .azure-pipelines/test.yml
-	oi-releaser pipelines release dump > .azure-pipelines/release.yml
-	oi-releaser pipelines publish-tooling-images dump > .azure-pipelines/publish-tooling-images.yml
-	oi-releaser pipelines publish-nightly-images dump > .azure-pipelines/publish-nightly-images.yml
-	oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
+	bin/oi-releaser pipelines test dump > .azure-pipelines/test.yml
+	bin/oi-releaser pipelines release dump > .azure-pipelines/release.yml
+	bin/oi-releaser pipelines publish-tooling-images dump > .azure-pipelines/publish-tooling-images.yml
+	bin/oi-releaser pipelines publish-nightly-images dump > .azure-pipelines/publish-nightly-images.yml
+	bin/oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
 
 go-generate: RELEASE
 	go generate ./...
@@ -158,18 +158,18 @@ kind-delete:
 	kind delete cluster --name oi-test-cluster
 
 build-container-image: oi-releaser
-	oi-releaser container-images build $(CONTAINER_BUILD_OPTIONS)
+	bin/oi-releaser container-images build $(CONTAINER_BUILD_OPTIONS)
 
 build-container-images: oi-releaser
-	oi-releaser container-images build
+	bin/oi-releaser container-images build
 
 publish-container-image: oi-releaser
-	oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
+	bin/oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
 
 publish-container-image-ci: docker-login publish-container-image
 
 publish-container-images: oi-releaser
-	oi-releaser container-images publish
+	bin/oi-releaser container-images publish
 
 release: oi-releaser docker-login
 	sh -c 'RUN_EXTRA_OPTS="-t" ./scripts/release.sh'

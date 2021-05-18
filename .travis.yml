@@ -7,6 +7,8 @@ jobs:
       script:
         - curl -L https://nixos.org/nix/install | sh
         - source ~/.nix-profile/etc/profile.d/nix.sh
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use oneinfra
         - nix-shell --pure --run "make oi-binaries"
     - stage: test
       name: unit and integration tests
@@ -15,6 +17,8 @@ jobs:
       script:
         - curl -L https://nixos.org/nix/install | sh
         - source ~/.nix-profile/etc/profile.d/nix.sh
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use oneinfra
         - nix-shell --pure --run "make test"
     - name: e2e tests with local CRI endpoints
       dist: bionic
@@ -22,6 +26,8 @@ jobs:
       script:
         - curl -L https://nixos.org/nix/install | sh
         - source ~/.nix-profile/etc/profile.d/nix.sh
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use oneinfra
         - nix-shell --pure --run "make e2e"
     - name: e2e tests with remote CRI endpoints
       dist: bionic
@@ -29,4 +35,6 @@ jobs:
       script:
         - curl -L https://nixos.org/nix/install | sh
         - source ~/.nix-profile/etc/profile.d/nix.sh
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use oneinfra
         - nix-shell --pure --run "make e2e-remote"

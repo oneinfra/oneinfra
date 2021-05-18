@@ -54,13 +54,6 @@ clientsets-generate:
 	mv pkg/clientsets/github.com/oneinfra/oneinfra/pkg/clientsets/* pkg/clientsets
 	rm -rf pkg/clientsets/github.com
 
-pipelines: oi-releaser
-	bin/oi-releaser pipelines test dump > .azure-pipelines/test.yml
-	bin/oi-releaser pipelines release dump > .azure-pipelines/release.yml
-	bin/oi-releaser pipelines publish-tooling-images dump > .azure-pipelines/publish-tooling-images.yml
-	bin/oi-releaser pipelines publish-nightly-images dump > .azure-pipelines/publish-nightly-images.yml
-	bin/oi-releaser pipelines publish-testing-images dump > .azure-pipelines/publish-testing-images.yml
-
 go-generate: RELEASE
 	go generate ./...
 
@@ -126,48 +119,3 @@ e2e-remote: oi oi-local-hypervisor-set
 
 create-fake-worker:
 	./scripts/create-fake-worker.sh
-
-kind-webhook-certs: $(TEST_WEBHOOK_CERTS_DIR) $(TEST_WEBHOOK_CERTS_DIR)/tls.crt
-
-$(TEST_WEBHOOK_CERTS_DIR):
-	mkdir -p $(TEST_WEBHOOK_CERTS_DIR)
-
-$(TEST_WEBHOOK_CERTS_DIR)/ca.key:
-	openssl genrsa -out $(TEST_WEBHOOK_CERTS_DIR)/ca.key 1024
-
-$(TEST_WEBHOOK_CERTS_DIR)/ca.crt: $(TEST_WEBHOOK_CERTS_DIR)/ca.key
-	openssl req -x509 -new -nodes -key $(TEST_WEBHOOK_CERTS_DIR)/ca.key -subj "/C=ES/ST=Madrid/O=oneinfra/CN=webhook" -sha256 -days 3650 -out $(TEST_WEBHOOK_CERTS_DIR)/ca.crt
-
-$(TEST_WEBHOOK_CERTS_DIR)/tls.key:
-	openssl genrsa -out $(TEST_WEBHOOK_CERTS_DIR)/tls.key 1024
-
-$(TEST_WEBHOOK_CERTS_DIR)/tls.csr: $(TEST_WEBHOOK_CERTS_DIR)/tls.key
-	openssl req -new -sha256 -key $(TEST_WEBHOOK_CERTS_DIR)/tls.key -subj "/C=ES/ST=Madrid/O=oneinfra/CN=$(shell .kind/scripts/docker-gateway.sh)" -out $(TEST_WEBHOOK_CERTS_DIR)/tls.csr
-
-$(TEST_WEBHOOK_CERTS_DIR)/tls.crt: $(TEST_WEBHOOK_CERTS_DIR)/tls.csr $(TEST_WEBHOOK_CERTS_DIR)/ca.crt $(TEST_WEBHOOK_CERTS_DIR)/ca.key
-	openssl x509 -req -in $(TEST_WEBHOOK_CERTS_DIR)/tls.csr -CA $(TEST_WEBHOOK_CERTS_DIR)/ca.crt -CAkey $(TEST_WEBHOOK_CERTS_DIR)/ca.key -CAcreateserial -out $(TEST_WEBHOOK_CERTS_DIR)/tls.crt -days 3650 -sha256
-
-kind:
-	kind create cluster --name oi-test-cluster --config .kind/config.yaml
-
-kind-deploy:
-	./.kind/scripts/write-runtime-patches.sh
-	kubectl apply -k .kind/kustomize
-
-kind-delete:
-	kind delete cluster --name oi-test-cluster
-
-build-container-image: oi-releaser
-	bin/oi-releaser container-images build $(CONTAINER_BUILD_OPTIONS)
-
-build-container-images: oi-releaser
-	bin/oi-releaser container-images build
-
-publish-container-image: oi-releaser
-	bin/oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
-
-publish-container-images: oi-releaser
-	bin/oi-releaser container-images publish
-
-release: oi-releaser
-	sh -c 'RUN_EXTRA_OPTS="-t" ./scripts/release.sh'

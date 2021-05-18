@@ -1,7 +1,6 @@
-| Go Report                                                                                                                                      | Travis                                                                                                             | CircleCI                                                                                                             | Azure Test                                                                                                                                                                             | Azure Release                                                                                                                                                                                | License                                                                                                                              |
-|------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra) | [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=main)](https://travis-ci.org/oneinfra/oneinfra) | [![CircleCI](https://circleci.com/gh/oneinfra/oneinfra.svg?style=shield)](https://circleci.com/gh/oneinfra/oneinfra) | [![Test Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=3&_a=summary) | [![Release Pipeline](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/release?branchName=main)](https://dev.azure.com/oneinfra/oneinfra/_build/latest?definitionId=4&_a=summary) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0) |
-
+| Go Report                                                                                                                                      | Travis                                                                                                           | License                                                                                                                              |
+|------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra) | [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=main)](https://travis-ci.org/oneinfra/oneinfra) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0) |
 
 # oneinfra
 
@@ -18,15 +17,15 @@ service provider. You decide.
 
 ## Managed Kubernetes versions
 
-| Kubernetes version | Deployable with      | Default in           |                                                                                                                                                                                                     |
-|--------------------|----------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `1.15.12`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.15.12)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
-| `1.16.15`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.16.15)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
-| `1.17.17`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.17.17)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
-| `1.18.18`          | `20.09.0-alpha21` |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.18.18)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
-| `1.19.10`          | `20.09.0-alpha21` | `20.09.0-alpha21` | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.19.10)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3) |
-| `1.20.6`           | Next release         |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.20.6)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)  |
-| `1.21.0`           | Next release         |                      | [![Build Status](https://dev.azure.com/oneinfra/oneinfra/_apis/build/status/test?branchName=main&jobName=e2e%20tests%20-%201.21.0)](https://dev.azure.com/oneinfra/oneinfra/_build?definitionId=3)  |
+| Kubernetes version | Deployable with      | Default in           |
+|--------------------|----------------------|----------------------|
+| `1.15.12`          | `20.09.0-alpha21` |                      |
+| `1.16.13`          | `20.09.0-alpha21` |                      |
+| `1.17.9`           | `20.09.0-alpha21` |                      |
+| `1.18.6`           | `20.09.0-alpha21` |                      |
+| `1.19.0`           | `20.09.0-alpha21` | `20.09.0-alpha21` |
+| `1.20.0-alpha.0`   | `20.09.0-alpha21` |                      |
+| `1.21.0`           | Next release         |                      |
 
 
 ## Lightning-quick start

@@ -32,8 +32,12 @@ pkgs.mkShell {
       inherit pkgs;
       inherit (kubebuilder) version sha256 vendorSha256;
     })
+    cri-tools
+    docker
+    git
     go_1_16
     golint
+    kubectl
     kustomize
     jq
     yq-go

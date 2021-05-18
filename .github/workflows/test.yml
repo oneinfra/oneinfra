@@ -7,41 +7,72 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v10
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     - run: |
         git fetch --prune --unshallow --tags
+    - run: |
+        nix-env -iA cachix -f https://cachix.org/api/v1/install
+        cachix use oneinfra
     - name: Build
       run: |
-        make pull-builder
-        make oi-binaries
+        nix-shell --pure --run "make oi-binaries"
+
   unit_and_integration_tests:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v10
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     - run: |
         git fetch --prune --unshallow --tags
-    - name: Unit and integration tests
+    - run: |
+        nix-env -iA cachix -f https://cachix.org/api/v1/install
+        cachix use oneinfra
+    - name: Test
       run: |
-        make pull-builder
-        make test
+        nix-shell --pure --run "make test"
+
   e2e_tests_with_local_CRI_endpoints:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v10
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     - run: |
         git fetch --prune --unshallow --tags
-    - name: e2e tests with local CRI endpoints
+    - run: |
+        nix-env -iA cachix -f https://cachix.org/api/v1/install
+        cachix use oneinfra
+    - name: Test
       run: |
-        make deps
-        make e2e
+        nix-shell --pure --run "make e2e"
+
   e2e_tests_with_remote_CRI_endpoints:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v10
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     - run: |
         git fetch --prune --unshallow --tags
-    - name: e2e tests with remote CRI endpoints
+    - run: |
+        nix-env -iA cachix -f https://cachix.org/api/v1/install
+        cachix use oneinfra
+    - name: Test
       run: |
-        make deps
-        make e2e-remote
+        nix-shell --pure --run "make e2e-remote"

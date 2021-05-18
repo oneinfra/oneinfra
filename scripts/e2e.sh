@@ -16,11 +16,7 @@
 
 set -e
 
-if [ -z "$CI" ]; then
-    export PATH=${GOPATH}/bin:${PATH}
-else
-    export PATH=${PWD}/bin:${PATH}
-fi
+export PATH=${PWD}/bin:${PATH}
 
 INFRA_TEST_CLUSTER_NAME="${INFRA_TEST_CLUSTER_NAME:-test}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-default}"

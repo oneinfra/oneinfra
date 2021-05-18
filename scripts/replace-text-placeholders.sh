@@ -14,4 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find . -type f -name "*.in" | xargs -I{} sh -c 'cat {} | oi-releaser text replace-placeholders > $(echo {} | sed s/.in$//)'
+OI_RELEASER="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/../bin/oi-releaser"
+for file in $(find . -type f -name "*.in"); do
+    TARGET_FILE="$(echo $file | sed s/.in$//)"
+    cat $file | ${OI_RELEASER} text replace-placeholders > ${TARGET_FILE}
+done

@@ -33,6 +33,8 @@ pkgs.mkShell {
       inherit (kubebuilder) version sha256 vendorSha256;
     })
     cri-tools
+    dhall
+    dhall-json
     docker
     git
     go_1_16

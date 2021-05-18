@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+// FIXME: remove this script
+
 BOILERPLATE="$(cat hack/boilerplate.go.txt)"
 
 for crdPath in $(find "${1}" -maxdepth 1 -mindepth 1 -type d); do

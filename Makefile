@@ -97,7 +97,7 @@ vet:
 	go vet ./...
 
 # Generate code
-generate: replace-text-placeholders manifests
+generate: manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 generate-all: generate clientsets-generate pipelines

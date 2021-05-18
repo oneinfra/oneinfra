@@ -166,13 +166,8 @@ build-container-images: oi-releaser
 publish-container-image: oi-releaser
 	bin/oi-releaser container-images publish $(CONTAINER_BUILD_OPTIONS)
 
-publish-container-image-ci: docker-login publish-container-image
-
 publish-container-images: oi-releaser
 	bin/oi-releaser container-images publish
 
-release: oi-releaser docker-login
+release: oi-releaser
 	sh -c 'RUN_EXTRA_OPTS="-t" ./scripts/release.sh'
-
-docker-login:
-	echo $(DOCKER_HUB_TOKEN) | docker login -u oneinfrapublisher --password-stdin

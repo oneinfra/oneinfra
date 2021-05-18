@@ -43,10 +43,6 @@ oi: go-generate
 oi-local-hypervisor-set: go-generate
 	go build -o bin/oi-local-hypervisor-set ${GO_INSTALL_FLAGS} ./cmd/oi-local-hypervisor-set
 
-# Build and install oi-releaser
-oi-releaser: oi
-	go build -o bin/oi-releaser ${GO_INSTALL_FLAGS} ./cmd/oi-releaser
-
 clientsets-generate:
 	rm -rf pkg/clientsets/*
 	client-gen --input-base github.com/oneinfra/oneinfra/apis --input cluster/v1alpha1 --output-base pkg/clientsets -h hack/boilerplate.go.txt -p github.com/oneinfra/oneinfra/pkg/clientsets -n manager
@@ -105,9 +101,6 @@ generate: replace-text-placeholders manifests
 	controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 generate-all: generate clientsets-generate pipelines
-
-replace-text-placeholders: oi-releaser
-	@./scripts/replace-text-placeholders.sh
 
 # Run e2e with local CRI endpoints (to be moved to a proper e2e framework)
 e2e: oi oi-local-hypervisor-set

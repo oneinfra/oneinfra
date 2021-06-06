@@ -9,8 +9,6 @@ GO_INSTALL_FLAGS ?= -ldflags='-X github.com/oneinfra/oneinfra/internal/pkg/const
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
-TEST_WEBHOOK_CERTS_DIR ?= /tmp/k8s-webhook-server/serving-certs
-
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -56,9 +54,6 @@ go-generate: RELEASE
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
 	go run cmd/oi-manager/main.go -verbosity 10
-
-# Run against a kind cluster with webhooks set up with generated certificates
-run-kind: kind-webhook-certs kind kind-deploy run
 
 # Install CRDs into a cluster
 install: manifests

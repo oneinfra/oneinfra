@@ -14,6 +14,9 @@
  * limitations under the License.
  **/
 
+//go:generate sh -c "controller-gen paths=. crd:trivialVersions=true output:crd:stdout | yq eval '.spec.versions[] | select(.name == \"v1alpha1\") | .schema.openAPIV3Schema' - > zz_generated.openapi.yaml"
+//go:generate sh -c "dhall text --file zz_generated.openapi.go.dhall > zz_generated.openapi.go"
+
 package v1alpha1
 
 import (

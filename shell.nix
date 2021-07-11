@@ -17,6 +17,7 @@
 }:
 let
   pkgs = import (./nix/nixpkgs.nix) {};
+  go = pkgs.go_1_16;
 in
 pkgs.mkShell {
   buildInputs = with pkgs; [
@@ -37,11 +38,16 @@ pkgs.mkShell {
     dhall-json
     docker
     git
-    go_1_16
+    go
     golint
+    jq
     kubectl
     kustomize
-    jq
     yq-go
   ];
+  shellHook = ''
+    export GOPATH=$(${go}/bin/go env GOPATH)
+    export GOROOT=$(${go}/bin/go env GOROOT)
+    export GO111MODULE=on
+  '';
 }

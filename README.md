@@ -17,15 +17,16 @@ service provider. You decide.
 
 ## Managed Kubernetes versions
 
-| Kubernetes version | Deployable with      | Default in           |
-|--------------------|----------------------|----------------------|
-| `1.15.12`          | `20.09.0-alpha21` |                      |
-| `1.16.13`          | `20.09.0-alpha21` |                      |
-| `1.17.9`           | `20.09.0-alpha21` |                      |
-| `1.18.6`           | `20.09.0-alpha21` |                      |
-| `1.19.0`           | `20.09.0-alpha21` | `20.09.0-alpha21` |
-| `1.20.0-alpha.0`   | `20.09.0-alpha21` |                      |
-| `1.21.0`           | Next release         |                      |
+| Kubernetes version|
+|-------------------|
+| 1.15.12 |
+| 1.16.15 |
+| 1.17.17 |
+| 1.18.18 |
+| 1.19.10 |
+| 1.20.6 |
+| 1.21.0 |
+
 
 
 ## Lightning-quick start

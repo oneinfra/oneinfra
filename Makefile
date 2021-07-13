@@ -69,12 +69,16 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: platform-manifests
+manifests: platform-manifests guest-manifests
 	kustomize build config/default > config/generated/all.yaml
 	kustomize build config/nightly > config/generated/nightly.yaml
 
 platform-manifests:
 	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
+
+# TODO
+guest-manifests:
+	exit 0
 
 # Run golint against code
 lint:

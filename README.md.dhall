@@ -1,3 +1,8 @@
+let List/map  = https://prelude.dhall-lang.org/v20.2.0/List/map
+
+in
+
+''
 | Go Report                                                                                                                                      | Travis                                                                                                           | License                                                                                                                              |
 |------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | [![Go Report Card](https://goreportcard.com/badge/github.com/oneinfra/oneinfra)](https://goreportcard.com/report/github.com/oneinfra/oneinfra) | [![Travis CI](https://travis-ci.org/oneinfra/oneinfra.svg?branch=main)](https://travis-ci.org/oneinfra/oneinfra) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0) |
@@ -77,3 +82,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+''

@@ -70,6 +70,3 @@ func initTestData() {
 		KubernetesTestVersions[kubernetesVersion] = kubernetesData
 	}
 }
-
-//go:generate sh -c "CONST_NAME=RawReleaseData RELEASE_FILE=RELEASE RELEASE_DATA_FILE=internal/pkg/constants/zz_generated.release_data.constants.go ../../../scripts/release-gen.sh"
-//go:generate sh -c "CONST_NAME=RawTestData RELEASE_FILE=RELEASE_TEST RELEASE_DATA_FILE=internal/pkg/constants/zz_generated.test_data.go ../../../scripts/release-gen.sh"

@@ -48,7 +48,7 @@ clientsets-generate:
 	mv pkg/clientsets/github.com/oneinfra/oneinfra/pkg/clientsets/* pkg/clientsets
 	rm -rf pkg/clientsets/github.com
 
-go-generate: RELEASE
+go-generate:
 	go generate ./...
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -69,15 +69,12 @@ deploy: manifests
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: platform-manifests guest-manifests
+manifests: platform-manifests
 	kustomize build config/default > config/generated/all.yaml
 	kustomize build config/nightly > config/generated/nightly.yaml
 
 platform-manifests:
 	controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths=./apis/cluster/... paths=./apis/infra/... output:crd:artifacts:config=config/crd/bases
-
-guest-manifests:
-	scripts/openapi-gen.sh apis/node
 
 # Run golint against code
 lint:

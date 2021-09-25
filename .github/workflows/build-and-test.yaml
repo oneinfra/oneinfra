@@ -1,0 +1,124 @@
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'make'"
+  e2e-1_15_12:
+    name: "e2e (1.15.12)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.15.12 make e2e'"
+  e2e-1_16_15:
+    name: "e2e (1.16.15)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.16.15 make e2e'"
+  e2e-1_17_17:
+    name: "e2e (1.17.17)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.17.17 make e2e'"
+  e2e-1_18_18:
+    name: "e2e (1.18.18)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.18.18 make e2e'"
+  e2e-1_19_10:
+    name: "e2e (1.19.10)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.19.10 make e2e'"
+  e2e-1_20_6:
+    name: "e2e (1.20.6)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.20.6 make e2e'"
+  e2e-1_21_0:
+    name: "e2e (1.21.0)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'KUBERNETES_VERSION=1.21.0 make e2e'"
+  e2e-default:
+    name: "e2e (default)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'make e2e'"
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - run: git fetch --prune --unshallow --tags
+      - uses: "cachix/install-nix-action@v14"
+      - uses: "cachix/cachix-action@v10"
+        with:
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          name: oneinfra
+      - run: "nix-shell --pure --run 'make test'"
+name: "Build, test and publish"
+on:
+  push: {}

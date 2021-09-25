@@ -79,10 +79,12 @@ platform-manifests:
 # Run golint against code
 lint:
 	golint -set_exit_status=1 ${PROJECT_GO_PACKAGES}
+	find . -name "*.dhall" | xargs -I{} sh -c "dhall lint --inplace '{}'"
 
 # Run gofmt against code
 fmt:
 	@test -z "$(shell gofmt -l ${PROJECT_GO_FOLDERS})" || (gofmt -d -l ${PROJECT_GO_FOLDERS} && exit 1)
+	find . -name "*.dhall" | xargs -I{} sh -c "dhall format --inplace '{}'"
 
 # Run go vet against code
 vet:

@@ -36,6 +36,7 @@ pkgs.mkShell {
     cri-tools
     dhall
     dhall-json
+    dhall-nix
     docker
     git
     go

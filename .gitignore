@@ -23,5 +23,8 @@ bin
 *.swo
 *~
 
+# nix results
+result
+
 # other files
 /*.conf

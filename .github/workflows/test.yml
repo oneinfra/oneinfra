@@ -11,14 +11,15 @@ jobs:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
+    - uses: cachix/install-nix-action@v14
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v10
+      with:
+        name: oneinfra
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: |
         git fetch --prune --unshallow --tags
-    - run: |
-        nix-env -iA cachix -f https://cachix.org/api/v1/install
-        cachix use oneinfra
     - name: Build
       run: |
         nix-shell --pure --run "make oi-binaries"
@@ -29,14 +30,15 @@ jobs:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
+    - uses: cachix/install-nix-action@v14
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v10
+      with:
+        name: oneinfra
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: |
         git fetch --prune --unshallow --tags
-    - run: |
-        nix-env -iA cachix -f https://cachix.org/api/v1/install
-        cachix use oneinfra
     - name: Test
       run: |
         nix-shell --pure --run "make test"
@@ -47,14 +49,15 @@ jobs:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
+    - uses: cachix/install-nix-action@v14
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v10
+      with:
+        name: oneinfra
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: |
         git fetch --prune --unshallow --tags
-    - run: |
-        nix-env -iA cachix -f https://cachix.org/api/v1/install
-        cachix use oneinfra
     - name: Test
       run: |
         nix-shell --pure --run "make e2e"
@@ -65,14 +68,15 @@ jobs:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v10
+    - uses: cachix/install-nix-action@v14
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v10
+      with:
+        name: oneinfra
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: |
         git fetch --prune --unshallow --tags
-    - run: |
-        nix-env -iA cachix -f https://cachix.org/api/v1/install
-        cachix use oneinfra
     - name: Test
       run: |
         nix-shell --pure --run "make e2e-remote"

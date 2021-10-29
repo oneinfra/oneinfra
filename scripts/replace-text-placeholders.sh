@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-for file in $(find . -type f -not -path "./dhall/*" -not -path "./apis/*"  -name "*.dhall" -not -name "*.yaml.dhall"); do
-    TARGET_FILE="$(echo $file | sed s/.dhall$//)"
+for file in $(find . -type f -not -path "./dhall/*" -not -path "./apis/*" \( -name "*.dhall" -or -name "*.text.dhall" \) -not -name "*.yaml.dhall"); do
+    TARGET_FILE="$(echo $file | sed s/.text.dhall$// | sed s/.dhall$//)"
     dhall text --file "$file" > ${TARGET_FILE}
 done
 
